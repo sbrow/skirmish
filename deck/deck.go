@@ -7,8 +7,6 @@ Optimal Workflow:
 
 Current Workflow:
 	Spreadsheet -> GAS -> json -> gocode -> dataset -> photoshop -> .pngs
-
-TODO: Sync the order between Label and Card.String()
 */
 package deck
 
@@ -68,8 +66,8 @@ const (
 )
 
 /*
-Card represents a unique card in the deck. Contains most information required for
-updating the Photoshop document.
+Card represents a unique card in the deck.
+Contains most information required for updating the Photoshop document.
 */
 type Card struct {
 	Name       string // The name of the card.
@@ -115,11 +113,12 @@ path = [HOME]/[c.Leader]/[c.Name].png
 */
 func (c *Card) CardImage(leader string) (path string) {
 	path = fmt.Sprintf("\"%s\\%s\\%s.png\",", HOME, leader, c.Name)
+
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.SetPrefix("[ERROR]")
 		log.Print(path, " does not exist!")
 	}
-	return
+	return path
 }
 
 /*
@@ -143,7 +142,7 @@ func (d *Card) DefaultBorder() bool {
 }
 
 /*
-Deck represents a deck, with leader and deck cards.
+Deck represents a skirkmish deck of unique cards, with leader and deck cards.
 */
 type Deck struct {
 	Leader Card
@@ -171,7 +170,6 @@ func (d *Deck) String() string {
 	var wg sync.WaitGroup
 	wg.Add(len(d.Cards))
 	out := make([]string, len(d.Cards))
-	// out[0] = Labels()
 	for i := range d.Cards {
 		go func(i int, out []string) {
 			defer wg.Done()
@@ -214,7 +212,6 @@ func (d *Deck) String() string {
 			out[i] = str
 		}(i, out)
 	}
-
 	wg.Wait()
 	ret := ""
 	for _, line := range out {
@@ -223,12 +220,19 @@ func (d *Deck) String() string {
 	return ret
 }
 
+/*
+wrapString wraps a string in double quotes.
+*/
 func wrapString(s string) string {
 	return fmt.Sprintf("\"%s\",", s)
 }
 
 /*
 Labels prints the column labels for .csv output.
+
+Labels is order sensitive: changing the order of labels will break the output
+unless a corresponding change is made in Deck.String.
+TODO: Fix this issue.
 */
 func Labels() string {
 	str := "name,cost,type,resolve,"

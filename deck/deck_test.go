@@ -56,7 +56,7 @@ func TestString(t *testing.T) {
 }
 
 func TestDeck_String(t *testing.T) {
-	d := New("F:\\GitLab\\dreamkeepers-psd\\card_jsons\\Bast.json")
+	d := go func() {New("F:\\GitLab\\dreamkeepers-psd\\card_jsons\\Bast.json")}()
 	f, err := os.Create("test.txt")
 	debug.Check(err)
 	defer f.Close()
