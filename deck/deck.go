@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"github.com/sbrow/debug"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -71,7 +73,7 @@ updating the Photoshop document.
 */
 type Card struct {
 	Name       string // The name of the card.
-	Leader     string // Deprecated, TODO: convert this to a Card pointer.
+	Leader     *Card  // The Leader of the deck.
 	Rarity     Rarity // How many copies of the card are in the deck.
 	Cost       int    // The resolve cost of the card.
 	Type       Type   // The card's type.
@@ -90,7 +92,7 @@ NewCard constructs a new card with default values.
 */
 func NewCard() *Card {
 	return &Card{
-		Leader:     BAST,
+		Leader:     nil,
 		Name:       "Card",
 		Rarity:     3,
 		Cost:       1,
@@ -107,13 +109,25 @@ func NewCard() *Card {
 }
 
 /*
-CardImage returns the path to the card's illustration.
+CardImage builds and returns a path to the card's illustration.
+
+path = [HOME]/[c.Leader]/[c.Name].png
 */
 func (c *Card) CardImage(leader string) (path string) {
-	return fmt.Sprintf("%s\\%s\\%s.png,", HOME, leader, c.Name)
+	path = fmt.Sprintf("\"%s\\%s\\%s.png\",", HOME, leader, c.Name)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.SetPrefix("[ERROR]")
+		log.Print(path, " does not exist!")
+	}
+	return
 }
 
-func (d *Card) normalBorder() bool {
+/*
+DefaultBorder returns the visibility of the default border layer.
+
+All cards use the default border except actions, continuous events and heroes.
+*/
+func (d *Card) DefaultBorder() bool {
 	switch {
 	case d.Rarity == RARE:
 		fallthrough
@@ -143,35 +157,36 @@ Input must be in JSON format and have a ".json" extension.
 func New(path string) (d *Deck) {
 	d = &Deck{}
 	contents, _ := ioutil.ReadFile(path)
-	err := json.Unmarshal(contents, &d.Cards)
+	_ = json.Unmarshal(contents, &d.Cards)
+	reg, err := regexp.Compile(".json")
 	debug.Check(err)
-	reg, err := regexp.Compile("Go.json")
-	debug.Check(err)
-
 	d.Leader = Card{Name: reg.ReplaceAllString(filepath.Base(path), "")}
+	for _, card := range d.Cards {
+		card.Leader = &d.Leader
+	}
 	return d
 }
 
 func (d *Deck) String() string {
 	var wg sync.WaitGroup
 	wg.Add(len(d.Cards))
-	out := make([]string, len(d.Cards)+1)
-	out[0] = Labels()
-	for i, card := range d.Cards {
+	out := make([]string, len(d.Cards))
+	// out[0] = Labels()
+	for i := range d.Cards {
 		go func(i int, out []string) {
 			defer wg.Done()
 			card := d.Cards[i]
-			str := fmt.Sprintf("\"%v\",", card.Name)
+			str := wrapString(card.Name)
 			str += fmt.Sprintf("%v,", card.Cost)
-			str += fmt.Sprintf("\"%v\",", card.Type)
+			str += wrapString(string(card.Type))
 			str += fmt.Sprintf("%v,", card.Resolve)
 			str += fmt.Sprintf("%v,", card.Speed)
 			str += fmt.Sprintf("%v,", card.Damage)
 			str += fmt.Sprintf("%v,", card.Toughness)
 			str += fmt.Sprintf("%v,", card.Life)
-			str += fmt.Sprintf("\"%v\",", card.ShortText)
-			str += fmt.Sprintf("\"%v\",", card.LongText)
-			str += fmt.Sprintf("\"%v\",", card.FlavorText)
+			str += wrapString(card.ShortText)
+			str += wrapString(card.LongText)
+			str += wrapString(card.FlavorText)
 			str += card.CardImage(d.Leader.Name)
 			str += fmt.Sprintf("%v,", strings.Contains(string(card.Type), string(ACTION)))
 			str += fmt.Sprintf("%v,", strings.Contains(string(card.Type), string(EVENT)))
@@ -195,8 +210,8 @@ func (d *Deck) String() string {
 				card.Type == "Follower" || card.Type == HERO)
 			str += fmt.Sprintf("%v,", card.Type == "Follower")
 			str += fmt.Sprintf("%v,", card.Type == HERO)
-			str += fmt.Sprintf("%v", card.normalBorder())
-			out[i+1] = str
+			str += fmt.Sprintf("%v", card.DefaultBorder())
+			out[i] = str
 		}(i, out)
 	}
 
@@ -206,6 +221,10 @@ func (d *Deck) String() string {
 		ret += line + "\n"
 	}
 	return ret
+}
+
+func wrapString(s string) string {
+	return fmt.Sprintf("\"%s\",", s)
 }
 
 /*
@@ -223,5 +242,6 @@ func Labels() string {
 	// str += "show_scinter,show_tinsel"
 	str += "show_resolve,show_speed,show_tough,show_life,"
 	str += "border_normal"
+	str += "\n"
 	return str
 }
