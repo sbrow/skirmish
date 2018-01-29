@@ -13,9 +13,8 @@ package deck
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sbrow/debug"
+	"github.com/sbrow/log"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -157,8 +156,7 @@ func New(path string) (d *Deck) {
 	d = &Deck{}
 	contents, _ := ioutil.ReadFile(path)
 	_ = json.Unmarshal(contents, &d.Cards)
-	reg, err := regexp.Compile(".json")
-	debug.Check(err)
+	reg, _ := regexp.Compile(".json") // TODO: Fix. possibly use strings pkg in place of regexp.
 	d.Leader = Card{Name: reg.ReplaceAllString(filepath.Base(path), "")}
 	for _, card := range d.Cards {
 		card.Leader = &d.Leader

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/sbrow/debug"
 	"github.com/sbrow/skirmish/deck"
 	"io"
 	"io/ioutil"
@@ -10,23 +9,21 @@ import (
 	"runtime/trace"
 )
 
-const FOLDER = "F:\\GitLab\\dreamkeepers-psd\\card_jsons"
+const Folder = "F:\\GitLab\\dreamkeepers-psd\\card_jsons"
 
 func main() {
 	trace.Start(os.Stdout)
 	defer trace.Stop()
-	f, err := os.Create("data.txt")
-	debug.Check(err)
+	f, _ := os.Create("data.txt") // TODO: Fix.
 	defer f.Close()
 
 	fmt.Fprint(f, deck.Labels())
-	dir, err := ioutil.ReadDir(FOLDER)
-	debug.Check(err)
+	dir, _ := ioutil.ReadDir(Folder) // TODO: Fix.
 
 	go func(w io.Writer) {
 		for _, file := range dir {
 			if isDeck(file.Name()) {
-				d := deck.New(FOLDER + "\\" + file.Name())
+				d := deck.New(Folder + "\\" + file.Name())
 				fmt.Fprintln(w, d.String())
 			}
 		}
