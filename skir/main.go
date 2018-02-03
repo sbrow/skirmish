@@ -1,13 +1,23 @@
-package skirmish
+package main
 
 import (
 	"fmt"
+	"github.com/sbrow/skirmish/cmd/gen"
+	"os"
 	"regexp"
 )
 
+func main() {
+	args := os.Args[1:]
+
+	if args[0] == "gen" {
+		gen.Main()
+	}
+}
+
 func ReplaceText(text string) {
 	// First, find the resolve text.
-	reg, err := regexp.Compile("{[1-9}")
+	reg, err := regexp.Compile("{[1-9]}")
 	if err != nil {
 		panic(err)
 		return
