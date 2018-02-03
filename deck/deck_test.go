@@ -2,8 +2,8 @@ package deck
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -18,6 +18,51 @@ import (
 	// }
 }
 */
+
+func TestSetArts(t *testing.T) {
+	c := NewCard()
+	c.Rarity = 3
+	if c.Arts != 1 {
+		t.Fail()
+	}
+	c.setArts(-1)
+	if c.Arts != 1 {
+		t.Fail()
+	}
+	c.setArts(4)
+	if c.Arts != 1 {
+		t.Fail()
+	}
+	c.setArts(2)
+	if c.Arts != 2 {
+		t.Fail()
+	}
+}
+
+func TestImage_One(t *testing.T) {
+	c := NewCard()
+	c.Name = "Blaze"
+	c.Rarity = 3
+	c.Arts = 1
+	_, err := c.Image("Bast")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestImage_Many(t *testing.T) {
+	c := NewCard()
+	c.Name = "Loyal Trooper"
+	c.Rarity = 3
+	c.Arts = 3
+	path, err := c.Image("Igrath")
+	if err != nil {
+		log.Println(path)
+		t.Fatal(err)
+	}
+}
+
+// TODO: Add fail conditions.
 func TestString(t *testing.T) {
 	t.Run("Action", func(t *testing.T) {
 		d := NewCard()
@@ -69,7 +114,7 @@ func TestDeck_String(t *testing.T) {
 		panic(err)
 	}
 	defer f.Close()
-	fmt.Fprintln(f, d.String())
+	fmt.Fprintln(f, d.Labels(), d.String())
 }
 func BenchmarkDeckString(b *testing.B) {
 	d := New("F:\\GitLab\\dreamkeepers-psd\\card_jsons\\Bast.json")

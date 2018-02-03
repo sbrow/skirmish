@@ -1,14 +1,14 @@
 // Package deck contains code for creating Photoshop data sets for Skirmish cards
 // from json files.
 //
-// TODO: Sync the order between Label and Card.String()
-// TODO: Implement images for cards with cameos.
+// TODO: Implement ID in string.
+// TODO: Implement ID in Photoshop.
 // TODO: Add support for heroes.
-// TODO: Enumerate Bordertype.
 package deck
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -65,11 +65,11 @@ type Type string
 // This is not an expansive list, only the types that actually
 // affect layer visibility.
 const (
-	ACTION     Type = "Action"
-	CONTINUOUS Type = "Event- Continuous"
-	EVENT      Type = "Event"
-	HERO       Type = "Deck Hero"
-	ITEM       Type = "Item"
+	Action     Type = "Action"
+	Continuous Type = "Event- Continuous"
+	Event      Type = "Event"
+	Hero       Type = "Deck Hero"
+	Item       Type = "Item"
 )
 
 // Card represents a Unique card in the deck. Contains most information required for
@@ -79,6 +79,7 @@ type Card struct {
 	Leader     *Card  // The Leader of the deck.
 	Rarity     int    // How many copies of the card are in the deck.
 	Cost       int    // The resolve cost of the card.
+	Arts       int    // The number of unique arts the card has.
 	Type       Type   // The card's type.
 	Resolve    int    // The resolve this card produces when in play.
 	Speed      int    // The speed the card has (if it's a character).
@@ -96,6 +97,7 @@ func NewCard() *Card {
 		Name:       "Card",
 		Rarity:     Common,
 		Cost:       1,
+		Arts:       1,
 		Type:       "card_type",
 		Resolve:    0,
 		Speed:      1,
@@ -108,16 +110,38 @@ func NewCard() *Card {
 	}
 }
 
-// CardImage builds and returns a path to the card's illustration.
+func (c *Card) setArts(n int) {
+	if n >= 1 && n <= c.Rarity {
+		c.Arts = n
+	}
+}
+
+func (c *Card) ID(ver int) string {
+	return fmt.Sprint(c.Name, "_", ver)
+}
+
+// Image builds and returns a path to the card's illustration.
 //
 // path = [Home]/[c.Leader]/[c.Name].png
-func (c *Card) CardImage(leader string) (path string) {
-	path = fmt.Sprintf("\"%s\\%s\\%s.png\",", Home, leader, c.Name)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.SetPrefix("[ERROR]")
-		log.Print(path, " does not exist!")
+func (c *Card) Image(leader string, ver ...int) (path string, err error) {
+	path = fmt.Sprintf(`%s\%s\`, Home, leader)
+	if c.Arts == 1 {
+		path += c.Name + ".png"
+	} else {
+		folder, err := ioutil.ReadDir(path + "\\")
+		if err != nil {
+			log.SetPrefix("[ERROR]")
+			log.Print(path, " does not exist!")
+		}
+		if len(ver) == 0 {
+			ver = append(ver, 0)
+		}
+		path += folder[ver[0]].Name()
 	}
-	return path
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		err = errors.New(fmt.Sprint(path, " does not exist!"))
+	}
+	return path, err
 }
 
 // DefaultBorder returns the visibility of the default border layer.
@@ -127,11 +151,11 @@ func (c *Card) DefaultBorder() bool {
 	switch {
 	case c.Rarity == Rare:
 		fallthrough
-	case c.Type == ACTION:
+	case c.Type == Action:
 		fallthrough
-	case c.Type == CONTINUOUS:
+	case c.Type == Continuous:
 		fallthrough
-	case c.Type == HERO:
+	case c.Type == Hero:
 		return false
 	default:
 		return true
@@ -147,21 +171,15 @@ func (c *Card) RarityString() string {
 	)
 }
 
-/*
-Deck represents a skirmish deck, with leader and deck cards.
-*/
+// Deck represents a skirmish deck, with leader and deck cards.
 type Deck struct {
 	Leader *Card
 	Cards  [Size]Card
 	labels []string
 }
 
-/*
-New takes an input file and creates a Deck from the data.
-Input must be in JSON format and have a ".json" extension.
-	default:
-		return true
-*/
+// New takes an input file and creates a Deck from the data.
+// Input must be in JSON format and have a ".json" extension.
 func New(path string) (d *Deck) {
 	d = &Deck{}
 	contents, err := ioutil.ReadFile(path)
@@ -178,7 +196,7 @@ func New(path string) (d *Deck) {
 		"Name", "Cost", "Type", "Resolve",
 		"Speed", "Damage", "Toughness", "Life",
 		"ShortText", "LongText", "FlavorText",
-		// "card_image,"
+		"card_image",
 		"Common", "Uncommon", "Rare",
 		"Action", "Event", "Continuous", "Item",
 		"Bast", "Igrath", "Lilith", "Vi",
@@ -224,13 +242,21 @@ func (d *Deck) String() string {
 						case "Rare":
 							str += fmt.Sprintf("%s", strings.Split(card.RarityString(), Delim)[Rarities[label]%3])
 						case "Action":
-							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(ACTION)))
+							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Action)))
 						case "Event":
-							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(EVENT)))
+							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Event)))
 						case "Continuous":
-							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(CONTINUOUS)))
+							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Continuous)))
 						case "Item":
-							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(ITEM)))
+							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Item)))
+						case "card_image":
+
+							img, err := card.Image(d.Leader.Name, j)
+							if err != nil {
+								img = ""
+							}
+							fmt.Println(img)
+							str += fmt.Sprintf("\"%s\"", img)
 						case "Bast":
 							fallthrough
 						case "Igrath":
@@ -257,11 +283,11 @@ func (d *Deck) String() string {
 							// TODO: Clumsy
 							str += fmt.Sprintf("%v",
 								strings.Contains(string(card.Type), "Follower") ||
-									strings.Contains(string(card.Type), string(HERO)))
+									strings.Contains(string(card.Type), string(Hero)))
 						case "show_tough":
 							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), "Follower"))
 						case "show_life":
-							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(HERO)))
+							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Hero)))
 						case "border_normal":
 							str += fmt.Sprintf("%v", card.DefaultBorder())
 						}
