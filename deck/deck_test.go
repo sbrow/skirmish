@@ -2,71 +2,81 @@ package deck
 
 import (
 	"fmt"
-	"github.com/sbrow/debug"
 	"os"
+	"strings"
 	"testing"
 )
 
-func TestLabels(t *testing.T) {
-	// fmt.Println(Labels())
+/*func TestRarity(t *testing.T) {
+	d := NewCard()
+	d.Name = "Bushwack Squad"
+	d.rarity = 3
+	// s := strings.Split(d.Rarity(), ",")
+	fmt.Println(strings.Split(d.Rarity(), Delim)[Rarities["Common"]%3])
+	// if s[0] != Rarities[Common] {
+	// t.Fatal("Rarities returned false.")
+	// }
 }
-
+*/
 func TestString(t *testing.T) {
 	t.Run("Action", func(t *testing.T) {
 		d := NewCard()
 		d.Name = "Smoke Trap"
 		d.Cost = 2
 		d.Type = "Action"
-		// fmt.Println(d)
+		fmt.Println(d)
 	})
 
 	t.Run("Follower", func(t *testing.T) {
 		d := NewCard()
-		d.Leader = "Scinter"
+		d.Leader = &Card{Name: "Scinter"}
 		d.Name = "Big Ninja"
-		d.Rarity = 2
+		d.Rarity = Uncommon
 		d.Cost = 3
 		d.Type = "Follower"
 		d.Damage = 3
 		d.Toughness = 3
-		// fmt.Println(d)
+		fmt.Println(d)
 	})
 
 	t.Run("Hero", func(t *testing.T) {
 		d := NewCard()
-		d.Leader = "Vi"
+		d.Leader = &Card{Name: "Vi"}
 		d.Name = "Rumour"
-		d.Rarity = 2
+		d.Rarity = Uncommon
 		d.Speed = 1
 		d.Cost = 3
 		d.Type = "Deck Hero"
 		d.Damage = 2
 		d.Life = 8
-		// fmt.Println(d)
+		fmt.Println(d)
 	})
 
 	t.Run("EventContinuous", func(t *testing.T) {
 		d := NewCard()
-		d.Leader = "Igrath"
+		d.Leader = &Card{Name: "Igrath"}
 		d.Name = "High Ground"
 		d.Cost = 2
 		d.Type = "Event- Continuous"
-		// fmt.Println(d)
+		fmt.Println(d)
 	})
 }
 
 func TestDeck_String(t *testing.T) {
 	d := New("F:\\GitLab\\dreamkeepers-psd\\card_jsons\\Bast.json")
 	f, err := os.Create("test.txt")
-	debug.Check(err)
+	if err != nil {
+		panic(err)
+	}
 	defer f.Close()
-	fmt.Fprintln(f, d.StringMut())
+	fmt.Fprintln(f, d.String())
 }
-
 func BenchmarkDeckString(b *testing.B) {
 	d := New("F:\\GitLab\\dreamkeepers-psd\\card_jsons\\Bast.json")
 	f, err := os.Create("test.txt")
-	debug.Check(err)
+	if err != nil {
+		panic(err)
+	}
 	defer f.Close()
 	b.ResetTimer()
 	b.Run("Wait", func(b *testing.B) {
