@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	pathpkg "path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -122,21 +123,22 @@ func (c *Card) ID(ver int) string {
 
 // Image builds and returns a path to the card's illustration.
 //
-// path = [Home]/[c.Leader]/[c.Name].png
+// path = [$SK_SRC]/[c.Leader]/[c.Name].png
 func (c *Card) Image(leader string, ver ...int) (path string, err error) {
-	path = fmt.Sprintf(`%s\%s\`, Home, leader)
+	path = fmt.Sprintf(pathpkg.Join(os.Getenv("SK_SRC"), leader))
 	if c.Arts == 1 {
 		path += c.Name + ".png"
 	} else {
-		folder, err := ioutil.ReadDir(path + "\\")
+		folder, err := ioutil.ReadDir(path)
 		if err != nil {
 			log.SetPrefix("[ERROR]")
-			log.Print(path, " does not exist!")
+			log.Print(folder, " does not exist!")
+			return "", err
 		}
 		if len(ver) == 0 {
 			ver = append(ver, 0)
 		}
-		path += folder[ver[0]].Name()
+		path = pathpkg.Join(path, folder[ver[0]].Name())
 	}
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		err = errors.New(fmt.Sprint(path, " does not exist!"))
@@ -193,7 +195,7 @@ func New(path string) (d *Deck) {
 	reg, _ := regexp.Compile(".json") // TODO: Fix this.
 	d.Leader = &Card{Name: reg.ReplaceAllString(filepath.Base(path), "")}
 	d.labels = []string{
-		"Name", "Cost", "Type", "Resolve",
+		"ID", "Name", "Cost", "Type", "Resolve",
 		"Speed", "Damage", "Toughness", "Life",
 		"ShortText", "LongText", "FlavorText",
 		"card_image",
@@ -235,6 +237,15 @@ func (d *Deck) String() string {
 						}
 					} else {
 						switch label {
+						case "ID":
+							str += card.ID(j)
+						case "card_image":
+							img, err := card.Image(d.Leader.Name, j)
+							if err != nil {
+								img = ""
+							} else {
+								str += fmt.Sprintf("\"%s\"", img)
+							}
 						case "Common":
 							fallthrough
 						case "Uncommon":
@@ -249,14 +260,6 @@ func (d *Deck) String() string {
 							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Continuous)))
 						case "Item":
 							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Item)))
-						case "card_image":
-
-							img, err := card.Image(d.Leader.Name, j)
-							if err != nil {
-								img = ""
-							}
-							fmt.Println(img)
-							str += fmt.Sprintf("\"%s\"", img)
 						case "Bast":
 							fallthrough
 						case "Igrath":
