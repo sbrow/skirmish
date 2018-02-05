@@ -8,10 +8,17 @@ import (
 )
 
 func main() {
-	args := os.Args[1:]
+	args := []string{}
+	cmd := ""
+	switch {
+	case len(args) > 0:
+		cmd = os.Args[1]
+	case len(args) > 1:
+		args = os.Args[2:]
+	}
 
-	if len(args) == 0 || args[0] == "gen" {
-		gen.Main()
+	if cmd == "gen" || cmd == "" {
+		gen.Main(args...)
 	}
 }
 

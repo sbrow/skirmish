@@ -48,24 +48,20 @@ func init() {
 		ImgDir = os.Getenv("SK_IMG")
 	}()
 
-	_, ok := os.LookupEnv("SK_SRC")
-	if !ok {
-		log.SetPrefix("[ERROR] ")
-		log.Panicf("Environment variable \"%s\" does not exist - please create it!",
-			"SK_SRC")
-		log.SetPrefix("")
-	}
-	_, ok = os.LookupEnv("SK_IMG")
-	if !ok {
-		log.SetPrefix("[ERROR] ")
-		log.Panicf("Environment variable \"%s\" does not exist - please create it!",
-			"SK_IMG")
-		log.SetPrefix("")
-	}
+	envVars = []string{"SK_SRC", "SK_IMG"}
+	for _, val := range envVars {
+		_, ok := os.LookupEnv(val)
+		if !ok {
+			log.SetPrefix("[ERROR] ")
+			log.Panicf("Environment variable \"%s\" does not exist - please create it!",
+				val)
+			log.SetPrefix("")
+		}
 
+	}
 }
 
-func Main() {
+func Main(args ...string) {
 	// trace.Start(os.Stdout)
 	// defer trace.Stop()
 	defer log.SetPrefix("")
