@@ -2,8 +2,8 @@ package gen
 
 import (
 	"fmt"
+	"github.com/sbrow/ps"
 	"github.com/sbrow/skirmish/deck"
-	"github.com/sbrow/skirmish/ps"
 	"io/ioutil"
 	"log"
 	"os"
@@ -48,7 +48,7 @@ func init() {
 		ImgDir = os.Getenv("SK_IMG")
 	}()
 
-	envVars = []string{"SK_SRC", "SK_IMG"}
+	envVars := []string{"SK_SRC", "SK_IMG"}
 	for _, val := range envVars {
 		_, ok := os.LookupEnv(val)
 		if !ok {
@@ -105,6 +105,7 @@ func genDataset() {
 }
 
 func genPSDs() {
+	log.SetPrefix("[photoshop] ")
 	defer func() {
 		r := recover()
 		if r != nil && strings.Contains(r.(string), "windows") {
@@ -128,8 +129,7 @@ func genPSDs() {
 	ps.Close()
 	log.Println("Closing Other open files")
 	log.Println("Quitting Photoshop")
-	v, _ := ps.Quit()
-	log.Printf("%s", v)
+	ps.Quit(2)
 }
 func isDeck(filename string) bool {
 	switch filename {
