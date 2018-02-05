@@ -10,7 +10,7 @@ import (
 func main() {
 	args := os.Args[1:]
 
-	if args[0] == "gen" {
+	if len(args) == 0 || args[0] == "gen" {
 		gen.Main()
 	}
 }

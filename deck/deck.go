@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	pathpkg "path"
+	// pathpkg "path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -118,27 +118,32 @@ func (c *Card) setArts(n int) {
 }
 
 func (c *Card) ID(ver int) string {
-	return fmt.Sprint(c.Name, "_", ver)
+	if c.Arts > 1 {
+		return fmt.Sprint(c.Name, "_", ver)
+	} else {
+		return c.Name
+	}
 }
 
 // Image builds and returns a path to the card's illustration.
 //
 // path = [$SK_SRC]/[c.Leader]/[c.Name].png
 func (c *Card) Image(leader string, ver ...int) (path string, err error) {
-	path = fmt.Sprintf(pathpkg.Join(os.Getenv("SK_SRC"), leader))
+	path = fmt.Sprintf(filepath.Join(os.Getenv("SK_IMG"), leader))
 	if c.Arts == 1 {
-		path += c.Name + ".png"
+		path = filepath.Join(path, c.Name+".png")
 	} else {
+		path = filepath.Join(path, c.Name)
 		folder, err := ioutil.ReadDir(path)
 		if err != nil {
 			log.SetPrefix("[ERROR]")
-			log.Print(folder, " does not exist!")
+			log.Print(path, " does not exist!")
 			return "", err
 		}
 		if len(ver) == 0 {
 			ver = append(ver, 0)
 		}
-		path = pathpkg.Join(path, folder[ver[0]].Name())
+		path = filepath.Join(path, folder[ver[0]-1].Name())
 	}
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		err = errors.New(fmt.Sprint(path, " does not exist!"))
@@ -218,31 +223,34 @@ func (d *Deck) String() string {
 		go func(i int, out []string) {
 			defer wg.Done()
 			card := d.Cards[i]
-			v := reflect.ValueOf(card)
-			for j := 1; j <= int(card.Rarity); j++ {
+			c := reflect.ValueOf(card)
+			for v := 1; v <= int(card.Arts); v++ {
 				str := ""
 				for _, label := range d.labels {
-					if (v.FieldByName(label) != reflect.Value{}) {
-						switch v.FieldByName(label).Interface().(type) {
+					if (c.FieldByName(label) != reflect.Value{}) {
+						switch c.FieldByName(label).Interface().(type) {
 						case Type:
-							str += fmt.Sprintf("\"%v\"", v.FieldByName(label))
+							str += fmt.Sprintf("\"%v\"", c.FieldByName(label))
 						case string:
-							str += fmt.Sprintf("\"%v\"", v.FieldByName(label))
+							str += fmt.Sprintf("\"%v\"", c.FieldByName(label))
 						case int:
 							if label == "Resolve" {
-								str += fmt.Sprintf("\"%+d\"", v.FieldByName(label))
+								str += fmt.Sprintf("\"%+d\"", c.FieldByName(label))
 							} else {
-								str += fmt.Sprintf("%d", v.FieldByName(label))
+								str += fmt.Sprintf("%d", c.FieldByName(label))
 							}
 						}
 					} else {
 						switch label {
 						case "ID":
-							str += card.ID(j)
+							str += card.ID(v)
 						case "card_image":
-							img, err := card.Image(d.Leader.Name, j)
+							img, err := card.Image(d.Leader.Name, v)
 							if err != nil {
-								img = ""
+								log.SetPrefix("[ERROR]")
+								log.Println(err)
+								log.SetPrefix("")
+
 							} else {
 								str += fmt.Sprintf("\"%s\"", img)
 							}

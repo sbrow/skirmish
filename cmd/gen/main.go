@@ -8,19 +8,70 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
 
 const Template = "F:\\GitLab\\dreamkeepers-psd\\Template009.1.psd"
 
-var Folder = os.Getenv("SK_SRC")
+var DataDir string
+var ImgDir string
+
+func init() {
+	defer log.SetPrefix("")
+	log.SetPrefix("[init] ")
+	log.Print("Initializing")
+
+	// Handle panics
+	defer func() {
+		env := ""
+		if r := recover(); r != nil {
+			switch r {
+			case strings.Contains(r.(string), "SK_IMG"):
+				env = "SK_IMG"
+			case strings.Contains(r.(string), "SK_SRC"):
+				env = "SK_SRC"
+			}
+			srcDir := ""
+			switch runtime.GOOS {
+			case "windows":
+				srcDir = filepath.Join(os.Getenv("HOMEPATH"), "Downloads")
+			default:
+				srcDir = path.Join(os.Getenv("HOME"), "Downloads")
+			}
+			os.Setenv(env, srcDir)
+			log.Printf("Environment variable \"%s\" not found. "+
+				"Will attempt to run with \"%[1]s=%s\"\n", env, os.Getenv(env))
+		}
+		DataDir = os.Getenv("SK_SRC")
+		ImgDir = os.Getenv("SK_IMG")
+	}()
+
+	_, ok := os.LookupEnv("SK_SRC")
+	if !ok {
+		log.SetPrefix("[ERROR] ")
+		log.Panicf("Environment variable \"%s\" does not exist - please create it!",
+			"SK_SRC")
+		log.SetPrefix("")
+	}
+	_, ok = os.LookupEnv("SK_IMG")
+	if !ok {
+		log.SetPrefix("[ERROR] ")
+		log.Panicf("Environment variable \"%s\" does not exist - please create it!",
+			"SK_IMG")
+		log.SetPrefix("")
+	}
+
+}
 
 func Main() {
 	// trace.Start(os.Stdout)
 	// defer trace.Stop()
-	// log.SetPrefix("[starting] ")
-	fmt.Println("Generating cards")
+	defer log.SetPrefix("")
+	log.SetPrefix("[main] ")
+
+	log.Println("Generating cards")
 	genDataset()
 	genPSDs()
 	log.SetPrefix("[photoshop] ")
@@ -32,18 +83,21 @@ func Main() {
 func genDataset() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
-	f, _ := os.Create("data.txt") // TODO: Fix.
-	defer f.Close()
-
-	dir, err := ioutil.ReadDir(Folder) // TODO: Fix.
+	f, err := os.Create("data.txt") // TODO: Fix.
 	if err != nil {
 		panic(err)
+	}
+	defer f.Close()
+
+	dir, err := ioutil.ReadDir(DataDir) // TODO: Fix.
+	if err != nil {
+		panic(fmt.Sprintf("%s (%s)", err, DataDir))
 	}
 	labels := false
 	for _, file := range dir {
 		if isDeck(file.Name()) {
-			d := deck.New(path.Join(Folder, file.Name()))
-			// log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
+			d := deck.New(path.Join(DataDir, file.Name()))
+			log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
 			if !labels {
 				fmt.Fprint(f, d.Labels())
 				labels = true
@@ -51,32 +105,35 @@ func genDataset() {
 			fmt.Fprintln(f, d.String())
 		}
 	}
-	log.Println(`..."dataset.csv" generated!`)
+	log.Println("\"dataset.csv\" generated!")
 }
 
 func genPSDs() {
 	defer func() {
-		if r := recover(); strings.Contains(r.(string), "windows") {
+		r := recover()
+		if r != nil && strings.Contains(r.(string), "windows") {
 			log.Printf("skipping genPSDs(): %s (%s)",
-				"Not supported on this OS.",
+				"Photoshop integration not supported on this OS.",
 				runtime.GOOS)
 		}
 	}()
 	log.Println("Opening photoshop")
 	if runtime.GOOS != "windows" {
 		log.Panic("Non-windows OS detected. skir only interfaces with " +
-			"64 bit Windows.")
+			"Photoshop for Windows.")
 	}
 	ps.Start()
 	log.Println("Opening Template")
 	ps.Open(Template)
 	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
-	// ps.Js(path.Join(ps.Folder, ("syncCards.jsx")), ps.Folder)
+	// ps.Js(path.Join(ps.DataDir, ("syncCards.jsx")), ps.DataDir)
 	ps.Js("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")
 	ps.Close()
+	log.Println("Closing Other open files")
 	log.Println("Quitting Photoshop")
-	ps.Quit()
+	v, _ := ps.Quit()
+	log.Printf("%s", v)
 }
 func isDeck(filename string) bool {
 	switch filename {
