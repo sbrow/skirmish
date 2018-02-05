@@ -1,13 +1,22 @@
+// TODO: config file for non-programmers
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/sbrow/skirmish/cmd/gen"
 	"os"
 	"regexp"
 )
 
+func init() {
+}
+
 func main() {
+	flagSet := flag.NewFlagSet("", flag.ExitOnError)
+	fast := flagSet.Bool("f", false, "fast mode: skips dataset generation.")
+	flagSet.Parse(os.Args[2:])
+
 	args := []string{}
 	cmd := ""
 	switch {
@@ -16,9 +25,14 @@ func main() {
 	case len(args) > 1:
 		args = os.Args[2:]
 	}
-
+	// TODO: So kludgey
 	if cmd == "gen" || cmd == "" {
-		gen.Main(args...)
+		fmt.Println(*fast)
+		if *fast {
+			gen.GenPSDs(*fast)
+		} else {
+			gen.Main(args...)
+		}
 	}
 }
 

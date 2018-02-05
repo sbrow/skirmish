@@ -1,8 +1,6 @@
 // Package deck contains code for creating Photoshop data sets for Skirmish cards
 // from json files.
 //
-// TODO: Implement ID in string.
-// TODO: Implement ID in Photoshop.
 // TODO: Add support for heroes.
 package deck
 
@@ -13,7 +11,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	// pathpkg "path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -79,7 +76,7 @@ type Card struct {
 	Name       string // The name of the card.
 	Leader     *Card  // The Leader of the deck.
 	Rarity     int    // How many copies of the card are in the deck.
-	Cost       int    // The resolve cost of the card.
+	Cost       string // The resolve cost of the card.
 	Arts       int    // The number of unique arts the card has.
 	Type       Type   // The card's type.
 	Resolve    int    // The resolve this card produces when in play.
@@ -97,7 +94,7 @@ func NewCard() *Card {
 	return &Card{
 		Name:       "Card",
 		Rarity:     Common,
-		Cost:       1,
+		Cost:       "1",
 		Arts:       1,
 		Type:       "card_type",
 		Resolve:    0,
@@ -119,9 +116,9 @@ func (c *Card) setArts(n int) {
 
 func (c *Card) ID(ver int) string {
 	if c.Arts > 1 {
-		return fmt.Sprint(c.Name, "_", ver)
+		return wrapString(fmt.Sprint(c.Name, "_", ver))
 	} else {
-		return c.Name
+		return wrapString(c.Name)
 	}
 }
 
@@ -234,9 +231,16 @@ func (d *Deck) String() string {
 						case string:
 							str += fmt.Sprintf("\"%v\"", c.FieldByName(label))
 						case int:
-							if label == "Resolve" {
-								str += fmt.Sprintf("\"%+d\"", c.FieldByName(label))
-							} else {
+							switch label {
+							case "Resolve":
+								str += fmt.Sprintf("\"%+d\"", card.Resolve)
+							case "Cost":
+								if card.Cost != "X" {
+									str += fmt.Sprintf("\"%s\"", card.Cost)
+								} else {
+									str += fmt.Sprintf("%d", card.Cost)
+								}
+							default:
 								str += fmt.Sprintf("%d", c.FieldByName(label))
 							}
 						}
@@ -259,7 +263,7 @@ func (d *Deck) String() string {
 						case "Uncommon":
 							fallthrough
 						case "Rare":
-							str += fmt.Sprintf("%s", strings.Split(card.RarityString(), Delim)[Rarities[label]%3])
+							str += fmt.Sprintf("%s", strings.Split(card.RarityString(), Delim)[3-Rarities[label]])
 						case "Action":
 							str += fmt.Sprintf("%v", strings.Contains(string(card.Type), string(Action)))
 						case "Event":
@@ -305,7 +309,8 @@ func (d *Deck) String() string {
 					}
 					str += Delim
 				}
-				out[i] += str[:len(str)-1] + "\n"
+				// out[i] += str[:len(str)-1] + "\n"
+				out[i] += strings.TrimSuffix(str, ",") + "\n"
 			}
 		}(i, out)
 	}
@@ -315,7 +320,7 @@ func (d *Deck) String() string {
 	for _, line := range out {
 		ret += fmt.Sprintf("%s", line)
 	}
-	return ret[:len(ret)-2]
+	return strings.TrimSuffix(ret, "\n")
 }
 
 func (c *Card) checkRarityString(r Rarity) bool {
@@ -324,7 +329,7 @@ func (c *Card) checkRarityString(r Rarity) bool {
 
 // wrapString wraps a string in double quotes.
 func wrapString(s string) string {
-	return fmt.Sprintf("\"%s\",", s)
+	return fmt.Sprintf("\"%s\"", s)
 }
 
 // Labels prints the column labels for .csv output.

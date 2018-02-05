@@ -69,7 +69,7 @@ func Main(args ...string) {
 
 	log.Println("Generating cards")
 	genDataset()
-	genPSDs()
+	GenPSDs(false)
 	log.SetPrefix("[photoshop] ")
 
 	// log.SetPrefix("\n[complete] ")
@@ -79,13 +79,13 @@ func Main(args ...string) {
 func genDataset() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
-	f, err := os.Create("data.txt") // TODO: Fix.
+	f, err := os.Create("data.txt")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	dir, err := ioutil.ReadDir(DataDir) // TODO: Fix.
+	dir, err := ioutil.ReadDir(DataDir)
 	if err != nil {
 		panic(fmt.Sprintf("%s (%s)", err, DataDir))
 	}
@@ -104,7 +104,7 @@ func genDataset() {
 	log.Println("\"dataset.csv\" generated!")
 }
 
-func genPSDs() {
+func GenPSDs(fast bool) {
 	log.SetPrefix("[photoshop] ")
 	defer func() {
 		r := recover()
@@ -122,8 +122,12 @@ func genPSDs() {
 	ps.Start()
 	log.Println("Opening Template")
 	ps.Open(Template)
-	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
-	// ps.Js(path.Join(ps.DataDir, ("syncCards.jsx")), ps.DataDir)
+	if !fast {
+		ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
+	} else {
+		//TODO: hotfix
+		ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
+	}
 	ps.Js("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")
 	ps.Close()
@@ -138,8 +142,6 @@ func isDeck(filename string) bool {
 	case "Heroes.json":
 		fallthrough
 	case "old":
-		fallthrough
-	case "Wisp.json": // TODO: Hack.
 		return false
 	default:
 		return true
