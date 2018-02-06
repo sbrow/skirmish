@@ -61,22 +61,7 @@ func init() {
 	}
 }
 
-func Main(args ...string) {
-	// trace.Start(os.Stdout)
-	// defer trace.Stop()
-	defer log.SetPrefix("")
-	log.SetPrefix("[main] ")
-
-	log.Println("Generating cards")
-	genDataset()
-	GenPSDs(false)
-	log.SetPrefix("[photoshop] ")
-
-	// log.SetPrefix("\n[complete] ")
-	fmt.Println("Cards successfully generated!")
-}
-
-func genDataset() {
+func Dataset() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
 	f, err := os.Create("data.txt")
@@ -104,30 +89,13 @@ func genDataset() {
 	log.Println("\"dataset.csv\" generated!")
 }
 
-func GenPSDs(fast bool) {
+func PSDs() {
 	log.SetPrefix("[photoshop] ")
-	defer func() {
-		r := recover()
-		if r != nil && strings.Contains(r.(string), "windows") {
-			log.Printf("skipping genPSDs(): %s (%s)",
-				"Photoshop integration not supported on this OS.",
-				runtime.GOOS)
-		}
-	}()
 	log.Println("Opening photoshop")
-	if runtime.GOOS != "windows" {
-		log.Panic("Non-windows OS detected. skir only interfaces with " +
-			"Photoshop for Windows.")
-	}
 	ps.Start()
 	log.Println("Opening Template")
 	ps.Open(Template)
-	if !fast {
-		ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
-	} else {
-		//TODO: hotfix
-		ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
-	}
+	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
 	ps.Js("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")
 	ps.Close()

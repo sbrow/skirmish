@@ -4,13 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sbrow/skirmish/cmd/gen"
+	"github.com/sbrow/skirmish/gen"
+	"log"
 	"os"
 	"regexp"
 )
-
-func init() {
-}
 
 func main() {
 	flagSet := flag.NewFlagSet("", flag.ExitOnError)
@@ -25,14 +23,15 @@ func main() {
 	case len(args) > 1:
 		args = os.Args[2:]
 	}
-	// TODO: So kludgey
 	if cmd == "gen" || cmd == "" {
-		fmt.Println(*fast)
-		if *fast {
-			gen.GenPSDs(*fast)
-		} else {
-			gen.Main(args...)
+		log.SetPrefix("[main] ")
+		if !*fast {
+			log.Println("Generating cards")
+			gen.Dataset()
 		}
+		log.SetPrefix("[photoshop] ")
+		gen.PSDs()
+		log.Println("Cards successfully generated!")
 	}
 }
 
@@ -41,7 +40,6 @@ func ReplaceText(text string) {
 	reg, err := regexp.Compile("{[1-9]}")
 	if err != nil {
 		panic(err)
-		return
 	}
 	temp := reg.FindStringIndex(text)
 	resolve := text[temp[0]:temp[1]]
