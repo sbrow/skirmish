@@ -1,4 +1,3 @@
-// TODO: config file for non-programmers
 package main
 
 import (
