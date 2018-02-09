@@ -1,5 +1,4 @@
-// package main
-package gen
+package build
 
 import (
 	"testing"

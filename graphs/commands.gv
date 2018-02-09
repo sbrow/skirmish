@@ -1,35 +1,37 @@
 digraph {
 	node [shape=record]
-	ps [label="github.com/sbrow/ps"]
 	subgraph cluster_sql {
 		label = "SQL Database"
 		node [shape=note]
-		decks [label="DeckCards"]
-		heroes [label="NonDeckCards"]
 		bold [label="BoldWords"]
+		heroes [label="NonDeckCards"]
 		colors [label="Colors"]
+		decks [label="DeckCards"]
 	}
 	subgraph cluster_skirmish {
 		label = "github.com/sbrow/skirmish"
 		node [shape=record]
+		skps [label="ps"]
 		subgraph cluster_build {
 			label = "build"
 			data [label="data (-d)"]
 			r [label="regex (-r)"]
+			psds [label="psds (-p)"]
 		}
-		skps [label="ps"]
 		card
 		deck
 		decks -> {card, deck}
 	}
-	dataset [label="dataset.csv" shape=note]
-	regexp [label="$SK_REG" shape=record]
-	bold -> r -> regexp
-
-	{decks, heroes, regexp, colors} -> data
-	data -> dataset
-	out [label="stdout"]
+	out [label="stdout" shape=note]
 	{deck, card} -> out
-	psds [shape=folder]
-	{dataset, ps} -> skps -> psds
+	ps [label="github.com/sbrow/ps"]
+	dataset [label="dataset.csv" shape=note]
+	bold -> r -> {decks, heroes}
+
+	{decks, heroes, colors} -> data
+	data -> dataset
+	output [label="psds" shape=folder]
+	{ps, skps, data}-> psds
+	psds -> output
+	{rank=same; output; out; dataset}
 }	

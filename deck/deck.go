@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	// "os"
 	"reflect"
 	"strings"
@@ -23,15 +24,20 @@ type Deck struct {
 
 // New takes an input file and creates a Deck from the data.
 // Input must be in JSON format and have a ".json" extension.
-func New(path string, leader *NonDeckCard) (d *Deck) {
-	d = &Deck{Leader: leader}
+func New(path string) (d *Deck) {
+
+	d = &Deck{
+		Leader: &NonDeckCard{
+			Card:    Card{Name: strings.TrimSuffix(filepath.Base(path), ".json")},
+			Faction: Troika,
+		},
+	}
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 	err = json.Unmarshal(contents, &d.DeckCards)
 	if err != nil {
-		fmt.Println(leader.Card.Name)
 		panic(err)
 	}
 	d.labels = []string{
@@ -147,7 +153,6 @@ func (d *Deck) String() string {
 					}
 					str += Delim
 				}
-				// out[i] += str[:len(str)-1] + "\n"
 				out[i] += strings.TrimSuffix(str, ",") + "\n"
 			}
 		}(i, out)

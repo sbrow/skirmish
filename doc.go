@@ -3,10 +3,10 @@
 // Build
 //
 // Generate data files.
-//		skir build all
-//		skir build regex
-//		skir build bold
-//		skir build data
+//		skir build
+//		skir build regex / skirmish build -r
+//		skir build bold  / skirmish build -b
+//		skir build data  / skirmish build -d
 //
 // PS
 //
