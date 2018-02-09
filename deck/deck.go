@@ -31,6 +31,7 @@ func New(path string, leader *NonDeckCard) (d *Deck) {
 	}
 	err = json.Unmarshal(contents, &d.DeckCards)
 	if err != nil {
+		fmt.Println(leader.Card.Name)
 		panic(err)
 	}
 	d.labels = []string{

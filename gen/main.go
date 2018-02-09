@@ -64,7 +64,8 @@ func init() {
 func Dataset() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
-	f, err := os.Create("data.txt")
+	// f, err := os.Create(filepath.Join(os.Getenv("SK_SRC"), "data.txt"))
+	f, err := os.Create(filepath.Join("data.txt"))
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +78,10 @@ func Dataset() {
 	labels := false
 	for _, file := range dir {
 		if isDeck(file.Name()) {
-			d := deck.New(path.Join(DataDir, file.Name()))
+			d := deck.New(path.Join(DataDir, file.Name()),
+				&deck.NonDeckCard{
+					Card: deck.Card{Name: strings.TrimSuffix(file.Name(), ".json")},
+				})
 			log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
 			if !labels {
 				fmt.Fprint(f, d.Labels())
@@ -96,15 +100,18 @@ func PSDs() {
 	log.Println("Opening Template")
 	ps.Open(Template)
 	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
-	ps.Js("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
+	ps.DoJs("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")
 	ps.Close()
 	log.Println("Closing Other open files")
 	log.Println("Quitting Photoshop")
 	ps.Quit(2)
 }
+
 func isDeck(filename string) bool {
 	switch filename {
+	case "data.txt":
+		fallthrough
 	case "Formatting.json":
 		fallthrough
 	case "Heroes.json":
