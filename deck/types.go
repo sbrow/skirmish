@@ -95,7 +95,7 @@ const (
 	Continuous Type = "Event- Continuous"
 	Event      Type = "Event"
 	Hero       Type = "Deck Hero"
-	Leader     Type = "Leader"
+	LeaderHero Type = "Leader"
 	Bonus      Type = "Bonus"
 	Item       Type = "Item"
 )

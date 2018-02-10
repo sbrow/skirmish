@@ -24,9 +24,8 @@ type Deck struct {
 
 // New takes an input file and creates a Deck from the data.
 // Input must be in JSON format and have a ".json" extension.
-func New(path string) (d *Deck) {
-
-	d = &Deck{
+func New(path string) (*Deck, error) {
+	d := &Deck{
 		Leader: &NonDeckCard{
 			Card:    Card{Name: strings.TrimSuffix(filepath.Base(path), ".json")},
 			Faction: Troika,
@@ -34,11 +33,11 @@ func New(path string) (d *Deck) {
 	}
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	err = json.Unmarshal(contents, &d.DeckCards)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	d.labels = []string{
 		"ID", "Name", "Cost", "Type", "Resolve",
@@ -53,7 +52,7 @@ func New(path string) (d *Deck) {
 		"show_resolve", "show_speed", "show_tough", "show_life",
 		"border_normal",
 	}
-	return d
+	return d, nil
 }
 
 func (d *Deck) String() string {
@@ -93,7 +92,7 @@ func (d *Deck) String() string {
 						case "ID":
 							str += card.ID(v)
 						case "card_image":
-							img, err := card.Image(d.Leader.Name, v)
+							img, err := card.Image(v)
 							if err != nil {
 								log.SetPrefix("[ERROR]")
 								log.Println(err)

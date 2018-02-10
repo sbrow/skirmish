@@ -13,10 +13,6 @@ import (
 	"strings"
 )
 
-var Template = filepath.Join(os.Getenv("SK_DIR"), "Template009.1.psd")
-var DataDir = filepath.Join(os.Getenv("SK_DIR"), "card_jsons") // TODO: Fix
-var ImageDir = filepath.Join(os.Getenv("SK_DIR"), "Images")
-
 func init() {
 	defer log.SetPrefix("")
 	log.SetPrefix("[init] ")
