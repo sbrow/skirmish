@@ -8,26 +8,6 @@ import (
 	"testing"
 )
 
-func TestSetArts(t *testing.T) {
-	c := NewDeckCard()
-	c.Rarity = 3
-	if c.Arts != 1 {
-		t.Fail()
-	}
-	c.setArts(-1)
-	if c.Arts != 1 {
-		t.Fail()
-	}
-	c.setArts(4)
-	if c.Arts != 1 {
-		t.Fail()
-	}
-	c.setArts(2)
-	if c.Arts != 2 {
-		t.Fail()
-	}
-}
-
 func TestRarity(t *testing.T) {
 	c := NewDeckCard()
 	rarity, err := rarity(4)

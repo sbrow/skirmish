@@ -12,6 +12,12 @@ import (
 	"strings"
 )
 
+type CardInterface interface {
+	ID(int) string
+	Labels() string
+	String() string
+}
+
 // Card hold the values shared by Deck cards and NonDeckCards.
 type Card struct {
 	Name       string   // The name of the card.
@@ -171,60 +177,11 @@ func (c *Card) JSON() ([]byte, error) {
 type NonDeckCard struct {
 	Card
 	Faction
-	Halo bool //Whether or not this card represents the character's "power active" side.
-}
-
-// TODO: Re-do with less duplicated fields.
-type Leader struct {
-	Front NonDeckCard
-	Halo  NonDeckCard
-}
-
-// DeckCard represents a unique card in the deck. Contains most information
-// required for updating the Photoshop document.
-type DeckCard struct {
-	Card          // Basic card values.
-	Rarity        // How many copies of the card are in the deck.
-	Leader        // The leader of the deck.
-	Cost   string // The resolve cost of the card.
-}
-
-// NewDeckCard constructs a new card with default values.
-func NewDeckCard() *DeckCard {
-	c := NewCard()
-	c.labels = append(c.labels, "Cost", "Common", "Uncommon", "Rare", "border_normal")
-	// TODO: SQL this
-	/*	for _, name := range leaders {
-				c.labels = append(c.labels, name)
-			}
-		c.dir = leader.Name
-	*/
-	return &DeckCard{Card: *c,
-		Rarity: Common,
-		Cost:   "1",
-	}
-}
-
-// DefaultBorder returns the visibility of the default border layer.
-//
-// All cards use the default border except actions, continuous events and heroes.
-func (c *DeckCard) DefaultBorder() bool {
-	switch {
-	case c.Rarity == Rare:
-		fallthrough
-	case c.Type == Action:
-		fallthrough
-	case c.Type == Continuous:
-		fallthrough
-	case c.Type == Hero:
-		return false
-	default:
-		return true
-	}
-}
-
-func (c *DeckCard) setArts(n int) {
-	if n >= 1 && n <= c.Rarity.Int() {
-		c.Arts = n
-	}
+	HaloResolve    int
+	HaloSpeed      int
+	HaloDamage     int
+	HaloLife       int
+	HaloShortText  string
+	HaloLongText   string
+	HaloFlavorText string
 }

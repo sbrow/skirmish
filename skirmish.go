@@ -11,3 +11,5 @@ import (
 var Template = filepath.Join(os.Getenv("SK_DIR"), "Template009.1.psd")
 var DataDir = filepath.Join(os.Getenv("SK_DIR"), "card_jsons")
 var ImageDir = filepath.Join(os.Getenv("SK_DIR"), "Images")
+
+var Leaders = []string{} //Load from SQL
