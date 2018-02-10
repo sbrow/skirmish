@@ -1,21 +1,18 @@
-IF OBJECT_ID('Factions', 'U') IS NULL
-BEGIN
-CREATE TABLE Factions(
-	Name varchar(255)
-	PRIMARY KEY (Name)
+CREATE TABLE IF NOT EXISTS Checksums(
+	Key varchar(25) NOT NULL PRIMARY KEY,
+	Value char(64)
 );
-INSERT INTO Factions VALUES
-('Troika'), ('Nightmares');
-END
-IF OBJECT_ID('Leaders', 'U') IS NULL
-BEGIN
-CREATE TABLE Leaders(
-	Name varchar(255),
-	Faction varchar(255)
-	PRIMARY KEY (Name)
-	FOREIGN KEY (Faction) REFERENCES Factions(Name)
+CREATE TABLE IF NOT EXISTS Factions(
+	Name varchar(11) NOT NULL PRIMARY KEY
 );
-INSERT INTO Factions VALUES
+INSERT INTO Factions(Name) VALUES ON DUPLICATE KEY UPDATE
+	('Troika'),
+	('Nightmares');
+CREATE TABLE IF NOT EXISTS Leaders(
+	Name varchar(11) PRIMARY KEY,
+	Faction varchar(11) FOREIGN KEY REFERENCES Factions(Name)
+);
+INSERT INTO Leader(Name, Faction) VALUES ON DUPLICATE KEY UPDATE
 ('Bast', 'Troika'),
 ('Igrath', 'Troika'),
 ('Lilith', 'Troika'),
@@ -26,4 +23,3 @@ INSERT INTO Factions VALUES
 ('Tendril', 'Nightmares'),
 ('Tinsel', 'Nightmares'),
 ('Wisp', 'Nightmares');
-END
