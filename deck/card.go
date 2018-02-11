@@ -21,7 +21,6 @@ type CardInterface interface {
 // Card hold the values shared by Deck cards and NonDeckCards.
 type Card struct {
 	Name       string   // The name of the card.
-	Arts       int      // The number of unique arts the card has.
 	Type       Type     // The card's type.
 	Resolve    int      // The resolve this card produces when in play.
 	Speed      int      // The speed the card has (if it's a character).
@@ -106,67 +105,63 @@ func (c *Card) Image(ver int) (path string, err error) {
 }
 
 func (c *Card) String() string {
-	ret := ""
-	for i := 1; i <= c.Arts; i++ {
-		str := ""
-		for _, label := range c.labels {
-			switch label {
-			case "ID":
-				str += fmt.Sprintf("\"%s\"", c.ID(i))
-			case "Name":
-				str += fmt.Sprintf("\"%s\"", c.Name)
-			case "Resolve":
-				str += fmt.Sprintf("\"%+d\"", c.Resolve)
-			case "Speed":
-				str += fmt.Sprint(c.Speed)
-			case "Damage":
-				str += fmt.Sprint(c.Damage)
-			case "Toughness":
-				str += fmt.Sprint(c.Toughness)
-			case "Life":
-				str += fmt.Sprint(c.Life)
-			case "ShortText":
-				str += fmt.Sprintf("\"%s\"", c.ShortText)
-			case "LongText":
-				str += fmt.Sprintf("\"%s\"", c.LongText)
-			case "FlavorText":
-				str += fmt.Sprintf("\"%s\"", c.FlavorText)
-			case "card_image":
-				img, err := c.Image(i) //Borked, need leader name
-				if err != nil {
-					pre := log.Prefix()
-					log.SetPrefix("[ERROR] ")
-					log.Println(err)
-					log.SetPrefix(pre)
-					str += ""
-				} else {
-					str += fmt.Sprintf("\"%s\"", img)
-				}
-			case "Action":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Action)))
-			case "Event":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Event)))
-			case "Continuous":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Continuous)))
-			case "Item":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Item)))
-			case "show_resolve":
-				str += fmt.Sprintf("%v", c.Resolve != 0)
-			case "show_speed":
-				// TODO: Clumsy
-				str += fmt.Sprintf("%v",
-					strings.Contains(string(c.Type), "Follower") ||
-						strings.Contains(string(c.Type), string(Hero)))
-			case "show_tough":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), "Follower"))
-			case "show_life":
-				str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Hero)))
+	str := ""
+	for _, label := range c.labels {
+		switch label {
+		case "ID":
+			str += fmt.Sprintf("\"%s\"", c.ID(i))
+		case "Name":
+			str += fmt.Sprintf("\"%s\"", c.Name)
+		case "Resolve":
+			str += fmt.Sprintf("\"%+d\"", c.Resolve)
+		case "Speed":
+			str += fmt.Sprint(c.Speed)
+		case "Damage":
+			str += fmt.Sprint(c.Damage)
+		case "Toughness":
+			str += fmt.Sprint(c.Toughness)
+		case "Life":
+			str += fmt.Sprint(c.Life)
+		case "ShortText":
+			str += fmt.Sprintf("\"%s\"", c.ShortText)
+		case "LongText":
+			str += fmt.Sprintf("\"%s\"", c.LongText)
+		case "FlavorText":
+			str += fmt.Sprintf("\"%s\"", c.FlavorText)
+		case "card_image":
+			img, err := c.Image(i) //Borked, need leader name
+			if err != nil {
+				pre := log.Prefix()
+				log.SetPrefix("[ERROR] ")
+				log.Println(err)
+				log.SetPrefix(pre)
+				str += ""
+			} else {
+				str += fmt.Sprintf("\"%s\"", img)
 			}
-			str += Delim
+		case "Action":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Action)))
+		case "Event":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Event)))
+		case "Continuous":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Continuous)))
+		case "Item":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Item)))
+		case "show_resolve":
+			str += fmt.Sprintf("%v", c.Resolve != 0)
+		case "show_speed":
+			// TODO: Clumsy
+			str += fmt.Sprintf("%v",
+				strings.Contains(string(c.Type), "Follower") ||
+					strings.Contains(string(c.Type), string(Hero)))
+		case "show_tough":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), "Follower"))
+		case "show_life":
+			str += fmt.Sprintf("%v", strings.Contains(string(c.Type), string(Hero)))
 		}
-		ret += strings.TrimSuffix(str, ",") + "\n"
+		str += Delim
 	}
-	return strings.TrimSuffix(ret, "\n")
+	return strings.TrimSuffix(str, ",") + "\n"
 }
 
 func (c *Card) JSON() ([]byte, error) {
