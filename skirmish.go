@@ -32,7 +32,7 @@ func init() {
 
 	// Load data into database.
 	// TODO: Only load if sha doesn't match.
-	err = loadSQL("sql/db.sql") // TODO: Temp
+	//err = loadSQL("sql/db.sql") // TODO: Temp
 	if err != nil {
 		panic(err)
 	}
@@ -63,8 +63,7 @@ func loadSQL(path string) error {
 
 // loadLeaders loads the list of valid deck leaders from the database.
 func loadLeaders() {
-	leaders, err := Database.Query(
-		"SELECT Name FROM Skirmish.NonDeckCards WHERE NOT Faction='Neutral'")
+	leaders, err := Database.Query("SELECT Name FROM Skirmish.Leaders")
 	defer leaders.Close()
 	if err != nil {
 		panic(err)
