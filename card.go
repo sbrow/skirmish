@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"io/ioutil"
-	// "log"
-	// "os"
-	// "path/filepath"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	// "regexp"
 	"strings"
 )
@@ -29,7 +29,7 @@ type Card interface {
 	Labels() []string
 	String() string
 	CSV() [][]string
-	// Images() []string
+	Images() ([]string, error)
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
@@ -103,26 +103,26 @@ func (c card) Labels() []string {
 // Images for leader and partner heroes should be in a directory names "Heroes".
 //
 // path = [$SK_SRC]/[folder]]/[c.Name].png
-// func (c *Card) Image(dir string) (paths []string, err error) {
-// 	path[0] = fmt.Sprintf(filepath.Join(ImageDir, dir))
-// 	if c.Arts == 1 {
-// 		path = filepath.Join(path, c.Name+".png")
-// 	} else {
-// 		path = filepath.Join(path, c.Name)
-// 		dir, err := ioutil.ReadDir(path)
-// 		if err != nil {
-// 			log.SetPrefix("[ERROR]")
-// 			log.Print(path, " does not exist!")
-// 			return "", err
-// 		}
-// 		path = filepath.Join(path, dir[ver-1].Name())
-// 	}
+func (c *card) Images() (paths []string, err error) {
+	// path[0] = fmt.Sprintf(filepath.Join(ImageDir, dir))
+	// if c.Arts == 1 {
+	// path = filepath.Join(ImageDir, c.Name+".png")
+	// } else {
+	path := filepath.Join(ImageDir, c.Name())
+	dir, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.SetPrefix("[ERROR]")
+		log.Print(path, " does not exist!")
+		return []string{}, err
+	}
+	// path = filepath.Join(path, dir[ver-1].Name())
+	// }
 
-// 	if _, err = os.Stat(path); os.IsNotExist(err) {
-// 		err = errors.New(fmt.Sprint(path, " does not exist!"))
-// 	}
-// 	return path, err
-// }
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		err = errors.New(fmt.Sprint(path, " does not exist!"))
+	}
+	return []string{dir}, err
+}
 
 // TODO: Default image / image handling.
 func (c *card) CSV() [][]string {
