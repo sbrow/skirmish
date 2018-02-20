@@ -3,8 +3,8 @@ package build
 import (
 	"fmt"
 	"github.com/sbrow/ps"
-	"github.com/sbrow/skirmish/deck"
-	"io/ioutil"
+	"github.com/sbrow/skirmish"
+	// "io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,10 +14,10 @@ import (
 )
 
 func init() {
-	defer log.SetPrefix("")
-	log.SetPrefix("[init] ")
-	log.Print("Initializing")
-
+	/*	defer log.SetPrefix("")
+		log.SetPrefix("[init] ")
+		log.Print("Initializing")
+	*/
 	// Handle panics
 	defer func() {
 		env := ""
@@ -39,8 +39,8 @@ func init() {
 			log.Printf("Environment variable \"%s\" not found. "+
 				"Will attempt to run with \"%[1]s=%s\"\n", env, os.Getenv(env))
 		}
-		DataDir = os.Getenv("SK_SRC")
-		ImageDir = os.Getenv("SK_IMG")
+		// skirmish.DataDir = os.Getenv("SK_SRC")
+		// ImageDir = os.Getenv("SK_IMG")
 	}()
 
 	envVars := []string{"SK_SRC", "SK_IMG"}
@@ -56,6 +56,7 @@ func init() {
 	}
 }
 
+/*
 func Data() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
@@ -66,14 +67,14 @@ func Data() {
 	}
 	defer f.Close()
 
-	dir, err := ioutil.ReadDir(DataDir)
+	dir, err := ioutil.ReadDir(skirmish.DataDir)
 	if err != nil {
-		panic(fmt.Sprintf("%s (%s)", err, DataDir))
+		panic(fmt.Sprintf("%s (%s)", err, skirmish.DataDir))
 	}
 	labels := false
 	for _, file := range dir {
 		if isDeck(file.Name()) {
-			d := deck.New(DataDir)
+			d, _ := deck.New(skirmish.DataDir) //TODO: CHeck err
 			log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
 			if !labels {
 				fmt.Fprint(f, d.Labels())
@@ -84,13 +85,13 @@ func Data() {
 	}
 	log.Println("\"dataset.csv\" generated!")
 }
-
+*/
 func PSDs() {
 	log.SetPrefix("[photoshop] ")
 	log.Println("Opening photoshop")
 	ps.Start()
 	log.Println("Opening Template")
-	ps.Open(Template)
+	ps.Open(skirmish.Template)
 	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
 	ps.DoJs("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")

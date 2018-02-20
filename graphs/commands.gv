@@ -49,20 +49,20 @@ graph {
 				<tr><td port="Faction">Faction varchar(11)</td></tr>
 				<tr><td port="Banner">Banner char(6)</td></tr>
 				<tr><td port="Indicator">Indicator char(6)</td></tr>
-				<tr><td port="Resolve">Resolve int</td></tr>
-				<tr><td port="Speed">Speed int</td></tr>
-				<tr><td port="Damage">Damage int</td></tr>
-				<tr><td port="Life">Life int</td></tr>
-				<tr><td port="ShortText">ShortText varchar(255)</td></tr>
-				<tr><td port="LongText">LongText varchar(255)</td></tr>
-				<tr><td port="FlavorText">FlavorText varchar(255)</td></tr>
-				<tr><td port="ResolveH">ResolveH int</td></tr>
-				<tr><td port="SpeedH">SpeedH int</td></tr>
-				<tr><td port="DamageH">DamageH int</td></tr>
-				<tr><td port="LifeH">LifeH int</td></tr>
-				<tr><td port="ShortTextH">ShortTextH varchar(255)</td></tr>
-				<tr><td port="LongTextH">LongTextH varchar(255)</td></tr>
-				<tr><td port="FlavorTextH">FlavorTextH varchar(255)</td></tr>
+				<tr><td port="ResolveA">Resolve int</td></tr>
+				<tr><td port="SpeedA">Speed int</td></tr>
+				<tr><td port="DamageA">DamageA int</td></tr>
+				<tr><td port="LifeA">LifeA int</td></tr>
+				<tr><td port="ShortTextA">ShortTextA varchar(255)</td></tr>
+				<tr><td port="LongTextA">LongTextA varchar(255)</td></tr>
+				<tr><td port="FlavorTextA">FlavorTextA varchar(255)</td></tr>
+				<tr><td port="ResolveB">ResolveB int</td></tr>
+				<tr><td port="SpeedB">SpeedB int</td></tr>
+				<tr><td port="DamageB">DamageB int</td></tr>
+				<tr><td port="LifeB">LifeB int</td></tr>
+				<tr><td port="ShortTextB">ShortTextB varchar(255)</td></tr>
+				<tr><td port="LongTextB">LongTextB varchar(255)</td></tr>
+				<tr><td port="FlavorTextB">FlavorTextB varchar(255)</td></tr>
 				<tr><td port="Rarity">Rarity(Banner, Indicator) char(6)</td></tr>
 			</table>>
 			]

@@ -26,9 +26,10 @@
 package main
 
 import (
-	// "flag"
-	// "fmt"
+	"flag"
+	"fmt"
 	app "github.com/sbrow/ps"
+	"github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/build"
 	"github.com/sbrow/skirmish/ps"
 	"log"
@@ -37,10 +38,8 @@ import (
 )
 
 func main() {
-	// flagSet := flag.NewFlagSet("", flag.ExitOnError)
-	// fast := flagSet.Bool("f", false, "fast mode: skips dataset generation.")
-	// flagSet.Parse(os.Args[2:])
-
+	card := flag.String("card", "", "card get info on a card.")
+	flag.Parse()
 	args := []string{}
 	cmd := ""
 	switch {
@@ -50,8 +49,8 @@ func main() {
 	case len(os.Args) > 1:
 		cmd = os.Args[1]
 	}
-	switch cmd {
-	case "ps":
+	switch {
+	case cmd == "ps":
 		switch args[0] {
 		case "crop":
 		case "undo":
@@ -62,13 +61,19 @@ func main() {
 		case "save":
 			ps.Save(true, args...)
 		}
-	case "gen":
-		fallthrough
-	case "":
+	case cmd == "card" || *card != "":
+		name := *card
+		if name == "" {
+			name = strings.Join(args, " ")
+		}
+		card := skirmish.Load(name)
+		// TODO: Check err
+		fmt.Println(card.String())
+	case cmd == "build":
 		log.SetPrefix("[main] ")
 		// if !*fast {
 		log.Println("Generating cards")
-		build.Data()
+		// build.Data()
 		// }
 		log.SetPrefix("[photoshop] ")
 		build.PSDs()

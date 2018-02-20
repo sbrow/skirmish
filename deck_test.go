@@ -1,12 +1,16 @@
-package deck
+package skirmish
 
 import (
 	"fmt"
-	"github.com/sbrow/skirmish"
-	"os"
-	"path/filepath"
 	"testing"
 )
+
+func TestCSV_Card(t *testing.T) {
+	c := Load("Anger")
+	fmt.Println(c.CSV())
+}
+
+/*
 
 func TestRarity(t *testing.T) {
 	c := NewDeckCard()
@@ -138,3 +142,4 @@ func BenchmarkCardString(b *testing.B) {
 		_ = c.String()
 	}
 }
+*/

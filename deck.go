@@ -1,7 +1,6 @@
-// Package deck contains code for creating Photoshop data sets from json files.
-//
-// TODO: Add support for heroes.
-package deck
+package skirmish
+
+/*
 
 import (
 	"encoding/json"
@@ -91,7 +90,7 @@ func (d *Deck) String() string {
 						case "ID":
 							str += card.ID(v)
 						case "card_image":
-							img, err := card.Image(v)
+							//img, err := card.Image()
 							if err != nil {
 								log.SetPrefix("[ERROR]")
 								log.Println(err)
@@ -176,3 +175,4 @@ func (d *Deck) Labels() string {
 	}
 	return strings.ToLower(str[:len(str)-1]) + "\n"
 }
+*/

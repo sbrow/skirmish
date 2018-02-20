@@ -1,6 +1,8 @@
-package deck
+package skirmish
 
+/*
 import (
+	"errors"
 	"os"
 )
 
@@ -29,13 +31,7 @@ const (
 // TODO: Make private and manually unmarshal the jsons.
 type Rarity int
 
-const RarityError = Error("Rarity out of bounds")
-
-type Error string
-
-func (e Error) Error() string {
-	return string(e)
-}
+var RarityError = errors.New("Rarity out of bounds")
 
 func rarity(copies int) (Rarity, error) {
 	switch copies {
@@ -84,18 +80,4 @@ const (
 	Nightmare Faction = "Nightmare"
 	Troika    Faction = "Troika"
 )
-
-// Type is the variety of types a card can have.
-type Type string
-
-// This is not an expansive list, only the types that actually
-// affect layer visibility.
-const (
-	Action     Type = "Action"
-	Continuous Type = "Event- Continuous"
-	Event      Type = "Event"
-	Hero       Type = "Deck Hero"
-	LeaderHero Type = "Leader"
-	Bonus      Type = "Bonus"
-	Item       Type = "Item"
-)
+*/

@@ -1,14 +1,12 @@
-package deck
+package skirmish
 
-import (
-	"github.com/sbrow/skirmish"
-)
-
+/*
 // DeckCard represents a unique card in the deck. Contains most information
 // required for updating the Photoshop document.
 type DeckCard struct {
 	Card               // Basic card values.
 	Rarity             // How many copies of the card are in the deck.
+	Arts   int         // How many different illustrations this card has.
 	Leader NonDeckCard // The leader of the deck.
 	Cost   string      // The resolve cost of the card.
 }
@@ -17,7 +15,7 @@ type DeckCard struct {
 func NewDeckCard() *DeckCard {
 	c := NewCard()
 	lbl := []string{"Cost", "Common", "Uncommon", "Rare", "border_normal"}
-	lbl = append(lbl, skirmish.Leaders...)
+	lbl = append(lbl, Leaders...)
 	c.labels = append(c.labels, lbl...)
 	// c.dir = leader.Name // TODO:
 
@@ -27,20 +25,25 @@ func NewDeckCard() *DeckCard {
 	}
 }
 
+func (d *DeckCard) String() string {
+	return d.Card.String()
+}
+
 // DefaultBorder returns the visibility of the default border layer.
 //
 // All cards use the default border except actions, continuous events and heroes.
-func (c *DeckCard) DefaultBorder() bool {
+func (d *DeckCard) DefaultBorder() bool {
 	switch {
-	case c.Rarity == Rare:
+	case d.Rarity == Rare:
 		fallthrough
-	case c.Type == Action:
+	case d.Type == Action:
 		fallthrough
-	case c.Type == Continuous:
+	case d.Type == Continuous:
 		fallthrough
-	case c.Type == Hero:
+	case d.Type == Hero:
 		return false
 	default:
 		return true
 	}
 }
+*/
