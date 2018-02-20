@@ -39,10 +39,10 @@ func Load(name string) Card {
 	if flavor != nil {
 		c.flavor = *flavor
 	}
-	if &resolve != nil {
+	if resolve != nil {
 		c.resolve = *resolve
 	}
-	if &speed != nil {
+	if speed != nil {
 		c.speed = *speed
 	}
 	if damage != nil {
@@ -77,11 +77,13 @@ func Load(name string) Card {
 		c.ctype = *typ
 		d := &DeckCard{}
 		d.card = *c
-		var tough, cost *int
-		props = []string{"toughness", "cost"}
+		var tough, cost, rarity *int
+		var leader *string
+		props = []string{"toughness", "cost", "rarity", "leader"}
 		err = Database.QueryRow(
 			fmt.Sprintf("SELECT %s FROM skirmish.deckcards WHERE name='%s'",
-				strings.Join(props, ", "), name)).Scan(&tough, &cost)
+				strings.Join(props, ", "), name)).Scan(&tough, &cost, &rarity,
+			&leader)
 		if err != nil {
 			panic(err)
 		}
@@ -90,6 +92,12 @@ func Load(name string) Card {
 		}
 		if cost != nil {
 			d.cost = *cost
+		}
+		if rarity != nil {
+			d.rarity = *rarity
+		}
+		if leader != nil {
+			d.leader = *leader
 		}
 		return d
 	}

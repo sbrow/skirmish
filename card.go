@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
+	// "io/ioutil"
+	// "log"
+	// "os"
 	"path/filepath"
 	// "regexp"
 	"strings"
@@ -91,9 +91,9 @@ func (c *card) ID(ver int) string {
 // Labels prints the column labels for .csv output.
 func (c card) Labels() []string {
 	return []string{
-		"ID", "Name", "Resolve", "Speed", "Damage", "Life",
-		"ShortText", "LongText", "FlavorText", "card_image",
-		"Action", "Event", "Continuous", "Item",
+		"id", "name", "resolve", "type", "speed", "damage", "life",
+		"short", "long", "flavor", "card_image",
+		"action", "event", "continuous", "item",
 		"show_resolve", "show_speed", "show_tough", "show_life",
 	}
 }
@@ -104,24 +104,23 @@ func (c card) Labels() []string {
 //
 // path = [$SK_SRC]/[folder]]/[c.Name].png
 func (c *card) Images() (paths []string, err error) {
-	// path[0] = fmt.Sprintf(filepath.Join(ImageDir, dir))
-	// if c.Arts == 1 {
-	// path = filepath.Join(ImageDir, c.Name+".png")
-	// } else {
-	path := filepath.Join(ImageDir, c.Name())
-	dir, err := ioutil.ReadDir(path)
-	if err != nil {
-		log.SetPrefix("[ERROR]")
-		log.Print(path, " does not exist!")
-		return []string{}, err
-	}
-	// path = filepath.Join(path, dir[ver-1].Name())
-	// }
-
-	if _, err = os.Stat(path); os.IsNotExist(err) {
-		err = errors.New(fmt.Sprint(path, " does not exist!"))
-	}
-	return []string{dir}, err
+	return []string{filepath.Join(ImageDir, "ImageNotFound.png")}, nil
+	/*
+		path := filepath.Join(ImageDir, c.Name())
+		dir, err := ioutil.ReadDir(path)
+		if err != nil {
+			log.SetPrefix("[ERROR]")
+			log.Print(path, " does not exist!")
+			return []string{}, err
+		}
+		if _, err = os.Stat(path); os.IsNotExist(err) {
+			err = errors.New(fmt.Sprint(path, " does not exist!"))
+		}
+		for i, file := range dir {
+			paths[i] = file.Name()
+		}
+		return paths, err
+	*/
 }
 
 // TODO: Default image / image handling.
@@ -130,24 +129,44 @@ func (c *card) CSV() [][]string {
 	for i, label := range c.Labels() {
 		switch label {
 		// case "ID":
+		// fallthrough
 		// str[i] += fmt.Sprintf("\"%s\"", c.Name)
-		case "Name":
-			str[i] += fmt.Sprintf("\"%s\"", c.Name())
-		case "Resolve":
-			str[i] += fmt.Sprintf("\"%+d\"", c.resolve)
-		case "Speed":
+		case "name":
+			str[i] += c.Name() //fmt.Sprintf("\"%s\"", c.Name())
+		case "resolve":
+			str[i] += fmt.Sprintf("%+d", c.resolve)
+		case "type":
+			str[i] += c.ctype
+		case "speed":
 			str[i] += fmt.Sprint(c.speed)
-		case "Damage":
+		case "damage":
 			str[i] += fmt.Sprint(c.damage)
-		case "Life":
+		case "life":
 			str[i] += fmt.Sprint(c.life)
-		case "ShortText":
-			str[i] += fmt.Sprintf("\"%s\"", c.short)
-		case "LongText":
-			str[i] += fmt.Sprintf("\"%s\"", c.long)
-		case "FlavorText":
-			str[i] += fmt.Sprintf("\"%s\"", c.flavor)
+		case "short":
+			var s string
+			if s = c.short; len(s) == 0 {
+				s = " "
+			}
+			str[i] += s
+		case "long":
+			var s string
+			if s = c.long; len(s) == 0 {
+				s = " "
+			}
+			str[i] += s
+		case "flavor":
+			var s string
+			if s = c.flavor; len(s) == 0 {
+				s = " "
+			}
+			str[i] += s
 		case "card_image":
+			img, err := c.Images()
+			if err != nil {
+				panic(err)
+			}
+			str[i] += img[0]
 			// img, err := c.Image( /*i*/ ) //Borked, need leader name
 			/*if err != nil {
 				pre := log.Prefix()
@@ -158,13 +177,13 @@ func (c *card) CSV() [][]string {
 			} else {
 				str[i] += fmt.Sprintf("\"%s\"", img)
 			}*/
-		case "Action":
+		case "action":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Action"))
-		case "Event":
+		case "event":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Event"))
-		case "Continuous":
+		case "continuous":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Continuous"))
-		case "Item":
+		case "item":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Item"))
 		case "show_resolve":
 			str[i] += fmt.Sprintf("%v", c.Resolve() != "0")
@@ -209,6 +228,8 @@ type DeckCard struct {
 	card
 	toughness int // The damage the card can take before being discarded (if it's a follower).
 	cost      int
+	rarity    int
+	leader    string
 }
 
 func (d *DeckCard) Cost() (string, error) {
@@ -228,9 +249,58 @@ func (d *DeckCard) String() string {
 	return str
 }
 
+func (d *DeckCard) Rarity() string {
+	switch d.rarity {
+	case 1:
+		return "rare"
+	case 2:
+		return "uncommon"
+	case 3:
+		return "common"
+	}
+	return ""
+}
+
+func (d *DeckCard) Labels() []string {
+	labels := append(d.card.Labels(), "cost", "toughness", "border_normal",
+		"common", "uncommon", "rare")
+	return append(labels, Leaders...)
+}
+
 func (d *DeckCard) CSV() [][]string {
-	// Add Leaders, Rarity, cost, id?, toughness,
-	return [][]string{}
+	out := d.card.CSV()
+	out[0] = d.Labels()
+	l := d.Labels()[len(d.card.Labels()):]
+	for _, label := range l {
+		fmt.Println(label)
+		switch label {
+		case "cost":
+			cost, err := d.Cost()
+			if err == nil {
+				out[1] = append(out[1], cost)
+			} else {
+				panic(err)
+			}
+		case "toughness":
+			out[1] = append(out[1], fmt.Sprint(d.toughness))
+		case "border_normal":
+			out[1] = append(out[1], "true")
+		}
+		// TODO: Force skip
+		if strings.Contains(strings.Join(Leaders, ","), label) {
+			out[1] = append(out[1], fmt.Sprint(d.leader == label))
+		}
+		if strings.Contains("common,uncommon,rare", label) {
+			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
+		}
+		// out[1] += Delim
+	}
+	out[1][0] = d.Name()
+	// for i, elem := range out {
+	// 	out[i] = strings.TrimSuffix(elem, ",")
+	// }
+	// Add Leaders, Rarity, cost, image, id?, toughness,
+	return out
 }
 
 type NonDeckCard struct {
