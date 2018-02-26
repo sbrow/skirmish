@@ -1,14 +1,9 @@
-package skirmish
+package sql
 
 import (
-	"fmt"
-	"testing"
+// "fmt"
+// "testing"
 )
-
-func TestCSV_Card(t *testing.T) {
-	c := Load("Anger")
-	fmt.Println(c.CSV())
-}
 
 /*
 

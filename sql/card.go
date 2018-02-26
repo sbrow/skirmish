@@ -1,4 +1,4 @@
-package skirmish
+package sql
 
 import (
 	"encoding/json"
@@ -72,21 +72,6 @@ func (c *card) Type() string {
 func (c *card) ID(ver int) string {
 	return c.name
 }
-
-/*func NewCard() *card {
-	return &card{
-		name:    "Card",
-		Type:    "card_type",
-		resolve: 0,
-		speed:   1,
-		damage:  0,
-		life:    0,
-		short:   "",
-		long:    "",
-		flavor:  "",
-		// dir:        "",
-	}
-}*/
 
 // Labels prints the column labels for .csv output.
 func (c card) Labels() []string {
@@ -211,7 +196,15 @@ func (c *card) JSON() ([]byte, error) {
 }
 
 func (c *card) String() string {
-	return fmt.Sprintf(`"%s" %+d`, c.Name(), c.resolve)
+	str := c.Name()
+	if c.resolve != 0 {
+		str += fmt.Sprintf(" %+d", c.resolve)
+	}
+	str += fmt.Sprintf(" %d/%d", c.damage, c.life)
+	str += fmt.Sprintf(" %s \"%s", c.Type(),
+		strings.Replace(c.short, "\r\n", " ", -1))
+	str += "\""
+	return str
 }
 
 // TODO: Test
@@ -226,10 +219,9 @@ func (c *card) String() string {
 
 type DeckCard struct {
 	card
-	toughness int // The damage the card can take before being discarded (if it's a follower).
-	cost      int
-	rarity    int
-	leader    string
+	cost   int
+	rarity int
+	leader string
 }
 
 func (d *DeckCard) Cost() (string, error) {
@@ -237,16 +229,22 @@ func (d *DeckCard) Cost() (string, error) {
 }
 
 func (d *DeckCard) String() string {
-	str := fmt.Sprintf(`"%s"`, d.Name())
-	if cost, err := d.Cost(); err == nil {
-		str += fmt.Sprintf(" (%s)", cost)
-	}
-	if d.resolve != 0 {
-		str += fmt.Sprintf("%+d", d.resolve)
-	}
-	// str += fmt.Sprintf(" %d/%d", d.Damage, d.Toughness)
-	str += fmt.Sprintf(" %d/%d", d.damage, d.life)
-	return str
+	str := d.card.String()
+	return strings.Replace(str, d.name+" ", fmt.Sprintf("%s (%d)",
+		d.name, d.cost), 1)
+	/*	str := d.Name() //fmt.Sprintf(`"%s"`, d.Name())
+		if cost, err := d.Cost(); err == nil {
+			str += fmt.Sprintf(" (%s)", cost)
+		}
+		if d.resolve != 0 {
+			str += fmt.Sprintf("%+d", d.resolve)
+		}
+		str += fmt.Sprintf(" %d/%d", d.damage, d.life)
+		str += fmt.Sprintf(" %s \"%s", d.Type(),
+			strings.Replace(d.short, "\r\n", "\\r", -1))
+		str += "\""
+		return str
+	*/
 }
 
 func (d *DeckCard) Rarity() string {
@@ -262,7 +260,7 @@ func (d *DeckCard) Rarity() string {
 }
 
 func (d *DeckCard) Labels() []string {
-	labels := append(d.card.Labels(), "cost", "toughness", "border_normal",
+	labels := append(d.card.Labels(), "cost", "border_normal",
 		"common", "uncommon", "rare")
 	return append(labels, Leaders...)
 }
@@ -281,8 +279,6 @@ func (d *DeckCard) CSV() [][]string {
 			} else {
 				panic(err)
 			}
-		case "toughness":
-			out[1] = append(out[1], fmt.Sprint(d.toughness))
 		case "border_normal":
 			out[1] = append(out[1], "true")
 		}
@@ -319,9 +315,14 @@ type NonDeckCard struct {
 }
 
 func (n *NonDeckCard) String() string {
-	str := n.card.String()
-	if n.resolveB > 0 {
-		str += fmt.Sprintf("/%+d", n.resolveB)
-	}
-	return str
+	return n.card.String()
+	// str := n.card.String()
+	// if n.resolveB > 0 {
+	// 	str += fmt.Sprintf("/%+d", n.resolveB)
+	// }
+	// str += fmt.Sprintf(" %d/%d", n.damage, n.life)
+	// str += fmt.Sprintf(" %s \"%s", n.Type(),
+	// 	strings.Replace(n.short, "\r\n", "\\r", -1))
+	// str += "\""
+	// return str
 }

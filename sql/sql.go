@@ -1,9 +1,12 @@
-package skirmish
+package sql
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -14,9 +17,7 @@ func Load(name string) Card {
 	var resolve, speed, damage, life *int
 	props := []string{"\"name\"", "\"type\"", "short", "reminder", "flavor",
 		"resolve", "speed", "damage", "life"}
-	str := fmt.Sprintf("select %[1]s from ( select %[1]s FROM "+
-		"skirmish.deckcards as t1 UNION select %[1]s FROM skirmish.leaders "+
-		"as t2 UNION select %[1]s from skirmish.guests as t3 ) as t where "+
+	str := fmt.Sprintf("select %[1]s from skirmish.cards where "+
 		"\"name\"='%[2]s'", strings.Join(props, ", "), name)
 	err := Database.QueryRow(str).Scan(&title, &typ, &short, &long, &flavor,
 		&resolve, &speed, &damage, &life)
@@ -77,18 +78,15 @@ func Load(name string) Card {
 		c.ctype = *typ
 		d := &DeckCard{}
 		d.card = *c
-		var tough, cost, rarity *int
+		var cost, rarity *int
 		var leader *string
-		props = []string{"toughness", "cost", "rarity", "leader"}
+		props = []string{"cost", "rarity", "leader"}
 		err = Database.QueryRow(
 			fmt.Sprintf("SELECT %s FROM skirmish.deckcards WHERE name='%s'",
-				strings.Join(props, ", "), name)).Scan(&tough, &cost, &rarity,
+				strings.Join(props, ", "), name)).Scan(&cost, &rarity,
 			&leader)
 		if err != nil {
 			panic(err)
-		}
-		if tough != nil {
-			d.toughness = *tough
 		}
 		if cost != nil {
 			d.cost = *cost
@@ -102,4 +100,31 @@ func Load(name string) Card {
 		return d
 	}
 	return nil
+}
+
+func Recover(dir string) {
+	var out bytes.Buffer
+	var errs bytes.Buffer
+
+	cmd := exec.Command("psql", "-U", "postgres", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmd.Stdout = &out
+	cmd.Stderr = &errs
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Dump(dir string) {
+	var out bytes.Buffer
+	var errs bytes.Buffer
+
+	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-c", "--if-exists",
+		"--inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmd.Stdout = &out
+	cmd.Stderr = &errs
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

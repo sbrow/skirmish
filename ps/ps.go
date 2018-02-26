@@ -41,3 +41,7 @@ func Save(crop bool, args ...string) {
 		panic(err)
 	}
 }
+
+func Format() {
+
+}

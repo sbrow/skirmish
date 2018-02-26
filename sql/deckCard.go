@@ -1,4 +1,4 @@
-package skirmish
+package sql
 
 /*
 // DeckCard represents a unique card in the deck. Contains most information

@@ -1,0 +1,5 @@
+id,name,resolve,type,speed,damage,life,short,long,flavor,card_image,action,event,continuous,item,show_resolve,show_speed,show_tough,show_life,cost,border_normal,common,uncommon,rare,Bast,Lilith,Ravat,Scinter,Scuttler,Tendril,Tinsel,Vi,Wisp,Igrath,Bast,Lilith,Ravat,Scinter,Scuttler,Tendril,Tinsel,Vi,Wisp,Igrath
+Bushwack Squad,Bushwack Squad,+0,Follower,1,1,1,Uncontested- +2/+1.," ","Our chief weapon is surprise!
+Surprise and guns, guns and surprise... Our two weapons are guns and surprise.
+And ruthless sarcasm!
+Our *three* weapons are...",F:\GitLab\dreamkeepers-psd\Images\ImageNotFound.png,false,false,false,false,false,true,true,false,1,true,true,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,true

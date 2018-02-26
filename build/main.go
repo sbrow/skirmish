@@ -6,18 +6,17 @@ import (
 	"github.com/sbrow/skirmish"
 	// "io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
+	// "os"
+	// "path/filepath"
 	"regexp"
-	"runtime"
-	"strings"
+	// "runtime"
+	// "strings"
 )
 
-func init() {
-	/*	defer log.SetPrefix("")
+/*func init() {
+		defer log.SetPrefix("")
 		log.SetPrefix("[init] ")
 		log.Print("Initializing")
-	*/
 	// Handle panics
 	defer func() {
 		env := ""
@@ -54,7 +53,7 @@ func init() {
 		}
 
 	}
-}
+}*/
 
 /*
 func Data() {

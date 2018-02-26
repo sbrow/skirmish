@@ -2,7 +2,9 @@
 //
 // Build
 //
-// Generate data files.
+// Generates photoshop dataset (csv) files with data pulled from the PostgresSQL
+// database.
+//
 //		skir build
 //		skir build regex / skirmish build -r
 //		skir build bold  / skirmish build -b
@@ -10,7 +12,8 @@
 //
 // PS
 //
-// Description.
+// Fills out a document (psd) template with data from a dataset (csv) file and
+//
 // 		skir ps
 //		skir ps -card=$CARDNAME // Builds the psd for the given card
 //		skir ps -deck=$DECKNAME
@@ -18,7 +21,7 @@
 //
 // Card
 //
-// Description.
+// loads card information from the database and outputs it to STDOUT.
 //
 //		skir card $CARDNAME
 //
@@ -32,6 +35,7 @@ import (
 	"github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/build"
 	"github.com/sbrow/skirmish/ps"
+	"github.com/sbrow/skirmish/sql"
 	"log"
 	"os"
 	"strings"
@@ -66,7 +70,7 @@ func main() {
 		if name == "" {
 			name = strings.Join(args, " ")
 		}
-		card := skirmish.Load(name)
+		card := sql.Load(name)
 		// TODO: Check err
 		fmt.Println(card.String())
 	case cmd == "build":
@@ -78,5 +82,9 @@ func main() {
 		log.SetPrefix("[photoshop] ")
 		build.PSDs()
 		log.Println("Cards successfully generated!")
+	case cmd == "pg_dump":
+		sql.Dump(skirmish.DataDir)
+	case cmd == "pg_recover":
+		sql.Recover(skirmish.DataDir)
 	}
 }
