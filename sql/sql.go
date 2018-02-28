@@ -120,7 +120,7 @@ func Dump(dir string) {
 	var errs bytes.Buffer
 
 	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-c", "--if-exists",
-		"--inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
+		"--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
 	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	err := cmd.Run()
