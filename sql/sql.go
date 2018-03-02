@@ -113,6 +113,8 @@ func Recover(dir string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(string(out.Bytes()))
+	fmt.Println(string(errs.Bytes()))
 }
 
 func Dump(dir string) {
@@ -126,5 +128,11 @@ func Dump(dir string) {
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
+	}
+	if len(out.Bytes()) > 0 {
+		fmt.Println(string(out.Bytes()))
+	}
+	if len(errs.Bytes()) > 0 {
+		fmt.Println(string(errs.Bytes()))
 	}
 }

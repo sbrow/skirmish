@@ -82,9 +82,12 @@ func main() {
 		log.SetPrefix("[photoshop] ")
 		build.PSDs()
 		log.Println("Cards successfully generated!")
-	case cmd == "pg_dump":
-		sql.Dump(skirmish.DataDir)
-	case cmd == "pg_recover":
-		sql.Recover(skirmish.DataDir)
+	case cmd == "dump":
+		opt := args[0]
+		if opt == "save" {
+			sql.Dump(skirmish.DataDir)
+		} else if opt == "load" {
+			sql.Recover(skirmish.DataDir)
+		}
 	}
 }
