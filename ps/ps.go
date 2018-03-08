@@ -3,6 +3,7 @@
 package ps
 
 import (
+	"errors"
 	"github.com/sbrow/ps"
 	"os"
 	"path/filepath"
@@ -42,6 +43,43 @@ func Save(crop bool, args ...string) {
 	}
 }
 
+// Format rearranges, hides, and colors layers as appropriate.
 func Format() {
+	err := FormatTitle()
+	if err != nil {
+		panic(err)
+	}
+}
 
+// FormatTitle finds the correct length background for the card's title, makes
+// it visible, and hides the rest. Returns an error if the title was longer than
+// the longest background.
+//
+// Scriptcalls: 4
+//
+// TODO: Combine script calls.
+func FormatTitle() error {
+	banners, err := ps.Layers("Areas/TitleBackground")
+	if err != nil {
+		panic(err)
+	}
+	txt, err := ps.Layer("Text/name")
+	if err != nil {
+		panic(err)
+	}
+	tol := 55 // TODO: pull from database
+
+	// Start by hiding all the layers
+	_, err = ps.DoJs("setLayerVisibility.jsx", "Areas/TitleBackground", "false")
+	if err != nil {
+		panic(err)
+	}
+	// Show the appropriate layer.
+	for _, lyr := range banners {
+		if txt.Bounds[1][0]+tol <= lyr.Bounds[1][0] {
+			lyr.SetVisible()
+			return nil
+		}
+	}
+	return errors.New("Title too long.")
 }

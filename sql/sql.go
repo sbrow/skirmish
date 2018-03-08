@@ -13,12 +13,14 @@ import (
 
 func Load(name string) Card {
 	c := &card{}
-	var typ, title, short, long, flavor *string
-	var resolve, speed, damage, life *int
+	var typ, title, short, long, flavor, resolve *string
+	var speed, damage, life *int
 	props := []string{"\"name\"", "\"type\"", "short", "reminder", "flavor",
 		"resolve", "speed", "damage", "life"}
-	str := fmt.Sprintf("select %[1]s from skirmish.cards where "+
+	// str := fmt.Sprintf("select %[1]s from public.all_cards where "+
+	str := fmt.Sprintf("select %[1]s from public.all_cards where "+
 		"\"name\"='%[2]s'", strings.Join(props, ", "), name)
+	fmt.Println(strings.Join(props, ", "))
 	err := Database.QueryRow(str).Scan(&title, &typ, &short, &long, &flavor,
 		&resolve, &speed, &damage, &life)
 	switch {

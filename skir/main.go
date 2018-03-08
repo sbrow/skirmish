@@ -64,6 +64,8 @@ func main() {
 			}
 		case "save":
 			ps.Save(true, args...)
+		default:
+			ps.Format()
 		}
 	case cmd == "card" || *card != "":
 		name := *card
@@ -77,12 +79,12 @@ func main() {
 		log.SetPrefix("[main] ")
 		// if !*fast {
 		log.Println("Generating cards")
-		// build.Data()
+		build.Data()
 		// }
-		log.SetPrefix("[photoshop] ")
-		build.PSDs()
+		// log.SetPrefix("[photoshop] ")
+		// build.PSDs()
 		log.Println("Cards successfully generated!")
-	case cmd == "dump":
+	case cmd == "db":
 		opt := args[0]
 		if opt == "save" {
 			sql.Dump(skirmish.DataDir)

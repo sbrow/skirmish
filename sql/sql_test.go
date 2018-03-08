@@ -1,9 +1,9 @@
 package sql
 
 import (
-	"encoding/csv"
+	// "encoding/csv"
 	"fmt"
-	"log"
+	// "log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,16 +13,27 @@ func init() {
 	Init(filepath.Join(os.Getenv("SK_PS"), "Images"), os.Getenv("SK_SQL"))
 }
 
+// func TestSimple(t *testing.T) {
+// 	var text *string
+// 	err := Database.QueryRow("SELECT type FROM public.all_cards WHERE name='Anger'").Scan(&text)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Println(*text)
+
+// }
+
 func TestLoad(t *testing.T) {
 	c := Load("Anger")
-	l := Load("Bast")
+	// l := Load("Bast")
 	fmt.Printf("%#v\n", c)
-	fmt.Printf("%#v\n", l)
-	fmt.Println(c)
-	fmt.Println(l)
+	// fmt.Printf("%#v\n", l)
+	fmt.Println(c.CSV())
+	// fmt.Println(l)
 
 }
 
+/*
 func TestCSV(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping CSV test")
@@ -50,3 +61,4 @@ func TestSQL(t *testing.T) {
 	Recover(DataDir)
 	Dump(DataDir)
 }
+*/

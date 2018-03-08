@@ -1,13 +1,15 @@
 package build
 
 import (
+	"encoding/csv"
 	"fmt"
 	"github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
+	"github.com/sbrow/skirmish/sql"
 	// "io/ioutil"
 	"log"
-	// "os"
-	// "path/filepath"
+	"os"
+	"path/filepath"
 	"regexp"
 	// "runtime"
 	// "strings"
@@ -55,7 +57,8 @@ import (
 	}
 }*/
 
-/*
+// Data collects all cards from the database and compiles them into
+// two separate photoshop datasets.
 func Data() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
@@ -65,26 +68,29 @@ func Data() {
 		panic(err)
 	}
 	defer f.Close()
+	d := sql.Load("Anger")
+	w := csv.NewWriter(f)
+	w.WriteAll(d.CSV())
 
-	dir, err := ioutil.ReadDir(skirmish.DataDir)
-	if err != nil {
-		panic(fmt.Sprintf("%s (%s)", err, skirmish.DataDir))
-	}
-	labels := false
-	for _, file := range dir {
-		if isDeck(file.Name()) {
-			d, _ := deck.New(skirmish.DataDir) //TODO: CHeck err
-			log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
-			if !labels {
-				fmt.Fprint(f, d.Labels())
-				labels = true
-			}
-			fmt.Fprintln(f, d.String())
-		}
-	}
+	// dir, err := ioutil.ReadDir(skirmish.DataDir)
+	// if err != nil {
+	// 	panic(fmt.Sprintf("%s (%s)", err, skirmish.DataDir))
+	// }
+	// labels := false
+	// for _, file := range dir {
+	// 	if isDeck(file.Name()) {
+	// 		d, _ := deck.New(skirmish.DataDir) //TODO: CHeck err
+	// 		log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
+	// 		if !labels {
+	// 			fmt.Fprint(f, d.Labels())
+	// 			labels = true
+	// 		}
+	// 		fmt.Fprintln(f, d.String())
+	// 	}
+	// }
 	log.Println("\"dataset.csv\" generated!")
 }
-*/
+
 func PSDs() {
 	log.SetPrefix("[photoshop] ")
 	log.Println("Opening photoshop")
@@ -94,7 +100,7 @@ func PSDs() {
 	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
 	ps.DoJs("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")
-	ps.Close()
+	ps.Close(2)
 	log.Println("Closing Other open files")
 	log.Println("Quitting Photoshop")
 	ps.Quit(2)

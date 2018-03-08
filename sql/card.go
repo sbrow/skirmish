@@ -36,7 +36,7 @@ type Card interface {
 type card struct {
 	name    string // The name of the card.
 	ctype   string // The card's type.
-	resolve int    // The resolve this card produces when in play.
+	resolve string // The resolve this card produces when in play.
 	speed   int    // The speed the card has (if it's a character).
 	damage  int    // The damage the card deals in combat (if it's a character).
 	life    int    // The damage the card can take before being discarded (if it's a hero).
@@ -119,7 +119,7 @@ func (c *card) CSV() [][]string {
 		case "name":
 			str[i] += c.Name() //fmt.Sprintf("\"%s\"", c.Name())
 		case "resolve":
-			str[i] += fmt.Sprintf("%+d", c.resolve)
+			str[i] += fmt.Sprint(c.resolve)
 		case "type":
 			str[i] += c.ctype
 		case "speed":
@@ -197,7 +197,7 @@ func (c *card) JSON() ([]byte, error) {
 
 func (c *card) String() string {
 	str := c.Name()
-	if c.resolve != 0 {
+	if c.resolve != "0" {
 		str += fmt.Sprintf(" %+d", c.resolve)
 	}
 	str += fmt.Sprintf(" %d/%d", c.damage, c.life)
