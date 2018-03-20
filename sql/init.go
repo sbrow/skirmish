@@ -29,7 +29,7 @@ func Init(imageDir, dataDir string) {
 
 	// Load the leaders
 	query, err := Database.Query(
-		`SELECT "name" FROM skirmish.nondeckcards WHERE faction IS NOT NULL`)
+		`SELECT "name" FROM public.leaders`)
 	defer query.Close()
 	if err != nil {
 		panic(err)

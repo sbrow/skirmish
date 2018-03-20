@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
+// Load retrieves a card from the database, given it's name.
 func Load(name string) Card {
 	c := &card{}
 	var typ, title, short, long, flavor, resolve *string
 	var speed, damage, life *int
 	props := []string{"\"name\"", "\"type\"", "short", "reminder", "flavor",
 		"resolve", "speed", "damage", "life"}
-	// str := fmt.Sprintf("select %[1]s from public.all_cards where "+
 	str := fmt.Sprintf("select %[1]s from public.all_cards where "+
 		"\"name\"='%[2]s'", strings.Join(props, ", "), name)
 	fmt.Println(strings.Join(props, ", "))
@@ -104,6 +104,7 @@ func Load(name string) Card {
 	return nil
 }
 
+// Recover runs pg_recover, loading database data from a sql file.
 func Recover(dir string) {
 	var out bytes.Buffer
 	var errs bytes.Buffer
@@ -119,12 +120,13 @@ func Recover(dir string) {
 	fmt.Println(string(errs.Bytes()))
 }
 
+// Dump runs pg_dump, saving the contents of the database to a sql file.
 func Dump(dir string) {
 	var out bytes.Buffer
 	var errs bytes.Buffer
 
-	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-c", "--if-exists",
-		"--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-n", "public",
+		"-c", "--if-exists", "--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
 	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	err := cmd.Run()
