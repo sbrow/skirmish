@@ -85,18 +85,25 @@ func SetLeader(name string) {
 	}
 
 	rarity := ps.Compare(banner, indicator)
-	// stroke := ps.Stroke{Size: 4, Color: banner}
-	// white := &ps.RGB{255, 255, 255}
+	barStroke := ps.Stroke{Size: 4, Color: banner}
+	counterStroke := ps.Stroke{Size: 4, Color: indicator}
 
-	resolve := doc.LayerSet("Areas").LayerSet("ResolveBackground").
+	cost := doc.LayerSet("Text").ArtLayer("cost")
+	resolve := doc.LayerSet("Text").ArtLayer("resolve")
+	speed := doc.LayerSet("Text").ArtLayer("speed")
+	damage := doc.LayerSet("Text").ArtLayer("damage")
+	life := doc.LayerSet("Text").ArtLayer("life")
+	heroLife := doc.LayerSet("Text").ArtLayer("hero life")
+
+	resolve_bg := doc.LayerSet("Areas").LayerSet("ResolveBackground").
 		ArtLayer("resolve_color")
-	if resolve == nil {
-		log.Panic("Resolve layer not found!")
+	if resolve_bg == nil {
+		log.Panic("resolve_bg layer not found!")
 	}
-	cost := doc.LayerSet("Areas").LayerSet("CostBackground").
+	cost_bg := doc.LayerSet("Areas").LayerSet("CostBackground").
 		ArtLayer("cost_color")
-	if cost == nil {
-		log.Panic("Cost layer not found!")
+	if cost_bg == nil {
+		log.Panic("cost_bg layer not found!")
 	}
 	types := doc.LayerSet("Indicators").LayerSet("Type").ArtLayers()
 	if types == nil {
@@ -115,8 +122,8 @@ func SetLeader(name string) {
 		log.Panic("Indicators not found!")
 	}
 
-	resolve.SetColor(banner)
-	cost.SetColor(banner)
+	resolve_bg.SetColor(ps.Colors["Gray"])
+	cost_bg.SetColor(banner)
 	for _, lyr := range types {
 		lyr.SetColor(indicator)
 	}
@@ -128,6 +135,13 @@ func SetLeader(name string) {
 		lyr.SetColor(indicator)
 	}
 
+	cost.SetStroke(counterStroke, ps.Colors["White"])
+	resolve.SetStroke(counterStroke, ps.Colors["White"])
+
+	speed.SetStroke(barStroke, ps.Colors["White"])
+	damage.SetStroke(barStroke, ps.Colors["White"])
+	life.SetStroke(barStroke, ps.Colors["White"])
+	heroLife.SetStroke(barStroke, ps.Colors["White"])
 }
 
 // Format rearranges, hides, and colors layers as appropriate.
@@ -177,11 +191,16 @@ func FormatTitle() error {
 func FormatTextbox() {
 	bot := doc.Height() - tolerances["flavor"]
 	txt := doc.LayerSet("Text")
-	short := txt.ArtLayer("short_text")
-	long := txt.ArtLayer("long_text")
-	flav := txt.ArtLayer("flavor_text")
+	short := txt.ArtLayer("short")
+	long := txt.ArtLayer("long")
+	flav := txt.ArtLayer("flavor")
 	shortbg := doc.LayerSet("Areas").LayerSet("Bottom").ArtLayer("short_text_box")
+	speed := doc.LayerSet("Text").ArtLayer("speed")
 
+	if speed.Visible() { // && speed.Text() == 1 {
+		// speed.SetStroke(nil, ps.Colors["Gray"])
+		speed.SetColor(ps.Colors["Gray"])
+	}
 	/*
 		short.SetVisible(short.Text() != "“")
 		long.SetVisible(long.Text() != "“")
@@ -200,13 +219,5 @@ func FormatTextbox() {
 				flav.SetVisible(false)
 			}
 		}
-	}
-}
-
-// FormatSpeed sets color values for speed when speed is 1.
-func FormatSpeed() {
-	speed := doc.LayerSet("Text").ArtLayer("speed")
-	if speed.Visible() { // && speed.Text() == 1 {
-		speed.SetColor(&ps.RGB{128, 128, 128})
 	}
 }

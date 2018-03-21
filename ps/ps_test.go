@@ -18,10 +18,6 @@ func TestFormatTextBox(t *testing.T) {
 	FormatTextbox()
 }
 
-func TestFormatSpeed(t *testing.T) {
-	FormatSpeed()
-}
-
 func TestSetLeader(t *testing.T) {
 	SetLeader("Lilith")
 }
