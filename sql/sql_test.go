@@ -4,6 +4,7 @@ import (
 	// "encoding/csv"
 	"fmt"
 	// "log"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,13 +25,27 @@ func init() {
 // }
 
 func TestLoad(t *testing.T) {
-	c := Load("Anger")
+	// c := Load("Anger")
 	// l := Load("Bast")
-	fmt.Printf("%#v\n", c)
+	// fmt.Printf("%#v\n", c)
 	// fmt.Printf("%#v\n", l)
-	fmt.Println(c.CSV())
+	// fmt.Println(c.CSV())
 	// fmt.Println(l)
+}
 
+func TestUEJSON(t *testing.T) {
+	card := Load("Bast")
+	j, err := json.MarshalIndent(card, "", "\t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(j))
+	card = Load("Tendril")
+	j, err = json.MarshalIndent(card, "", "\t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(j))
 }
 
 /*

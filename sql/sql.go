@@ -7,28 +7,31 @@ import (
 	"log"
 	"os/exec"
 	"path/filepath"
-	"strconv"
+	// "strconv"
 	"strings"
 )
 
 // Load retrieves a card from the database, given it's name.
 func Load(name string) Card {
 	c := &card{}
-	var typ, title, short, long, flavor, resolve *string
+	var typ, stype, title, short, long, flavor, resolve, faction *string
 	var speed, damage, life *int
-	props := []string{"\"name\"", "\"type\"", "short", "reminder", "flavor",
-		"resolve", "speed", "damage", "life"}
-	str := fmt.Sprintf("select %[1]s from public.all_cards where "+
+	props := []string{"\"name\"", "all_cards.type", "all_cards.supertypes",
+		"short", "reminder", "flavor", "resolve", "speed", "damage", "life",
+		"all_cards.faction"}
+	str := fmt.Sprintf("select %[1]s from all_cards where "+
 		"\"name\"='%[2]s'", strings.Join(props, ", "), name)
-	fmt.Println(strings.Join(props, ", "))
-	err := Database.QueryRow(str).Scan(&title, &typ, &short, &long, &flavor,
-		&resolve, &speed, &damage, &life)
+	err := Database.QueryRow(str).Scan(&title, &typ, &stype, &short, &long, &flavor,
+		&resolve, &speed, &damage, &life, &faction)
 	switch {
 	case err == sql.ErrNoRows:
 		log.Printf("No card was found with name \"%s\"\n", name)
 		return nil
 	case err != nil:
 		panic(err)
+	}
+	if stype != nil {
+		c.stype = strings.Split(*stype, ",")
 	}
 	if title != nil {
 		c.name = *title
@@ -56,24 +59,31 @@ func Load(name string) Card {
 	}
 	switch {
 	// TODO: Change to pull from database
-	case *typ == "Leader" || *typ == "Guest":
+	case *typ == "Leader" || *typ == "Partner":
 		c.ctype = *typ
 		n := &NonDeckCard{}
 		n.card = *c
-		var resolveB *string
-		props = []string{"resolve_b"}
+		var speedB, damageB *int
+		var resolveB, lifeB, shortB, longB, flavorB *string
+		props = []string{"resolve_b", "speed_b", "damage_b", "life_b",
+			"short_b", "reminder_b", "flavor_b"}
 		err = Database.QueryRow(
-			fmt.Sprintf("SELECT %s FROM skirmish.nondeckcards WHERE name='%s'",
-				strings.Join(props, ", "), name)).Scan(&resolveB)
+			fmt.Sprintf("SELECT %s FROM leaders WHERE name='%s'",
+				strings.Join(props, ", "), name)).Scan(&resolveB, &speedB,
+			&damageB, &lifeB, &shortB, &longB, &flavorB)
 		if err != nil {
 			panic(err)
 		}
-		if resolveB != nil {
-			if i, err := strconv.Atoi(*resolveB); err == nil {
-				n.resolveB = i
-			} else {
-				panic(err)
-			}
+		n.resolveB = resolveB
+		n.shortB = shortB
+		n.longB = longB
+		n.flavorB = flavorB
+		n.speedB = speedB
+		n.damageB = damageB
+		n.lifeB = lifeB
+		if faction != nil {
+			fmt.Println(*faction)
+			n.faction = *faction
 		}
 		return n
 	case typ != nil:
@@ -84,7 +94,7 @@ func Load(name string) Card {
 		var leader *string
 		props = []string{"cost", "rarity", "leader"}
 		err = Database.QueryRow(
-			fmt.Sprintf("SELECT %s FROM skirmish.deckcards WHERE name='%s'",
+			fmt.Sprintf("SELECT %s FROM deck_cards WHERE name='%s'",
 				strings.Join(props, ", "), name)).Scan(&cost, &rarity,
 			&leader)
 		if err != nil {

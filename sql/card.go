@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	// "io/ioutil"
+	"strconv"
 	// "log"
 	// "os"
 	"path/filepath"
@@ -30,22 +32,40 @@ type Card interface {
 	String() string
 	CSV() [][]string
 	Images() ([]string, error)
+	// MarshalJSON()
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
 type card struct {
-	name    string // The name of the card.
-	ctype   string // The card's type.
-	resolve string // The resolve this card produces when in play.
-	speed   int    // The speed the card has (if it's a character).
-	damage  int    // The damage the card deals in combat (if it's a character).
-	life    int    // The damage the card can take before being discarded (if it's a hero).
-	short   string // The card's basic rules text.
-	long    string // The card's reminder text.
-	flavor  string // The card's flavor (non-rules) text.
+	name    string   // The name of the card.
+	ctype   string   // The card's type.
+	stype   []string // The card's supertype(s).
+	resolve string   // The resolve this card produces when in play.
+	speed   int      // The speed the card has (if it's a character).
+	damage  int      // The damage the card deals in combat (if it's a character).
+	life    int      // The damage the card can take before being discarded (if it's a hero).
+	short   string   // The card's basic rules text.
+	long    string   // The card's reminder text.
+	flavor  string   // The card's flavor (non-rules) text.
 	// BoldWords  string   // A regex matching all the words in short text that need to be bold.
 	// labels     []string // Labels to use when converting to csv output.
 	// dir        string   // The directory to look for the card image in.
+}
+
+func (c card) MarshalJSON() ([]byte, error) {
+	obj := CardUEJSON{}
+	obj.Name = c.name
+	obj.Type = "CTE_" + c.ctype
+	resolve, err := strconv.Atoi(c.resolve)
+	if err != nil {
+		return []byte{}, err
+	}
+	obj.Stats = Stats{Life: c.life, Damage: c.damage, Speed: c.speed,
+		Resolve: resolve, Short: c.short, Long: c.long, Flavor: c.flavor}
+	obj.Abilities = make([]string, 0)
+	obj.Visual = *NewVisual(c.name, "Common", 1)
+	obj.SystemData = SystemData{make([]string, 0), make([]string, 0), make([]string, 0)}
+	return json.Marshal(obj)
 }
 
 func (c *card) Name() string {
@@ -224,6 +244,27 @@ type DeckCard struct {
 	leader string
 }
 
+func (d DeckCard) MarshalJSON() ([]byte, error) {
+	byt, err := d.card.MarshalJSON()
+	if err != nil {
+		log.Panic(err)
+	}
+	obj := DeckCardUEJSON{}
+	err = json.Unmarshal(byt, &obj.CardUEJSON)
+	if err != nil {
+		log.Panic(err)
+	}
+	obj.CardName = d.name
+	obj.Supertypes = "CTE_" + strings.Join(d.stype, "_")
+	obj.Name = strings.Replace(d.name, " ", "", -1)
+	obj.Leader = d.leader
+	obj.Copies = d.rarity
+	obj.Visual = *NewVisual(d.name, d.leader, d.rarity)
+	obj.Stats.Cost = d.cost
+
+	return json.Marshal(obj)
+}
+
 func (d *DeckCard) Cost() (string, error) {
 	return fmt.Sprint(d.cost), nil
 }
@@ -301,17 +342,14 @@ func (d *DeckCard) CSV() [][]string {
 
 type NonDeckCard struct {
 	card
-	resolveB int
-	/*
-		Faction
-		HaloResolve    int
-		HaloSpeed      int
-		HaloDamage     int
-		HaloLife       int
-		HaloShortText  string
-		HaloLongText   string
-		HaloFlavorText string
-	*/
+	faction  string
+	speedB   *int
+	resolveB *string
+	damageB  *int
+	lifeB    *string
+	shortB   *string
+	longB    *string
+	flavorB  *string
 }
 
 func (n *NonDeckCard) String() string {
@@ -325,4 +363,55 @@ func (n *NonDeckCard) String() string {
 	// 	strings.Replace(n.short, "\r\n", "\\r", -1))
 	// str += "\""
 	// return str
+}
+
+func (n NonDeckCard) MarshalJSON() ([]byte, error) {
+	byt, err := n.card.MarshalJSON()
+	if err != nil {
+		log.Panic(err)
+	}
+	obj := NonDeckCardUEJSON{}
+	err = json.Unmarshal(byt, &obj.CardUEJSON)
+	if err != nil {
+		log.Panic(err)
+	}
+	obj.Faction = "FE_" + n.faction
+	if n.resolveB != nil {
+		resolve, err := strconv.Atoi(*n.resolveB)
+		if err != nil {
+			return []byte{}, err
+		}
+		if n.speedB != nil {
+			obj.ActiveStats.Speed = *n.speedB
+		}
+		if n.damageB != nil {
+			obj.ActiveStats.Damage = *n.damageB
+		}
+		if n.lifeB != nil {
+			life, err := strconv.Atoi(*n.lifeB)
+			if err != nil {
+				return []byte{}, err
+			}
+			obj.ActiveStats.Life = life
+		}
+		if n.shortB != nil {
+			obj.ActiveStats.Short = *n.shortB
+		}
+		if n.longB != nil {
+			obj.ActiveStats.Long = *n.longB
+		}
+		if n.flavorB != nil {
+			obj.ActiveStats.Flavor = *n.flavorB
+		}
+		obj.ActiveStats.Resolve = resolve
+	}
+	obj.Visual.BackTexture = strings.Replace(obj.Visual.BackTexture,
+		"CardBack", fmt.Sprintf("01x_%s_Halo", n.name), -1)
+	mat := "MaterialInstanceConstant'/Game/Materials"
+	obj.Visual.FrontMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'",
+		mat, "Front")
+	obj.Visual.BackMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'",
+		mat, "Back")
+	obj.DeckCards = fmt.Sprintf("DataTable'/Game/Data/%sDeck.%[1]sDeck'", n.name)
+	return json.Marshal(obj)
 }
