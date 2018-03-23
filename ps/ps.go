@@ -14,14 +14,41 @@ import (
 var tolerances map[string]int
 var doc *ps.Document
 
+var txt *ps.LayerSet
+var name *ps.ArtLayer
+var cost *ps.ArtLayer
+var resolve *ps.ArtLayer
+var typ *ps.ArtLayer
+var speed *ps.ArtLayer
+var life *ps.ArtLayer
+var damage *ps.ArtLayer
+var short *ps.ArtLayer
+var long *ps.ArtLayer
+var flav *ps.ArtLayer
+var heroLife *ps.ArtLayer
+
+var areas *ps.LayerSet
+var bottom *ps.LayerSet
+var shortbg *ps.ArtLayer
+var lBar *ps.ArtLayer
+var resolve_bg *ps.ArtLayer
+var cost_bg *ps.ArtLayer
+var indicators []*ps.ArtLayer
+var rarities []*ps.ArtLayer
+var types []*ps.ArtLayer
+var deck *ps.LayerSet
+
 func init() {
+	ps.Mode = ps.Normal
+	// ps.Mode = ps.Safe
+	// ps.Mode = ps.Fast
+	log.Printf("Testing with mode %d", ps.Mode)
 	tolerances = make(map[string]int)
-	rows, err := sql.Database.Query("SELECT name, px FROM public.tolerances")
+	rows, err := sql.Database.Query("SELECT name, px FROM tolerances;")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-
 	for rows.Next() {
 		var name string
 		var px int
@@ -37,7 +64,102 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	txt = doc.LayerSet("Text")
+	if txt == nil {
+		log.Panic("LayerSet \"Text\" was not found!")
+	}
+	name = txt.ArtLayer("name")
+	if name == nil {
+		log.Panic("ArtLayer \"name\" was not found!")
+	}
+	cost = txt.ArtLayer("cost")
+	if cost == nil {
+		log.Panic("ArtLayer \"cost\" was not found!")
+	}
+	resolve = txt.ArtLayer("resolve")
+	if resolve == nil {
+		log.Panic("ArtLayer \"resolve\" was not found!")
+	}
+	typ = txt.ArtLayer("type")
+	if typ == nil {
+		log.Panic("ArtLayer \"type\" was not found!")
+	}
+	speed = txt.ArtLayer("speed")
+	if speed == nil {
+		log.Panic("ArtLayer \"speed\" was not found!")
+	}
+	life = txt.ArtLayer("life")
+	if life == nil {
+		log.Panic("ArtLayer \"life\" was not found!")
+	}
+	damage = txt.ArtLayer("damage")
+	if damage == nil {
+		log.Panic("ArtLayer \"damage\" was not found!")
+	}
+	short = txt.ArtLayer("short")
+	if short == nil {
+		log.Panic("ArtLayer \"short\" was not found!")
+	}
+	long = txt.ArtLayer("long")
+	if long == nil {
+		log.Panic("ArtLayer \"long\" was not found!")
+	}
+	flav = txt.ArtLayer("flavor")
+	if flav == nil {
+		log.Panic("ArtLayer \"flav\" was not found!")
+	}
+	heroLife = txt.ArtLayer("hero life")
+	if heroLife == nil {
+		log.Panic("ArtLayer \"heroLife\" was not found!")
+	}
 
+	areas = doc.LayerSet("Areas")
+	if areas == nil {
+		log.Panic("LayerSet \"Areas\" was not found!")
+	}
+	bottom = areas.LayerSet("Bottom")
+	if bottom == nil {
+		log.Panic("LayerSet \"Bottom\" was not found!")
+	}
+	shortbg = bottom.ArtLayer("short_text_box")
+	if shortbg == nil {
+		log.Panic("ArtLayer \"shortbg\" was not found!")
+	}
+	lBar = bottom.ArtLayer("L Bar")
+	if lBar == nil {
+		log.Panic("ArtLayer \"L Bar\" not found!")
+	}
+
+	resolve_bg = areas.LayerSet("ResolveBackground").
+		ArtLayer("resolve_color")
+	if resolve_bg == nil {
+		log.Panic("resolve_bg layer not found!")
+	}
+	cost_bg = areas.LayerSet("CostBackground").
+		ArtLayer("cost_color")
+	if cost_bg == nil {
+		log.Panic("cost_bg layer not found!")
+	}
+	ind := doc.LayerSet("Indicators")
+	if ind == nil {
+		log.Panic("LayerSet \"Indicators\" was not found!")
+	}
+	types = ind.LayerSet("Type").ArtLayers()
+	if types == nil {
+		log.Panic("Type layers not found!")
+	}
+	rarities = ind.LayerSet("Rarity").ArtLayers()
+	if rarities == nil {
+		log.Panic("Rarity layers not found!")
+	}
+	indicators = ind.ArtLayers()
+	if indicators == nil {
+		log.Panic("[]ArtLayers \"Indicators\" were not found!")
+	}
+	deck = ind.LayerSet("Deck")
+	if deck == nil {
+		log.Panic("LayerSet \"Deck\" was not found!")
+	}
 }
 
 // Save saves a copy the produced card image as a .png in the appropriate
@@ -88,40 +210,6 @@ func SetLeader(name string) {
 	barStroke := ps.Stroke{Size: 4, Color: banner}
 	counterStroke := ps.Stroke{Size: 4, Color: indicator}
 
-	cost := doc.LayerSet("Text").ArtLayer("cost")
-	resolve := doc.LayerSet("Text").ArtLayer("resolve")
-	speed := doc.LayerSet("Text").ArtLayer("speed")
-	damage := doc.LayerSet("Text").ArtLayer("damage")
-	life := doc.LayerSet("Text").ArtLayer("life")
-	heroLife := doc.LayerSet("Text").ArtLayer("hero life")
-
-	resolve_bg := doc.LayerSet("Areas").LayerSet("ResolveBackground").
-		ArtLayer("resolve_color")
-	if resolve_bg == nil {
-		log.Panic("resolve_bg layer not found!")
-	}
-	cost_bg := doc.LayerSet("Areas").LayerSet("CostBackground").
-		ArtLayer("cost_color")
-	if cost_bg == nil {
-		log.Panic("cost_bg layer not found!")
-	}
-	types := doc.LayerSet("Indicators").LayerSet("Type").ArtLayers()
-	if types == nil {
-		log.Panic("Type layers not found!")
-	}
-	rarities := doc.LayerSet("Indicators").LayerSet("Rarity").ArtLayers()
-	if rarities == nil {
-		log.Panic("Rarity layers not found!")
-	}
-	lBar := doc.LayerSet("Areas").LayerSet("Bottom").ArtLayer("L Bar")
-	if lBar == nil {
-		log.Panic("L Bar not found!")
-	}
-	indicators := doc.LayerSet("Indicators").ArtLayers()
-	if indicators == nil {
-		log.Panic("Indicators not found!")
-	}
-
 	resolve_bg.SetColor(ps.Colors["Gray"])
 	cost_bg.SetColor(banner)
 	for _, lyr := range types {
@@ -135,6 +223,13 @@ func SetLeader(name string) {
 		lyr.SetColor(indicator)
 	}
 
+	for _, lyr := range deck.ArtLayers() {
+		if lyr.Name() == name {
+			lyr.SetVisible(true)
+		} else {
+			lyr.SetVisible(false)
+		}
+	}
 	cost.SetStroke(counterStroke, ps.Colors["White"])
 	resolve.SetStroke(counterStroke, ps.Colors["White"])
 
@@ -150,6 +245,17 @@ func Format() {
 	if err != nil {
 		panic(err)
 	}
+	FormatTextbox()
+	// err = FormatTextbox()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	SetLeader("Igrath")
+	/*	err = SetLeader("Igrath")
+		if err != nil {
+			panic(err)
+		}
+	*/
 }
 
 // FormatTitle finds the correct length background for the card's title, makes
@@ -157,7 +263,6 @@ func Format() {
 // the longest background.
 func FormatTitle() error {
 	banners := doc.LayerSet("Areas").LayerSet("TitleBackground")
-	txt := doc.LayerSet("Text").ArtLayer("name")
 	tol := tolerances["title"]
 	found := false
 
@@ -167,7 +272,7 @@ func FormatTitle() error {
 	// hide all other layers,
 	// if they aren't already hidden;
 	for _, lyr := range banners.ArtLayers() {
-		if !found && txt.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
+		if !found && name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
 			found = true
 			if !lyr.Visible() {
 				lyr.SetVisible(true)
@@ -190,15 +295,8 @@ func FormatTitle() error {
 // TODO: Logic incomplete in terms of layer hiding.
 func FormatTextbox() {
 	bot := doc.Height() - tolerances["flavor"]
-	txt := doc.LayerSet("Text")
-	short := txt.ArtLayer("short")
-	long := txt.ArtLayer("long")
-	flav := txt.ArtLayer("flavor")
-	shortbg := doc.LayerSet("Areas").LayerSet("Bottom").ArtLayer("short_text_box")
-	speed := doc.LayerSet("Text").ArtLayer("speed")
 
 	if speed.Visible() { // && speed.Text() == 1 {
-		// speed.SetStroke(nil, ps.Colors["Gray"])
 		speed.SetColor(ps.Colors["Gray"])
 	}
 	/*

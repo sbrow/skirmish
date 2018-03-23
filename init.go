@@ -13,7 +13,6 @@ var ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 var DataDir = filepath.Join(os.Getenv("SK_SQL"))
 
 // Loaded from SQL
-
 var Database *sql.DB
 var Leaders []string
 

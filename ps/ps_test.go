@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+func TestSetLeader(t *testing.T) {
+	SetLeader("Tinsel")
+}
+
 func TestFormatTitle(t *testing.T) {
 	ps.Open(skirmish.Template)
 	err := FormatTitle()
@@ -16,8 +20,11 @@ func TestFormatTitle(t *testing.T) {
 
 func TestFormatTextBox(t *testing.T) {
 	FormatTextbox()
+	doc.Dump()
 }
 
-func TestSetLeader(t *testing.T) {
-	SetLeader("Lilith")
+func BenchmarkManualLoad(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Format()
+	}
 }
