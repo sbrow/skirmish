@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
-	// "io/ioutil"
-	"strconv"
-	// "log"
-	// "os"
+	"os"
 	"path/filepath"
-	// "regexp"
+	"strconv"
 	"strings"
 )
 
@@ -26,13 +24,10 @@ type Card interface {
 	Name() string
 	Type() string
 	Resolve() string
-	// Cost() (string, error)
-	// ID() string
 	Labels() []string
 	String() string
 	CSV() [][]string
 	Images() ([]string, error)
-	// MarshalJSON()
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
@@ -47,9 +42,6 @@ type card struct {
 	short   string   // The card's basic rules text.
 	long    string   // The card's reminder text.
 	flavor  string   // The card's flavor (non-rules) text.
-	// BoldWords  string   // A regex matching all the words in short text that need to be bold.
-	// labels     []string // Labels to use when converting to csv output.
-	// dir        string   // The directory to look for the card image in.
 }
 
 func (c card) MarshalJSON() ([]byte, error) {
@@ -110,36 +102,21 @@ func (c card) Labels() []string {
 // path = [$SK_SRC]/[folder]]/[c.Name].png
 func (c *card) Images() (paths []string, err error) {
 	return []string{filepath.Join(ImageDir, "ImageNotFound.png")}, nil
-	/*
-		path := filepath.Join(ImageDir, c.Name())
-		dir, err := ioutil.ReadDir(path)
-		if err != nil {
-			log.SetPrefix("[ERROR]")
-			log.Print(path, " does not exist!")
-			return []string{}, err
-		}
-		if _, err = os.Stat(path); os.IsNotExist(err) {
-			err = errors.New(fmt.Sprint(path, " does not exist!"))
-		}
-		for i, file := range dir {
-			paths[i] = file.Name()
-		}
-		return paths, err
-	*/
+
 }
 
-// TODO: Default image / image handling.
 func (c *card) CSV() [][]string {
 	str := make([]string, len(c.Labels()))
 	for i, label := range c.Labels() {
 		switch label {
-		// case "ID":
-		// fallthrough
-		// str[i] += fmt.Sprintf("\"%s\"", c.Name)
 		case "name":
-			str[i] += c.Name() //fmt.Sprintf("\"%s\"", c.Name())
+			str[i] += c.Name()
 		case "resolve":
-			str[i] += fmt.Sprint(c.resolve)
+			if c.Resolve() == "" {
+				str[i] += fmt.Sprint("0")
+			} else {
+				str[i] += fmt.Sprint(c.Resolve())
+			}
 		case "type":
 			str[i] += c.ctype
 		case "speed":
@@ -169,19 +146,9 @@ func (c *card) CSV() [][]string {
 		case "card_image":
 			img, err := c.Images()
 			if err != nil {
-				panic(err)
+				log.Panic(err)
 			}
 			str[i] += img[0]
-			// img, err := c.Image( /*i*/ ) //Borked, need leader name
-			/*if err != nil {
-				pre := log.Prefix()
-				log.SetPrefix("[ERROR] ")
-				log.Println(err)
-				log.SetPrefix(pre)
-				str[i] += ""
-			} else {
-				str[i] += fmt.Sprintf("\"%s\"", img)
-			}*/
 		case "action":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Action"))
 		case "event":
@@ -191,16 +158,13 @@ func (c *card) CSV() [][]string {
 		case "item":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Item"))
 		case "show_resolve":
-			str[i] += fmt.Sprintf("%v", c.Resolve() != "0")
+			str[i] += fmt.Sprintf("%v", c.Resolve() != "0" && c.Resolve() != "")
 		case "show_speed":
-			// TODO: Clumsy
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Follower") ||
-				strings.Contains(c.Type(), "Hero"))
+			str[i] += fmt.Sprintf("%v", c.speed != 0)
 		case "show_tough":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Follower"))
 		case "show_life":
 			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Hero"))
-
 		}
 		str[i] += Delim
 	}
@@ -311,7 +275,6 @@ func (d *DeckCard) CSV() [][]string {
 	out[0] = d.Labels()
 	l := d.Labels()[len(d.card.Labels()):]
 	for _, label := range l {
-		fmt.Println(label)
 		switch label {
 		case "cost":
 			cost, err := d.Cost()
@@ -330,13 +293,23 @@ func (d *DeckCard) CSV() [][]string {
 		if strings.Contains("common,uncommon,rare", label) {
 			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
 		}
-		// out[1] += Delim
 	}
-	out[1][0] = d.Name()
-	// for i, elem := range out {
-	// 	out[i] = strings.TrimSuffix(elem, ",")
-	// }
-	// Add Leaders, Rarity, cost, image, id?, toughness,
+	imgs, err := d.Images()
+	if err != nil {
+		log.Panic(err)
+	}
+	tmp := make([][]string, len(imgs)+1, len(out[0]))
+	tmp[0] = out[0]
+	tmp[1] = out[1]
+	out = tmp
+	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
+	out[1][10] = imgs[0]
+	for i := 2; i <= len(imgs); i++ {
+		out[i] = make([]string, len(out[i-1]))
+		copy(out[i], out[i-1])
+		out[i][0] = fmt.Sprintf("%s_%d", d.name, i)
+		out[i][10] = imgs[i-1]
+	}
 	return out
 }
 
@@ -414,4 +387,28 @@ func (n NonDeckCard) MarshalJSON() ([]byte, error) {
 		mat, "Back")
 	obj.DeckCards = fmt.Sprintf("DataTable'/Game/Data/%sDeck.%[1]sDeck'", n.name)
 	return json.Marshal(obj)
+}
+
+func (d *DeckCard) Images() (paths []string, err error) {
+	// Path to a subfolder, assuming the card has multiple images.
+	path := filepath.Join(ImageDir, d.leader, d.Name())
+	// If the card does not have a subfolder, check in the main folder for
+	// an image file.
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		// If found, return it, if not, throw an error.
+		if _, err = os.Stat(path + ".png"); os.IsNotExist(err) {
+			ret, _ := d.card.Images()
+			return ret, errors.New("No image found")
+		}
+		return []string{path + ".png"}, nil
+	}
+	dir, err := ioutil.ReadDir(path + "\\")
+	if err != nil {
+		return nil, err
+	}
+	paths = make([]string, len(dir))
+	for i, file := range dir {
+		paths[i] = filepath.Join(path, file.Name())
+	}
+	return paths, err
 }

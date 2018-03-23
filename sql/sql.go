@@ -3,16 +3,17 @@ package sql
 import (
 	"bytes"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
 	"path/filepath"
-	// "strconv"
 	"strings"
 )
 
-// Load retrieves a card from the database, given it's name.
-func Load(name string) Card {
+// Load Selects a card from the database given it's name, and returns in
+// a struct of the appropriate card type.
+func Load(name string) (Card, error) {
 	c := &card{}
 	var typ, stype, title, short, long, flavor, resolve, faction *string
 	var speed, damage, life *int
@@ -26,7 +27,7 @@ func Load(name string) Card {
 	switch {
 	case err == sql.ErrNoRows:
 		log.Printf("No card was found with name \"%s\"\n", name)
-		return nil
+		return nil, err
 	case err != nil:
 		panic(err)
 	}
@@ -72,7 +73,7 @@ func Load(name string) Card {
 				strings.Join(props, ", "), name)).Scan(&resolveB, &speedB,
 			&damageB, &lifeB, &shortB, &longB, &flavorB)
 		if err != nil {
-			panic(err)
+			return n, err
 		}
 		n.resolveB = resolveB
 		n.shortB = shortB
@@ -85,20 +86,20 @@ func Load(name string) Card {
 			fmt.Println(*faction)
 			n.faction = *faction
 		}
-		return n
+		return n, nil
 	case typ != nil:
 		c.ctype = *typ
 		d := &DeckCard{}
 		d.card = *c
 		var cost, rarity *int
 		var leader *string
-		props = []string{"cost", "rarity", "leader"}
+		props = []string{"resolve_cost", "copies", "deck_cards.leader"}
 		err = Database.QueryRow(
 			fmt.Sprintf("SELECT %s FROM deck_cards WHERE name='%s'",
 				strings.Join(props, ", "), name)).Scan(&cost, &rarity,
 			&leader)
 		if err != nil {
-			panic(err)
+			return d, err
 		}
 		if cost != nil {
 			d.cost = *cost
@@ -109,9 +110,9 @@ func Load(name string) Card {
 		if leader != nil {
 			d.leader = *leader
 		}
-		return d
+		return d, nil
 	}
-	return nil
+	return nil, errors.New("Something went wrong.")
 }
 
 // Recover runs pg_recover, loading database data from a sql file.

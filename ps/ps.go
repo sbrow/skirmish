@@ -7,8 +7,6 @@ import (
 	"github.com/sbrow/ps"
 	"github.com/sbrow/skirmish/sql"
 	"log"
-	// "os"
-	// "path/filepath"
 )
 
 var tolerances map[string]int
@@ -160,6 +158,15 @@ func init() {
 	if deck == nil {
 		log.Panic("LayerSet \"Deck\" was not found!")
 	}
+}
+
+// ApplyDataset applies the given dataset,
+// selects card data from the sql server,
+// checks all its values against the active document,
+// updates any fields that were changed,
+// and then calls any necessary formatting functions.
+func ApplyDataset(name string) {
+
 }
 
 // Save saves a copy the produced card image as a .png in the appropriate

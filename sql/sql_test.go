@@ -1,10 +1,10 @@
 package sql
 
 import (
-	// "encoding/csv"
-	"fmt"
-	// "log"
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -34,13 +34,19 @@ func TestLoad(t *testing.T) {
 }
 
 func TestUEJSON(t *testing.T) {
-	card := Load("Bast")
+	card, err := Load("Bast")
+	if err != nil {
+		t.Fatal(err)
+	}
 	j, err := json.MarshalIndent(card, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println(string(j))
-	card = Load("Tendril")
+	card, err = Load("Tendril")
+	if err != nil {
+		t.Fatal(err)
+	}
 	j, err = json.MarshalIndent(card, "", "\t")
 	if err != nil {
 		t.Fatal(err)
@@ -48,12 +54,15 @@ func TestUEJSON(t *testing.T) {
 	fmt.Println(string(j))
 }
 
-/*
 func TestCSV(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping CSV test")
 	}
-	c := Load("Bushwack Squad")
+	// c, err := Load("Bushwack Squad")
+	c, err := Load("Loyal Trooper")
+	if err != nil {
+		t.Fatal(err)
+	}
 	file, err := os.Create("test.csv")
 	if err != nil {
 		log.Fatal(err)
@@ -76,4 +85,3 @@ func TestSQL(t *testing.T) {
 	Recover(DataDir)
 	Dump(DataDir)
 }
-*/
