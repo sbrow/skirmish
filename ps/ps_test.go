@@ -23,6 +23,10 @@ func TestFormatTextBox(t *testing.T) {
 	doc.Dump()
 }
 
+func TestApplyDataset(t *testing.T) {
+	ApplyDataset("Anger_1")
+}
+
 func BenchmarkManualLoad(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Format()

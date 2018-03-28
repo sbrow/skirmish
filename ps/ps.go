@@ -37,8 +37,8 @@ var types []*ps.ArtLayer
 var deck *ps.LayerSet
 
 func init() {
-	ps.Mode = ps.Normal
-	// ps.Mode = ps.Safe
+	// ps.Mode = ps.Normal
+	ps.Mode = ps.Safe
 	// ps.Mode = ps.Fast
 	log.Printf("Testing with mode %d", ps.Mode)
 	tolerances = make(map[string]int)
@@ -166,7 +166,9 @@ func init() {
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
 func ApplyDataset(name string) {
-
+	SetLeader("Wisp")
+	ps.ApplyDataset(name)
+	Format()
 }
 
 // Save saves a copy the produced card image as a .png in the appropriate
@@ -253,16 +255,6 @@ func Format() {
 		panic(err)
 	}
 	FormatTextbox()
-	// err = FormatTextbox()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	SetLeader("Igrath")
-	/*	err = SetLeader("Igrath")
-		if err != nil {
-			panic(err)
-		}
-	*/
 }
 
 // FormatTitle finds the correct length background for the card's title, makes

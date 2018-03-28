@@ -59,7 +59,7 @@ func TestCSV(t *testing.T) {
 		t.Skip("Skipping CSV test")
 	}
 	// c, err := Load("Bushwack Squad")
-	c, err := Load("Loyal Trooper")
+	c, err := Load("Anger")
 	if err != nil {
 		t.Fatal(err)
 	}

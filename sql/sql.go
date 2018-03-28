@@ -115,7 +115,7 @@ func Load(name string) (Card, error) {
 	return nil, errors.New("Something went wrong.")
 }
 
-// Recover runs pg_recover, loading database data from a sql file.
+// Recover runs pg_recover, loading database data from a SQL file.
 func Recover(dir string) {
 	var out bytes.Buffer
 	var errs bytes.Buffer
@@ -131,7 +131,7 @@ func Recover(dir string) {
 	fmt.Println(string(errs.Bytes()))
 }
 
-// Dump runs pg_dump, saving the contents of the database to a sql file.
+// Dump runs pg_dump, saving the contents of the database to a SQL file.
 func Dump(dir string) {
 	var out bytes.Buffer
 	var errs bytes.Buffer
@@ -150,4 +150,8 @@ func Dump(dir string) {
 	if len(errs.Bytes()) > 0 {
 		fmt.Println(string(errs.Bytes()))
 	}
+}
+
+// GenData creates a dataset file for Photoshop to load from.
+func GenData() {
 }
