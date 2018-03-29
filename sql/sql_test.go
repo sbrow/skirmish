@@ -2,7 +2,6 @@ package sql
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -14,15 +13,14 @@ func init() {
 	Init(filepath.Join(os.Getenv("SK_PS"), "Images"), os.Getenv("SK_SQL"))
 }
 
-// func TestSimple(t *testing.T) {
-// 	var text *string
-// 	err := Database.QueryRow("SELECT type FROM public.all_cards WHERE name='Anger'").Scan(&text)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Println(*text)
-
-// }
+func TestSimple(t *testing.T) {
+	var text *string
+	err := Database.QueryRow("SELECT type FROM public.all_cards WHERE name='Anger'").Scan(&text)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(*text)
+}
 
 func TestLoad(t *testing.T) {
 	c, err := Load("Indigo")
@@ -38,7 +36,7 @@ func TestUEJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	j, err := json.MarshalIndent(card, "", "\t")
+	j, err := card.UEJSON(true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +45,7 @@ func TestUEJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	j, err = json.MarshalIndent(card, "", "\t")
+	j, err = card.UEJSON(true)
 	if err != nil {
 		t.Fatal(err)
 	}
