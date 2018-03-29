@@ -36,7 +36,8 @@ var rarities []*ps.ArtLayer
 var types []*ps.ArtLayer
 var deck *ps.LayerSet
 
-func init() {
+// Init prepares Photoshop for automation.
+func Init() {
 	// ps.Mode = ps.Normal
 	ps.Mode = ps.Safe
 	// ps.Mode = ps.Fast

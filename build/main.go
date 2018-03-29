@@ -68,7 +68,10 @@ func Data() {
 		panic(err)
 	}
 	defer f.Close()
-	d := sql.Load("Anger")
+	d, err := sql.Load("Anger")
+	if err != nil {
+		log.Panic(err)
+	}
 	w := csv.NewWriter(f)
 	w.WriteAll(d.CSV())
 

@@ -63,7 +63,7 @@ func main() {
 				panic(err)
 			}
 		case "save":
-			ps.Save(true, args...)
+			// ps.Save(true, args...)
 		default:
 			ps.Format()
 		}
@@ -72,9 +72,11 @@ func main() {
 		if name == "" {
 			name = strings.Join(args, " ")
 		}
-		card := sql.Load(name)
-		// TODO: Check err
-		fmt.Println(card.String())
+		card, err := sql.Load(name)
+		if err != nil {
+			log.Panic(err)
+		}
+		fmt.Println(card)
 	case cmd == "build":
 		log.SetPrefix("[main] ")
 		// if !*fast {

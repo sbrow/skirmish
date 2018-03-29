@@ -102,7 +102,6 @@ func (c card) Labels() []string {
 // path = [$SK_SRC]/[folder]]/[c.Name].png
 func (c *card) Images() (paths []string, err error) {
 	return []string{filepath.Join(ImageDir, "ImageNotFound.png")}, nil
-
 }
 
 func (c *card) CSV() [][]string {
@@ -182,10 +181,19 @@ func (c *card) JSON() ([]byte, error) {
 func (c *card) String() string {
 	str := c.Name()
 	if c.resolve != "0" {
-		str += fmt.Sprintf(" %+d", c.resolve)
+		str += fmt.Sprintf(" %s ", c.resolve)
 	}
-	str += fmt.Sprintf(" %d/%d", c.damage, c.life)
-	str += fmt.Sprintf(" %s \"%s", c.Type(),
+	if c.speed > 1 {
+		str += fmt.Sprintf("%d/", c.speed)
+	}
+	str += fmt.Sprintf("%d/%d ", c.damage, c.life)
+	if len(c.stype) > 0 {
+		for _, elem := range c.stype {
+			str += fmt.Sprintf("%s ", elem)
+		}
+	}
+	str += fmt.Sprintf("%s", c.ctype)
+	str += fmt.Sprintf(" \"%s",
 		strings.Replace(c.short, "\r\n", " ", -1))
 	str += "\""
 	return str
@@ -234,7 +242,7 @@ func (d *DeckCard) Cost() (string, error) {
 }
 
 func (d *DeckCard) String() string {
-	str := d.card.String()
+	str := fmt.Sprintf("%dx[%s] %s", d.rarity, d.leader, d.card.String())
 	return strings.Replace(str, d.name+" ", fmt.Sprintf("%s (%d)",
 		d.name, d.cost), 1)
 	/*	str := d.Name() //fmt.Sprintf(`"%s"`, d.Name())
@@ -326,7 +334,7 @@ type NonDeckCard struct {
 }
 
 func (n *NonDeckCard) String() string {
-	return n.card.String()
+	return fmt.Sprint(n.card.String(), *n.resolveB)
 	// str := n.card.String()
 	// if n.resolveB > 0 {
 	// 	str += fmt.Sprintf("/%+d", n.resolveB)

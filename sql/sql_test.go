@@ -25,12 +25,12 @@ func init() {
 // }
 
 func TestLoad(t *testing.T) {
-	// c := Load("Anger")
-	// l := Load("Bast")
-	// fmt.Printf("%#v\n", c)
-	// fmt.Printf("%#v\n", l)
-	// fmt.Println(c.CSV())
-	// fmt.Println(l)
+	c, err := Load("Indigo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("%#v\n\n", c)
+	fmt.Println(c)
 }
 
 func TestUEJSON(t *testing.T) {
@@ -84,4 +84,12 @@ func TestQuery(t *testing.T) {
 func TestSQL(t *testing.T) {
 	Recover(DataDir)
 	Dump(DataDir)
+}
+
+func TestLoadMany(t *testing.T) {
+	c, err := LoadMany("cards.leader='Vi'")
+	fmt.Println(err)
+	for _, card := range c {
+		fmt.Printf("%#v\n\n", card)
+	}
 }
