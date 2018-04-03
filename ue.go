@@ -1,4 +1,4 @@
-package sql
+package skirmish
 
 import (
 	"encoding/json"
@@ -105,7 +105,8 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	obj.Leader = d.leader
 	obj.Copies = d.rarity
 	obj.Visual = *NewVisual(d.name, d.leader, d.rarity)
-	obj.Stats.Cost = d.cost
+	//TODO: UE COST BROKEN
+	// obj.Stats.Cost = d.cost
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")
 	}

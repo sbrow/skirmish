@@ -1,4 +1,4 @@
-package sql
+package skirmish
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -21,12 +22,31 @@ import (
 // TODO: Figure out how to handle id.
 type Card interface {
 	Name() string
+	Card() card
+	SetName(string)
 	Type() string
+	SetType(string)
+	STypes() []string
+	SetSTypes([]string)
 	Resolve() string
+	SetResolve(string)
+	Speed() int
+	SetSpeed(int)
+	Damage() int
+	Leader() string
+	SetDamage(int)
+	Life() int
+	SetLife(int)
+	Short() string
+	SetShort(string)
+	Long() string
+	SetLong(string)
+	Flavor() string
+	SetFlavor(string)
 	UEJSON(bool) ([]byte, error)
 	Labels() []string
 	String() string
-	CSV() [][]string
+	CSV(bool) [][]string
 	Images() ([]string, error)
 }
 
@@ -44,20 +64,106 @@ type card struct {
 	flavor  string   // The card's flavor (non-rules) text.
 }
 
+func NewCard() Card {
+	return &card{}
+}
+
 func (c *card) Name() string {
 	return c.name
 }
 
-func (c *card) Cost() (string, error) {
-	return "", errors.New(fmt.Sprintf(`card "%s" has no cost.`))
+func (c *card) SetName(name string) {
+	c.name = name
 }
+
+func (c *card) Card() card {
+	return *c
+}
+
+// func (c *card) Cost() (string, error) {
+// 	return "", errors.New(fmt.Sprintf(`card "%s" has no cost.`))
+// }
 
 func (c *card) Resolve() string {
 	return fmt.Sprint(c.resolve)
 }
 
+func (c *card) SetResolve(r string) {
+	m, err := regexp.Match(`[+\-][1-9]`, []byte(r))
+	if err != nil {
+		log.Panic(err)
+	}
+	if m {
+		c.resolve = r
+	}
+}
+
+func (c *card) Speed() int {
+	return c.speed
+}
+
+func (c *card) SetSpeed(s int) {
+	c.speed = s
+}
+
+func (c *card) Damage() int {
+	return c.damage
+}
+
+func (c *card) SetDamage(d int) {
+	c.damage = d
+}
+
+func (c *card) Life() int {
+	return c.life
+}
+
+func (c *card) SetLife(d int) {
+	c.life = d
+}
+
+func (c *card) Short() string {
+	return c.short
+}
+
+func (c *card) SetShort(s string) {
+	c.short = s
+}
+
+func (c *card) Long() string {
+	return c.long
+}
+
+func (c *card) SetLong(s string) {
+	c.long = s
+}
+
+func (c *card) Flavor() string {
+	return c.flavor
+}
+
+func (c *card) SetFlavor(s string) {
+	c.flavor = s
+}
+
 func (c *card) Type() string {
 	return c.ctype
+}
+
+func (c *card) SetType(t string) {
+	c.ctype = t
+}
+
+func (c *card) STypes() []string {
+	return c.stype
+}
+
+func (c *card) SetSTypes(t []string) {
+	c.stype = t
+}
+
+func (c *card) Leader() string {
+	return ""
 }
 
 // ID returns an id unique to the card.
@@ -88,7 +194,7 @@ func (c *card) Images() (paths []string, err error) {
 	return []string{filepath.Join(ImageDir, "ImageNotFound.png")}, nil
 }
 
-func (c *card) CSV() [][]string {
+func (c *card) CSV(lbls bool) [][]string {
 	str := make([]string, len(c.Labels()))
 	for i, label := range c.Labels() {
 		switch label {
@@ -154,7 +260,10 @@ func (c *card) CSV() [][]string {
 	for i := range str {
 		str[i] = strings.TrimSuffix(str[i], Delim)
 	}
-	return [][]string{c.Labels(), str}
+	if lbls {
+		return [][]string{c.Labels(), str}
+	}
+	return [][]string{str}
 }
 
 func (c *card) JSON() ([]byte, error) {
@@ -195,13 +304,34 @@ func (c *card) String() string {
 
 type DeckCard struct {
 	card
-	cost   int
+	cost   string
 	rarity int
 	leader string
 }
 
+func NewDeckCard() *DeckCard {
+	return &DeckCard{}
+}
+
+// SetCard makes c the DeckCard's base card.
+func (d *DeckCard) SetCard(c Card) {
+	d.card = c.Card()
+}
+
 func (d *DeckCard) Cost() (string, error) {
 	return fmt.Sprint(d.cost), nil
+}
+
+func (d *DeckCard) SetCost(c string) {
+	d.cost = c
+}
+
+func (d *DeckCard) Leader() string {
+	return d.leader
+}
+
+func (d *DeckCard) SetLeader(l string) {
+	d.leader = l
 }
 
 func (d *DeckCard) String() string {
@@ -235,14 +365,22 @@ func (d *DeckCard) Rarity() string {
 	return ""
 }
 
+func (d *DeckCard) SetRarity(r int) {
+	d.rarity = r
+}
+
 func (d *DeckCard) Labels() []string {
 	labels := append(d.card.Labels(), "cost", "border_normal",
 		"common", "uncommon", "rare")
-	return append(labels, Leaders...)
+	if len(Leaders) == 0 {
+		log.Fatal("No leaders found when computing labels")
+	}
+	labels = append(labels, Leaders...)
+	return labels
 }
 
-func (d *DeckCard) CSV() [][]string {
-	out := d.card.CSV()
+func (d *DeckCard) CSV(lbls bool) [][]string {
+	out := d.card.CSV(true)
 	out[0] = d.Labels()
 	l := d.Labels()[len(d.card.Labels()):]
 	for _, label := range l {
@@ -267,7 +405,7 @@ func (d *DeckCard) CSV() [][]string {
 	}
 	imgs, err := d.Images()
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
 	tmp[0] = out[0]
@@ -281,7 +419,10 @@ func (d *DeckCard) CSV() [][]string {
 		out[i][0] = fmt.Sprintf("%s_%d", d.name, i)
 		out[i][10] = imgs[i-1]
 	}
-	return out
+	if lbls {
+		return out
+	}
+	return out[1:]
 }
 
 type NonDeckCard struct {
@@ -317,8 +458,8 @@ func (d *DeckCard) Images() (paths []string, err error) {
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		// If found, return it, if not, throw an error.
 		if _, err = os.Stat(path + ".png"); os.IsNotExist(err) {
-			ret, _ := d.card.Images()
-			return ret, errors.New("No image found")
+			return []string{DefaultImage},
+				errors.New(fmt.Sprintf(`No image found for card '%s'`, d.name))
 		}
 		return []string{path + ".png"}, nil
 	}

@@ -1,18 +1,11 @@
 package build
 
 import (
-	"encoding/csv"
 	"fmt"
 	"github.com/sbrow/ps"
-	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/sql"
-	// "io/ioutil"
+	sk "github.com/sbrow/skirmish"
 	"log"
-	"os"
-	"path/filepath"
 	"regexp"
-	// "runtime"
-	// "strings"
 )
 
 /*func init() {
@@ -59,7 +52,7 @@ import (
 
 // Data collects all cards from the database and compiles them into
 // two separate photoshop datasets.
-func Data() {
+/*func Data() {
 	log.SetPrefix("[dataset] ")
 	log.Println(`Generating "dataset.csv"`)
 	// f, err := os.Create(filepath.Join(os.Getenv("SK_SRC"), "data.txt"))
@@ -92,14 +85,14 @@ func Data() {
 	// 	}
 	// }
 	log.Println("\"dataset.csv\" generated!")
-}
+}*/
 
 func PSDs() {
 	log.SetPrefix("[photoshop] ")
 	log.Println("Opening photoshop")
 	ps.Start()
 	log.Println("Opening Template")
-	ps.Open(skirmish.Template)
+	ps.Open(sk.Template)
 	ps.Wait("$ Import the current dataset file into photoshop, then press enter to continue")
 	ps.DoJs("F:\\GitHub\\Code\\javascript\\src\\Photoshop\\Skirmish\\bin\\syncCards.jsx", "C:/")
 	log.Println("Closing Template")

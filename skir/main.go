@@ -33,11 +33,13 @@ import (
 	"fmt"
 	app "github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/build"
+	// "github.com/sbrow/skirmish/build"
+	// "bytes"
 	"github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/sql"
 	"log"
 	"os"
+	// "os/exec"
 	"strings"
 )
 
@@ -81,7 +83,7 @@ func main() {
 		log.SetPrefix("[main] ")
 		// if !*fast {
 		log.Println("Generating cards")
-		build.Data()
+		sql.GenData()
 		// }
 		// log.SetPrefix("[photoshop] ")
 		// build.PSDs()
@@ -92,6 +94,45 @@ func main() {
 			sql.Dump(skirmish.DataDir)
 		} else if opt == "load" {
 			sql.Recover(skirmish.DataDir)
+		}
+	case cmd == "select":
+		query := fmt.Sprintf("SELECT %s %s", strings.Join(args[:len(args)-2], ", "),
+			strings.Join(args[len(args)-2:], " "))
+		rows, err := skirmish.DB.Query(query)
+		if err != nil {
+			log.Fatal(err)
+		}
+		columns, _ := rows.Columns()
+		fmt.Println(strings.Join(columns, "\t\t"))
+		count := len(columns)
+		values := make([]interface{}, count)
+		valuePtrs := make([]interface{}, count)
+
+		for rows.Next() {
+
+			for i, _ := range columns {
+				valuePtrs[i] = &values[i]
+			}
+
+			rows.Scan(valuePtrs...)
+
+			for i := range columns {
+
+				var v interface{}
+
+				val := values[i]
+
+				b, ok := val.([]byte)
+
+				if ok {
+					v = string(b)
+				} else {
+					v = val
+				}
+
+				fmt.Printf("%v\t\t", v)
+			}
+			fmt.Println()
 		}
 	}
 }

@@ -5,14 +5,19 @@ package ps
 import (
 	"errors"
 	"github.com/sbrow/ps"
+	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/sql"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 var tolerances map[string]int
 var doc *ps.Document
 
 var txt *ps.LayerSet
+var banners *ps.LayerSet
 var name *ps.ArtLayer
 var cost *ps.ArtLayer
 var resolve *ps.ArtLayer
@@ -37,13 +42,13 @@ var types []*ps.ArtLayer
 var deck *ps.LayerSet
 
 // Init prepares Photoshop for automation.
-func Init() {
-	// ps.Mode = ps.Normal
-	ps.Mode = ps.Safe
+func init() {
+	ps.Mode = ps.Normal
+	// ps.Mode = ps.Safe
 	// ps.Mode = ps.Fast
 	log.Printf("Testing with mode %d", ps.Mode)
 	tolerances = make(map[string]int)
-	rows, err := sql.Database.Query("SELECT name, px FROM tolerances;")
+	rows, err := sk.DB.Query("SELECT name, px FROM tolerances;")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,6 +75,10 @@ func Init() {
 	name = txt.ArtLayer("name")
 	if name == nil {
 		log.Panic("ArtLayer \"name\" was not found!")
+	}
+	banners = doc.LayerSet("Areas").LayerSet("TitleBackground")
+	if banners == nil {
+		log.Panic("LayerSet \"TitleBackground\" was not found!")
 	}
 	cost = txt.ArtLayer("cost")
 	if cost == nil {
@@ -166,9 +175,41 @@ func Init() {
 // checks all its values against the active document,
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
-func ApplyDataset(name string) {
-	SetLeader("Wisp")
-	ps.ApplyDataset(name)
+func ApplyDataset(id string) {
+	defer doc.Dump()
+	card, err := sql.Load(strings.TrimRight(id, `_123`))
+	if err != nil {
+		log.Println(card)
+		log.Panic(err)
+	}
+	SetLeader(card.Leader())
+	ps.ApplyDataset(id)
+
+	// Update layer data
+	txt.ArtLayer("id").Refresh()
+	name.Refresh()
+	cost.Refresh()
+	resolve.Refresh()
+	typ.Refresh()
+	speed.Refresh()
+	life.Refresh()
+	damage.Refresh()
+	speed.Refresh()
+	short.Refresh()
+	long.Refresh()
+	flav.Refresh()
+	heroLife.Refresh()
+
+	doc.LayerSet("Indicators").Refresh()
+	// TODO: Fix
+	// doc.LayerSet("Border").Refresh()
+	resolve_bg.Refresh()
+	for _, lyr := range doc.ArtLayers() {
+		if lyr.Name() == "card_image" {
+			lyr.Refresh()
+		}
+	}
+
 	Format()
 }
 
@@ -177,7 +218,6 @@ func ApplyDataset(name string) {
 // If crop is true, the bleed area around the card is cropped out of the image
 // before saving.
 // TODO: text layers
-/*
 func Save(crop bool, args ...string) {
 	lyr := doc.LayerSet("Text").ArtLayer("id")
 	if lyr == nil {
@@ -185,7 +225,8 @@ func Save(crop bool, args ...string) {
 	}
 	leader := "Heroes" // TODO: Fix skirmish.Leader(lyr.TextItem)
 	if !crop {
-		err := ps.SaveAs(filepath.Join(os.Getenv("SK_OUT"), leader, lyr.TextItem))
+		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", leader,
+			*lyr.Text))
 		if err != nil {
 			panic(err)
 		}
@@ -195,7 +236,8 @@ func Save(crop bool, args ...string) {
 	if err != nil {
 		panic(err)
 	}
-	err = ps.SaveAs(filepath.Join(os.Getenv("SK_OUT"), leader, lyr.TextItem))
+	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", leader,
+		*lyr.Text))
 	if err != nil {
 		panic(err)
 	}
@@ -204,12 +246,11 @@ func Save(crop bool, args ...string) {
 		panic(err)
 	}
 }
-*/
 
 func SetLeader(name string) {
 	var banner ps.Hex
 	var indicator ps.Hex
-	err := sql.Database.QueryRow(
+	err := sk.DB.QueryRow(
 		"SELECT banner, indicator FROM public.leaders WHERE name=$1", name).
 		Scan(&banner, &indicator)
 	if err != nil {
@@ -262,48 +303,35 @@ func Format() {
 // it visible, and hides the rest. Returns an error if the title was longer than
 // the longest background.
 func FormatTitle() error {
-	banners := doc.LayerSet("Areas").LayerSet("TitleBackground")
 	tol := tolerances["title"]
 	found := false
-
-	// Search the TitleBackground layers;
-	// show the shortest one that fits,
-	// if it's not visible already;
-	// hide all other layers,
-	// if they aren't already hidden;
 	for _, lyr := range banners.ArtLayers() {
 		if !found && name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
 			found = true
-			if !lyr.Visible() {
-				lyr.SetVisible(true)
-			}
+			lyr.SetVisible(true)
 		} else {
-			if lyr.Visible() {
-				lyr.SetVisible(false)
-			}
+			lyr.SetVisible(false)
 		}
 	}
 	if !found {
 		return errors.New("Title too long.")
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // FormatTextbox arranges text and background layers inside the textbox, hiding
 // layers as necessary.
 // TODO: Logic incomplete in terms of layer hiding.
 func FormatTextbox() {
+	log.Println("Formatting Textbox")
 	bot := doc.Height() - tolerances["flavor"]
 
-	if speed.Visible() { // && speed.Text() == 1 {
+	if speed.Visible() {
 		speed.SetColor(ps.Colors["Gray"])
 	}
-	/*
-		short.SetVisible(short.Text() != "“")
-		long.SetVisible(long.Text() != "“")
-		flav.SetVisible(flav.Text() != "“")
-	*/
+	short.SetVisible(short.Text != nil)
+	long.SetVisible(long.Text != nil && *long.Text != "")
+	flav.SetVisible(flav.Text != nil)
 
 	shortbg.SetPos(shortbg.X1(), short.Y2()+tolerances["short"], "BL")
 	long.SetPos(long.X1(), shortbg.Y2()+tolerances["long"], "TL")

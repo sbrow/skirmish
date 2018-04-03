@@ -24,7 +24,14 @@ func TestFormatTextBox(t *testing.T) {
 }
 
 func TestApplyDataset(t *testing.T) {
+	ApplyDataset("Combust_1")
+	Save(true)
+	ApplyDataset("Savage Melee_1")
+	Save(true)
 	ApplyDataset("Anger_1")
+	Save(true)
+	// ApplyDataset("High Ground_1")
+	// ApplyDataset("Paranoia_1")
 }
 
 func BenchmarkManualLoad(b *testing.B) {
