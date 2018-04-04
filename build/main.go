@@ -8,85 +8,6 @@ import (
 	"regexp"
 )
 
-/*func init() {
-		defer log.SetPrefix("")
-		log.SetPrefix("[init] ")
-		log.Print("Initializing")
-	// Handle panics
-	defer func() {
-		env := ""
-		if r := recover(); r != nil {
-			switch r {
-			case strings.Contains(r.(string), "SK_IMG"):
-				env = "SK_IMG"
-			case strings.Contains(r.(string), "SK_SRC"):
-				env = "SK_SRC"
-			}
-			srcDir := ""
-			switch runtime.GOOS {
-			case "windows":
-				srcDir = filepath.Join(os.Getenv("HOMEPATH"), "Downloads")
-			default:
-				srcDir = filepath.Join(os.Getenv("HOME"), "Downloads")
-			}
-			os.Setenv(env, srcDir)
-			log.Printf("Environment variable \"%s\" not found. "+
-				"Will attempt to run with \"%[1]s=%s\"\n", env, os.Getenv(env))
-		}
-		// skirmish.DataDir = os.Getenv("SK_SRC")
-		// ImageDir = os.Getenv("SK_IMG")
-	}()
-
-	envVars := []string{"SK_SRC", "SK_IMG"}
-	for _, val := range envVars {
-		_, ok := os.LookupEnv(val)
-		if !ok {
-			log.SetPrefix("[ERROR] ")
-			log.Panicf("Environment variable \"%s\" does not exist - please create it!",
-				val)
-			log.SetPrefix("")
-		}
-
-	}
-}*/
-
-// Data collects all cards from the database and compiles them into
-// two separate photoshop datasets.
-/*func Data() {
-	log.SetPrefix("[dataset] ")
-	log.Println(`Generating "dataset.csv"`)
-	// f, err := os.Create(filepath.Join(os.Getenv("SK_SRC"), "data.txt"))
-	f, err := os.Create(filepath.Join("data.txt"))
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	d, err := sql.Load("Anger")
-	if err != nil {
-		log.Panic(err)
-	}
-	w := csv.NewWriter(f)
-	w.WriteAll(d.CSV())
-
-	// dir, err := ioutil.ReadDir(skirmish.DataDir)
-	// if err != nil {
-	// 	panic(fmt.Sprintf("%s (%s)", err, skirmish.DataDir))
-	// }
-	// labels := false
-	// for _, file := range dir {
-	// 	if isDeck(file.Name()) {
-	// 		d, _ := deck.New(skirmish.DataDir) //TODO: CHeck err
-	// 		log.Println("Generating", strings.TrimRight(file.Name(), ".json"))
-	// 		if !labels {
-	// 			fmt.Fprint(f, d.Labels())
-	// 			labels = true
-	// 		}
-	// 		fmt.Fprintln(f, d.String())
-	// 	}
-	// }
-	log.Println("\"dataset.csv\" generated!")
-}*/
-
 func PSDs() {
 	log.SetPrefix("[photoshop] ")
 	log.Println("Opening photoshop")
@@ -104,6 +25,7 @@ func PSDs() {
 
 func Regexp() {}
 
+// TODO: Function to Replace '{1}'  with resolve crystals.
 func ReplaceText(text string) {
 	// First, find the resolve text.
 	reg, err := regexp.Compile("{[1-9]}")

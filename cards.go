@@ -292,7 +292,7 @@ func (c *card) String() string {
 	return str
 }
 
-// TODO: Test
+// TODO: Short Text Bolding
 /*func (c *Card) BoldText() ([][]int, error) {
 	reg, err := regexp.Compile(c.BoldWords)
 	if err != nil {
@@ -375,7 +375,7 @@ func (d *DeckCard) Labels() []string {
 	if len(Leaders) == 0 {
 		log.Fatal("No leaders found when computing labels")
 	}
-	labels = append(labels, Leaders...)
+	labels = append(labels, Leaders.Names()...)
 	return labels
 }
 
@@ -395,8 +395,7 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		case "border_normal":
 			out[1] = append(out[1], "true")
 		}
-		// TODO: Force skip
-		if strings.Contains(strings.Join(Leaders, ","), label) {
+		if strings.Contains(strings.Join(Leaders.Names(), ","), label) {
 			out[1] = append(out[1], fmt.Sprint(d.leader == label))
 		}
 		if strings.Contains("common,uncommon,rare", label) {

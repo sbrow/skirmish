@@ -27,7 +27,24 @@ var DataDir = filepath.Join(os.Getenv("SK_SQL"))
 var Delim string
 
 var DB *sql.DB
-var Leaders []string
+
+var Leaders leaders
+var Tolerances map[string]int
+
+type Leader struct {
+	Name      string
+	Banner    []uint8
+	Indicator []uint8
+}
+type leaders []Leader
+
+func (l *leaders) Names() []string {
+	s := make([]string, len(*l))
+	for i, ldr := range *l {
+		s[i] = ldr.Name
+	}
+	return s
+}
 
 func init() {
 	Delim = ","
@@ -41,17 +58,37 @@ func init() {
 	}
 
 	// Load the Leaders
-	query, err := DB.Query(
-		`SELECT "name" FROM leaders`)
-	defer query.Close()
+	rows, err := DB.Query(
+		`SELECT "name", banner, indicator FROM leaders`)
+	defer rows.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
-	for query.Next() {
+	for rows.Next() {
 		var name string
-		if err := query.Scan(&name); err != nil {
+		var banner []uint8
+		var indicator []uint8
+		if err := rows.Scan(&name, &banner, &indicator); err != nil {
 			log.Panic(err)
 		}
-		Leaders = append(Leaders, name)
+		Leaders = append(Leaders, Leader{name, banner, indicator})
+	}
+
+	Tolerances = make(map[string]int)
+	rows, err = DB.Query("SELECT name, px FROM tolerances;")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		var px int
+		if err := rows.Scan(&name, &px); err != nil {
+			log.Fatal(err)
+		}
+		Tolerances[name] = px
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
 	}
 }

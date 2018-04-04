@@ -1,11 +1,13 @@
 package ps
 
 import (
+	// "fmt"
 	"github.com/sbrow/ps"
-	"github.com/sbrow/skirmish"
+	// "github.com/sbrow/skirmish"
 	"testing"
 )
 
+/*
 func TestSetLeader(t *testing.T) {
 	SetLeader("Tinsel")
 }
@@ -34,8 +36,21 @@ func TestApplyDataset(t *testing.T) {
 	// ApplyDataset("Paranoia_1")
 }
 
-func BenchmarkManualLoad(b *testing.B) {
+func TestDeckTemplate(t *testing.T) {
+}
+
+*/
+func BenchmarkDeckTemplate(b *testing.B) {
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Format()
+		d := NewDeck(ps.Normal)
+		d.ApplyDataset("Combust_1")
 	}
 }
+
+// func BenchmarkNoTemplate(b *testing.B) {
+// 	b.ResetTimer()
+// 	for i := 0; i < b.N; i++ {
+// 		ApplyDataset("Combust_1")
+// 	}
+// }
