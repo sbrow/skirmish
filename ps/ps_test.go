@@ -35,11 +35,14 @@ func TestApplyDataset(t *testing.T) {
 	// ApplyDataset("High Ground_1")
 	// ApplyDataset("Paranoia_1")
 }
-
+*/
 func TestDeckTemplate(t *testing.T) {
+	d := NewDeck(ps.Normal)
+	d.ApplyDataset("Combust_1")
+	d.Save(true)
+	d.ApplyDataset("Anger_1")
 }
 
-*/
 func BenchmarkDeckTemplate(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

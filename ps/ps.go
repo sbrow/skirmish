@@ -6,11 +6,14 @@ import (
 	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/sql"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
 type Template struct {
 	Doc       *ps.Document
+	DataSet   string
 	Resolve   *ps.ArtLayer
 	Banners   *ps.LayerSet
 	Speed     *ps.ArtLayer
@@ -25,8 +28,9 @@ type Template struct {
 	DeckInd   *ps.LayerSet
 }
 
-func New(mode ps.ModeEnum) *Template {
-	// ps.Mode = mode
+func New(mode ps.ModeEnum, file string) *Template {
+	ps.Open(file)
+	ps.Mode = mode
 	t := &Template{}
 	log.Printf("Creating new template with mode %d", mode)
 	doc, err := ps.ActiveDocument()
@@ -119,7 +123,7 @@ type DeckTemplate struct {
 }
 
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{Template: *New(mode)}
+	d := &DeckTemplate{Template: *New(mode, sk.Template)}
 	txt := d.Doc.LayerSet("Text")
 	if txt == nil {
 		log.Panic("LayerSet \"Text\" was not found!")
@@ -131,6 +135,9 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 	d.ID = txt.ArtLayer("id")
 	if d.ID == nil {
 		log.Panic("ArtLayer \"id\" was not found!")
+	}
+	if ps.Mode == 2 {
+		d.DataSet = *d.ID.Text
 	}
 	d.Cost = txt.ArtLayer("cost")
 	if d.Cost == nil {
@@ -190,6 +197,9 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
+	if d.DataSet == id {
+		return
+	}
 	defer d.Doc.Dump()
 	log.Printf("Applying dataset %s\n", id)
 	card, err := sql.Load(strings.TrimRight(id, `_123`))
@@ -256,6 +266,8 @@ func (d *DeckTemplate) SetLeader(name string) {
 	for _, lyr := range d.TypeInd.ArtLayers() {
 		lyr.SetColor(ind)
 	}
+	// Use indices instead of range because the bottom layer is the
+	// rarity_background and we want it to stay black.
 	for i := 0; i < 3; i++ {
 		rarities[i].SetColor(rarity)
 	}
@@ -335,5 +347,34 @@ func (d *DeckTemplate) FormatTextbox() {
 				d.Flavor.SetVisible(false)
 			}
 		}
+	}
+}
+
+// Save saves a copy the produced card image as a .png in the appropriate
+// subfolder of  "SK_OUT".
+// If crop is true, the bleed area around the card is cropped out of the image
+// before saving.
+func (d *DeckTemplate) Save(crop bool) {
+	leader := "Heroes" // TODO: Fix skirmish.Leader(lyr.TextItem)
+	if !crop {
+		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", leader,
+			*d.ID.Text))
+		if err != nil {
+			log.Panic(err)
+		}
+		return
+	}
+	err := ps.DoAction("DK", "Crop")
+	if err != nil {
+		panic(err)
+	}
+	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", leader,
+		*d.ID.Text))
+	if err != nil {
+		panic(err)
+	}
+	err = ps.DoAction("DK", "Undo")
+	if err != nil {
+		panic(err)
 	}
 }
