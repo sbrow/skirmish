@@ -121,6 +121,8 @@ type NonDeckCardUEJSON struct {
 	ActiveStats Stats
 }
 
+// TODO: Fix UECardJSON
+/*
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {
@@ -174,3 +176,4 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	}
 	return json.Marshal(obj)
 }
+*/

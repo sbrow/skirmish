@@ -20,6 +20,7 @@ import (
 )
 
 var Template = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
+var HeroTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
 var ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 var DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
 var DataDir = filepath.Join(os.Getenv("SK_SQL"))

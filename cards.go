@@ -34,11 +34,14 @@ type Card interface {
 	SetSpeed(int)
 	Damage() int
 	Leader() string
+	SetLeader(string)
 	SetDamage(int)
 	Life() int
 	SetLife(int)
 	Short() string
 	SetShort(string)
+	Regexp() string
+	SetRegexp(string)
 	Long() string
 	SetLong(string)
 	Flavor() string
@@ -48,11 +51,13 @@ type Card interface {
 	String() string
 	CSV(bool) [][]string
 	Images() ([]string, error)
+	Bold() ([][]int, error)
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
 type card struct {
-	name    string   // The name of the card.
+	name    string // The name of the card.
+	leader  string
 	ctype   string   // The card's type.
 	stype   []string // The card's supertype(s).
 	resolve string   // The resolve this card produces when in play.
@@ -62,6 +67,7 @@ type card struct {
 	short   string   // The card's basic rules text.
 	long    string   // The card's reminder text.
 	flavor  string   // The card's flavor (non-rules) text.
+	regexp  string   // A regular expression for what characters should be bold in short.
 }
 
 func NewCard() Card {
@@ -79,10 +85,6 @@ func (c *card) SetName(name string) {
 func (c *card) Card() card {
 	return *c
 }
-
-// func (c *card) Cost() (string, error) {
-// 	return "", errors.New(fmt.Sprintf(`card "%s" has no cost.`))
-// }
 
 func (c *card) Resolve() string {
 	return fmt.Sprint(c.resolve)
@@ -163,7 +165,19 @@ func (c *card) SetSTypes(t []string) {
 }
 
 func (c *card) Leader() string {
-	return ""
+	return c.leader
+}
+
+func (c *card) SetLeader(l string) {
+	c.leader = l
+}
+
+func (c *card) SetRegexp(reg string) {
+	c.regexp = reg
+}
+
+func (c *card) Regexp() string {
+	return c.regexp
 }
 
 // ID returns an id unique to the card.
@@ -177,12 +191,15 @@ func (c *card) ID(ver int) string {
 
 // Labels prints the column labels for .csv output.
 func (c card) Labels() []string {
-	return []string{
-		"id", "name", "resolve", "type", "speed", "damage", "life",
+	labels := []string{
+		"id", "name", "resolve", "speed", "damage", "life",
 		"short", "long", "flavor", "card_image",
-		"action", "event", "continuous", "item",
-		"show_resolve", "show_speed", "show_tough", "show_life",
 	}
+	if len(Leaders) == 0 {
+		log.Fatal("No leaders found when computing labels")
+	}
+	labels = append(labels, Leaders.Names()...)
+	return labels
 }
 
 // Image returns the path to the card's illustration.
@@ -206,8 +223,6 @@ func (c *card) CSV(lbls bool) [][]string {
 			} else {
 				str[i] += fmt.Sprint(c.Resolve())
 			}
-		case "type":
-			str[i] += c.ctype
 		case "speed":
 			str[i] += fmt.Sprint(c.speed)
 		case "damage":
@@ -238,22 +253,13 @@ func (c *card) CSV(lbls bool) [][]string {
 				log.Panic(err)
 			}
 			str[i] += img[0]
-		case "action":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Action"))
-		case "event":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Event"))
-		case "continuous":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Continuous"))
-		case "item":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Item"))
-		case "show_resolve":
-			str[i] += fmt.Sprintf("%v", c.Resolve() != "0" && c.Resolve() != "")
-		case "show_speed":
-			str[i] += fmt.Sprintf("%v", c.speed != 0)
-		case "show_tough":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Follower"))
-		case "show_life":
-			str[i] += fmt.Sprintf("%v", strings.Contains(c.Type(), "Hero"))
+
+		}
+		// fmt.Println(c.name, label,
+		// strings.Contains(strings.Join(Leaders.Names(), ","), label),
+		// fmt.Sprintf("\"%s\"", c.Leader()), c.Leader() == label)
+		if strings.Contains(strings.Join(Leaders.Names(), ","), label) {
+			str[i] += fmt.Sprint(c.Leader() == label)
 		}
 		str[i] += Delim
 	}
@@ -292,21 +298,18 @@ func (c *card) String() string {
 	return str
 }
 
-// TODO: Short Text Bolding
-/*func (c *Card) BoldText() ([][]int, error) {
-	reg, err := regexp.Compile(c.BoldWords)
+func (c *card) Bold() ([][]int, error) {
+	reg, err := regexp.Compile(c.regexp)
 	if err != nil {
 		return [][]int{}, err
 	}
-	return reg.FindAllStringIndex(c.ShortText, -1), nil
+	return reg.FindAllStringIndex(c.short, -1), nil
 }
-*/
 
 type DeckCard struct {
 	card
 	cost   string
 	rarity int
-	leader string
 }
 
 func NewDeckCard() *DeckCard {
@@ -324,14 +327,6 @@ func (d *DeckCard) Cost() (string, error) {
 
 func (d *DeckCard) SetCost(c string) {
 	d.cost = c
-}
-
-func (d *DeckCard) Leader() string {
-	return d.leader
-}
-
-func (d *DeckCard) SetLeader(l string) {
-	d.leader = l
 }
 
 func (d *DeckCard) String() string {
@@ -370,12 +365,9 @@ func (d *DeckCard) SetRarity(r int) {
 }
 
 func (d *DeckCard) Labels() []string {
-	labels := append(d.card.Labels(), "cost", "border_normal",
-		"common", "uncommon", "rare")
-	if len(Leaders) == 0 {
-		log.Fatal("No leaders found when computing labels")
-	}
-	labels = append(labels, Leaders.Names()...)
+	labels := append(d.card.Labels(), "cost", "type", "border_normal", "action",
+		"event", "continuous", "item", "show_resolve", "show_speed",
+		"show_tough", "show_life", "common", "uncommon", "rare")
 	return labels
 }
 
@@ -392,12 +384,29 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 			} else {
 				panic(err)
 			}
+		case "type":
+			out[1] = append(out[1], d.Type())
+		case "action":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Action")))
+		case "event":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Event")))
+		case "continuous":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Continuous")))
+		case "item":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Item")))
+		case "show_resolve":
+			out[1] = append(out[1], fmt.Sprint(d.Resolve() != "0" &&
+				d.Resolve() != ""))
+		case "show_speed":
+			out[1] = append(out[1], fmt.Sprint(d.speed != 0))
+		case "show_tough":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Follower")))
+		case "show_life":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Hero")))
 		case "border_normal":
 			out[1] = append(out[1], "true")
 		}
-		if strings.Contains(strings.Join(Leaders.Names(), ","), label) {
-			out[1] = append(out[1], fmt.Sprint(d.leader == label))
-		}
+
 		if strings.Contains("common,uncommon,rare", label) {
 			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
 		}
@@ -424,29 +433,11 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 	return out[1:]
 }
 
-type NonDeckCard struct {
-	card
-	faction  string
-	speedB   *int
-	resolveB *string
-	damageB  *int
-	lifeB    *string
-	shortB   *string
-	longB    *string
-	flavorB  *string
-}
-
-func (n *NonDeckCard) String() string {
-	return fmt.Sprint(n.card.String(), *n.resolveB)
-	// str := n.card.String()
-	// if n.resolveB > 0 {
-	// 	str += fmt.Sprintf("/%+d", n.resolveB)
-	// }
-	// str += fmt.Sprintf(" %d/%d", n.damage, n.life)
-	// str += fmt.Sprintf(" %s \"%s", n.Type(),
-	// 	strings.Replace(n.short, "\r\n", "\\r", -1))
-	// str += "\""
-	// return str
+func (d *DeckCard) Type() string {
+	if d.ctype == "Hero" {
+		return "Deck Hero"
+	}
+	return d.card.Type()
 }
 
 func (d *DeckCard) Images() (paths []string, err error) {
@@ -471,4 +462,94 @@ func (d *DeckCard) Images() (paths []string, err error) {
 		paths[i] = filepath.Join(path, file.Name())
 	}
 	return paths, err
+}
+
+// TODO: Make getters/setters for NonDeckCard
+type NonDeckCard struct {
+	card
+	Faction  string
+	SpeedB   *int
+	ResolveB *string
+	DamageB  *int
+	LifeB    *string
+	ShortB   *string
+	LongB    *string
+	FlavorB  *string
+}
+
+func (n *NonDeckCard) String() string {
+	return fmt.Sprint(n.card.String(), *n.ResolveB)
+	// str := n.card.String()
+	// if n.resolveB > 0 {
+	// 	str += fmt.Sprintf("/%+d", n.resolveB)
+	// }
+	// str += fmt.Sprintf(" %d/%d", n.damage, n.life)
+	// str += fmt.Sprintf(" %s \"%s", n.Type(),
+	// 	strings.Replace(n.short, "\r\n", "\\r", -1))
+	// str += "\""
+	// return str
+}
+
+func (n *NonDeckCard) Images() (paths []string, err error) {
+	basePath := filepath.Join(ImageDir, "Heroes", n.Name())
+	imgs := []string{basePath + ".png", basePath + " (Halo).png"}
+	for i, img := range imgs {
+		if _, err = os.Stat(img); os.IsNotExist(err) {
+			imgs[i] = DefaultImage
+		}
+	}
+	if imgs[1] == DefaultImage {
+		return []string{imgs[0]}, nil
+	}
+	return imgs, nil
+}
+
+// SetCard makes c the DeckCard's base card.
+func (n *NonDeckCard) SetCard(c Card) {
+	n.card = c.Card()
+}
+func (n *NonDeckCard) Labels() []string {
+	labels := append(n.card.Labels(), "Halo", "Troika", "Nightmares")
+	return labels
+}
+
+func (n *NonDeckCard) CSV(lbls bool) [][]string {
+	out := n.card.CSV(true)
+	out[0] = n.Labels()
+	l := n.Labels()[len(n.card.Labels()):]
+	for _, label := range l {
+		switch label {
+		case "Halo":
+			out[1] = append(out[1], "false")
+		case "Troika":
+			fallthrough
+		case "Nightmares":
+			out[1] = append(out[1], fmt.Sprint(n.Faction == label))
+		}
+	}
+	imgs, err := n.Images()
+	if err != nil {
+		log.Println(err)
+	}
+	tmp := make([][]string, len(imgs)+1, len(out[0]))
+	tmp[0] = out[0]
+	tmp[1] = out[1]
+	out = tmp
+	out[1][0] = n.name
+	out[1][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
+	out[1][2] = string(out[1][2][1])
+	out[1][9] = imgs[0]
+	// out[1][20] = "true"
+	for i := 2; i <= len(imgs); i++ {
+		out[i] = make([]string, len(out[i-1]))
+		copy(out[i], out[i-1])
+		out[i][0] = fmt.Sprintf("%s (Halo)", n.name)
+		out[i][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
+		out[i][9] = imgs[i-1]
+		out[i][20] = "true"
+	}
+	if lbls {
+		return out
+	}
+	return out[1:]
 }

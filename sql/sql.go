@@ -18,7 +18,7 @@ func init() {
 		log.Fatal("No database")
 	}
 	if len(sk.Leaders) == 0 {
-		log.Fatal("No Leaders")
+		// log.Fatal("No Leaders")
 	}
 }
 
@@ -26,10 +26,10 @@ func init() {
 func LoadMany(cond string) ([]sk.Card, error) {
 	out := make([]sk.Card, 0)
 	props := []string{"\"name\"", "cards.type", "cards.supertypes",
-		"short", "reminder", "flavor", "resolve", "cards.speed", "cards.damage",
+		"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
 		"cards.life", "cards.faction, cards.cost, cards.rarity, cards.leader",
 		"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
-		"cards.short_b", "cards.long_b", "cards.flavor_b"}
+		"cards.short_b", "cards.long_b", "cards.flavor_b, cards.regexp"}
 	str := fmt.Sprintf("select %s from cards where %s",
 		strings.Join(props, ", "), cond)
 	rows, err := sk.DB.Query(str)
@@ -43,11 +43,12 @@ func LoadMany(cond string) ([]sk.Card, error) {
 	}
 	for rows.Next() {
 		var typ, stype, title, short, long, flavor, resolve, faction, leader,
-			resolveB, lifeB, shortB, longB, flavorB, cost *string
+			resolveB, lifeB, shortB, longB, flavorB, cost, regexp *string
 		var speed, damage, life, rarity, speedB, damageB *int
 		err := rows.Scan(&title, &typ, &stype, &short, &long,
 			&flavor, &resolve, &speed, &damage, &life, &faction, &cost, &rarity,
-			&leader, &resolveB, &lifeB, &speedB, &damageB, &shortB, &longB, &flavorB)
+			&leader, &resolveB, &lifeB, &speedB, &damageB, &shortB, &longB, &flavorB,
+			&regexp)
 		var c sk.Card
 		c = sk.NewCard()
 		switch {
@@ -87,6 +88,9 @@ func LoadMany(cond string) ([]sk.Card, error) {
 		if life != nil {
 			c.SetLife(*life)
 		}
+		if regexp != nil {
+			c.SetRegexp(*regexp)
+		}
 		switch {
 		case cost != nil:
 			d := &sk.DeckCard{}
@@ -99,31 +103,33 @@ func LoadMany(cond string) ([]sk.Card, error) {
 				d.SetLeader(*leader)
 			}
 			out = append(out, d)
-		case resolveB != nil:
-			/*
-				n := &sk.NonDeckCard{}
-				n.card = *c
-				n.resolveB = resolveB
-				if lifeB != nil {
-					n.lifeB = lifeB
-				}
-				if speedB != nil {
-					n.speedB = speedB
-				}
-				if damageB != nil {
-					n.damageB = damageB
-				}
-				if shortB != nil {
-					n.shortB = shortB
-				}
-				if longB != nil {
-					n.longB = longB
-				}
-				if flavorB != nil {
-					n.flavorB = flavorB
-				}
-				out = append(out, n)
-			*/
+		case *typ == "Leader":
+			n := &sk.NonDeckCard{}
+			c.SetLeader(*title)
+			n.SetCard(c)
+			n.ResolveB = resolveB
+			if lifeB != nil {
+				n.LifeB = lifeB
+			}
+			if speedB != nil {
+				n.SpeedB = speedB
+			}
+			if damageB != nil {
+				n.DamageB = damageB
+			}
+			if shortB != nil {
+				n.ShortB = shortB
+			}
+			if longB != nil {
+				n.LongB = longB
+			}
+			if flavorB != nil {
+				n.FlavorB = flavorB
+			}
+			if faction != nil {
+				n.Faction = *faction
+			}
+			out = append(out, n)
 		default:
 			out = append(out, c)
 		}
@@ -177,9 +183,14 @@ func Dump(dir string) {
 
 // GenData creates a dataset file for Photoshop to load from.
 func GenData() {
-	log.SetPrefix("[deckcards] ")
-	log.Println(`Generating Deck Cards Dataset`)
-	cards, err := LoadMany("cards.leader IS NOT NULL")
+	genDataSet("deckcards", "cards.Leader IS NOT NULL")
+	genDataSet("nondeckcards", "cards.Leader IS NULL")
+}
+
+func genDataSet(name, query string) {
+	log.SetPrefix(fmt.Sprintf("[%s] ", name))
+	log.Println(`Generating Dataset`)
+	cards, err := LoadMany(query)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -187,7 +198,7 @@ func GenData() {
 	for _, card := range cards {
 		dat = append(dat, card.CSV(false)...)
 	}
-	path := filepath.Join(sk.DataDir, "deckcards.csv")
+	path := filepath.Join(sk.DataDir, fmt.Sprintf("%s.csv", name))
 	f, err := os.Create(path)
 	if err != nil {
 		panic(err)

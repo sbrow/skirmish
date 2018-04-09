@@ -35,7 +35,7 @@ import (
 	"github.com/sbrow/skirmish"
 	// "github.com/sbrow/skirmish/build"
 	// "bytes"
-	"github.com/sbrow/skirmish/ps"
+	// "github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/sql"
 	"log"
 	"os"
@@ -67,7 +67,7 @@ func main() {
 		case "save":
 			// ps.Save(true, args...)
 		default:
-			ps.Format()
+			// ps.Format()
 		}
 	case cmd == "card" || *card != "":
 		name := *card

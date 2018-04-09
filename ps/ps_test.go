@@ -39,8 +39,20 @@ func TestApplyDataset(t *testing.T) {
 func TestDeckTemplate(t *testing.T) {
 	d := NewDeck(ps.Normal)
 	d.ApplyDataset("Combust_1")
-	d.Save(true)
-	d.ApplyDataset("Anger_1")
+	d.PNG(true)
+	d.ApplyDataset("Savage Melee_1")
+	d.Doc.Dump()
+	d.PNG(true)
+	// d.FormatTextbox()
+	// d.ApplyDataset("Anger_1")
+	// d.PNG(true)
+}
+
+func TestNonDeckTemplate(t *testing.T) {
+	n := NewNonDeck(ps.Normal)
+	n.ApplyDataset("Scinter (Halo)")
+	n.FormatTextbox()
+	n.Doc.Dump()
 }
 
 func BenchmarkDeckTemplate(b *testing.B) {
