@@ -126,9 +126,7 @@ func LoadMany(cond string) ([]sk.Card, error) {
 			if flavorB != nil {
 				n.FlavorB = flavorB
 			}
-			if faction != nil {
-				n.Faction = *faction
-			}
+			n.SetFaction(*faction)
 			out = append(out, n)
 		default:
 			out = append(out, c)

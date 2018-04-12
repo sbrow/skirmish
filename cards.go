@@ -31,6 +31,7 @@ type Card interface {
 	Resolve() string
 	SetResolve(string)
 	Speed() int
+	Faction() string
 	SetSpeed(int)
 	Damage() int
 	Leader() string
@@ -88,6 +89,10 @@ func (c *card) Card() card {
 
 func (c *card) Resolve() string {
 	return fmt.Sprint(c.resolve)
+}
+
+func (c *card) Faction() string {
+	return ""
 }
 
 func (c *card) SetResolve(r string) {
@@ -371,6 +376,23 @@ func (d *DeckCard) Labels() []string {
 	return labels
 }
 
+func (d *DeckCard) NormalBorder() bool {
+	switch {
+	case d.rarity == 1:
+		fallthrough
+	case d.Type() == "Action":
+		fallthrough
+	case d.Type() == "Hero":
+		fallthrough
+	case d.Type() == "Item":
+		fallthrough
+	case strings.Contains(strings.Join(d.STypes(), ","), "Continuous"):
+		return false
+	default:
+		return true
+	}
+}
+
 func (d *DeckCard) CSV(lbls bool) [][]string {
 	out := d.card.CSV(true)
 	out[0] = d.Labels()
@@ -391,7 +413,8 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		case "event":
 			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Event")))
 		case "continuous":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Continuous")))
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(
+				strings.Join(d.STypes(), ","), "Continuous")))
 		case "item":
 			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Item")))
 		case "show_resolve":
@@ -404,7 +427,7 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		case "show_life":
 			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Hero")))
 		case "border_normal":
-			out[1] = append(out[1], "true")
+			out[1] = append(out[1], fmt.Sprint(d.NormalBorder()))
 		}
 
 		if strings.Contains("common,uncommon,rare", label) {
@@ -416,16 +439,23 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		log.Println(err)
 	}
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
+	i := -1
+	for j, col := range out[1] {
+		if col == "card_image" {
+			i = j
+			break
+		}
+	}
 	tmp[0] = out[0]
 	tmp[1] = out[1]
 	out = tmp
 	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
-	out[1][10] = imgs[0]
+	out[1][col] = imgs[0]
 	for i := 2; i <= len(imgs); i++ {
 		out[i] = make([]string, len(out[i-1]))
 		copy(out[i], out[i-1])
 		out[i][0] = fmt.Sprintf("%s_%d", d.name, i)
-		out[i][10] = imgs[i-1]
+		out[i][col] = imgs[i-1]
 	}
 	if lbls {
 		return out
@@ -440,6 +470,7 @@ func (d *DeckCard) Type() string {
 	return d.card.Type()
 }
 
+// TODO: Return error when not found.
 func (d *DeckCard) Images() (paths []string, err error) {
 	// Path to a subfolder, assuming the card has multiple images.
 	path := filepath.Join(ImageDir, d.leader, d.Name())
@@ -467,7 +498,7 @@ func (d *DeckCard) Images() (paths []string, err error) {
 // TODO: Make getters/setters for NonDeckCard
 type NonDeckCard struct {
 	card
-	Faction  string
+	faction  string
 	SpeedB   *int
 	ResolveB *string
 	DamageB  *int
@@ -477,6 +508,13 @@ type NonDeckCard struct {
 	FlavorB  *string
 }
 
+func (n *NonDeckCard) Faction() string {
+	return n.faction
+}
+
+func (n *NonDeckCard) SetFaction(faction string) {
+	n.faction = faction
+}
 func (n *NonDeckCard) String() string {
 	return fmt.Sprint(n.card.String(), *n.ResolveB)
 	// str := n.card.String()
@@ -524,7 +562,7 @@ func (n *NonDeckCard) CSV(lbls bool) [][]string {
 		case "Troika":
 			fallthrough
 		case "Nightmares":
-			out[1] = append(out[1], fmt.Sprint(n.Faction == label))
+			out[1] = append(out[1], fmt.Sprint(n.Faction() == label))
 		}
 	}
 	imgs, err := n.Images()
@@ -534,6 +572,13 @@ func (n *NonDeckCard) CSV(lbls bool) [][]string {
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
 	tmp[0] = out[0]
 	tmp[1] = out[1]
+	j := -1
+	for k, col := range out[1] {
+		if col == "card_image" {
+			j = k
+			break
+		}
+	}
 	out = tmp
 	out[1][0] = n.name
 	out[1][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
@@ -545,7 +590,7 @@ func (n *NonDeckCard) CSV(lbls bool) [][]string {
 		copy(out[i], out[i-1])
 		out[i][0] = fmt.Sprintf("%s (Halo)", n.name)
 		out[i][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
-		out[i][9] = imgs[i-1]
+		out[i][j] = imgs[i-1]
 		out[i][20] = "true"
 	}
 	if lbls {

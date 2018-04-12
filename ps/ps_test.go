@@ -1,9 +1,13 @@
 package ps
 
 import (
-	// "fmt"
+	"bufio"
+	"encoding/csv"
 	"github.com/sbrow/ps"
-	// "github.com/sbrow/skirmish"
+	sk "github.com/sbrow/skirmish"
+	"log"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -38,11 +42,11 @@ func TestApplyDataset(t *testing.T) {
 */
 func TestDeckTemplate(t *testing.T) {
 	d := NewDeck(ps.Normal)
-	d.ApplyDataset("Combust_1")
+	d.ApplyDataset("Chaotic Blast_1")
 	d.PNG(true)
-	d.ApplyDataset("Savage Melee_1")
-	d.Doc.Dump()
-	d.PNG(true)
+	// d.ApplyDataset("Paranoia_1")
+	// d.Doc.Dump()
+	// d.PNG(true)
 	// d.FormatTextbox()
 	// d.ApplyDataset("Anger_1")
 	// d.PNG(true)
@@ -50,9 +54,47 @@ func TestDeckTemplate(t *testing.T) {
 
 func TestNonDeckTemplate(t *testing.T) {
 	n := NewNonDeck(ps.Normal)
-	n.ApplyDataset("Scinter (Halo)")
+	n.ApplyDataset("Lilith")
 	n.FormatTextbox()
 	n.Doc.Dump()
+}
+
+func TestEntireDeck(t *testing.T) {
+	// Load Data
+	f, err := os.Open(filepath.Join(sk.DataDir, "deckcards.csv"))
+	if err != nil {
+		log.Panic(err)
+	}
+	defer f.Close()
+	r := csv.NewReader(bufio.NewReader(f))
+	cards, err := r.ReadAll()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	//Parse Data
+	id := -1
+	ldr := -1
+	for i, lbl := range cards[0] {
+		if lbl == "id" {
+			id = i
+		}
+		if lbl == "Bast" {
+			ldr = i
+			break
+		}
+	}
+
+	d := NewDeck(ps.Normal)
+	defer d.Doc.Dump()
+
+	// Use Data
+	for _, row := range cards[1:] {
+		if row[ldr] == "true" {
+			d.ApplyDataset(row[id])
+			d.PNG(true)
+		}
+	}
 }
 
 func BenchmarkDeckTemplate(b *testing.B) {

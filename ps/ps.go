@@ -2,6 +2,7 @@ package ps
 
 import (
 	"errors"
+	"fmt"
 	"github.com/sbrow/ps"
 	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/sql"
@@ -29,58 +30,6 @@ type Template struct {
 	DeckInd   *ps.LayerSet
 	SpeedBG   *ps.ArtLayer
 	LifeBG    *ps.ArtLayer
-}
-
-func (t *Template) ApplyDataset(id, name string) {
-	if t.Dataset == id {
-		return
-	}
-	log.Printf("Applying dataset %s\n", id)
-	if t.Card == nil {
-		card, err := sql.Load(name)
-		if err != nil {
-			log.Println(card)
-			log.Panic(err)
-		}
-		t.Card = card
-	}
-	ps.ApplyDataset(id)
-	t.Name.Refresh()
-	t.ID.Refresh()
-	t.Resolve.Refresh()
-	t.Speed.Refresh()
-	t.Life.Refresh()
-	t.Damage.Refresh()
-	t.Speed.Refresh()
-	t.Short.Refresh()
-	t.Long.Refresh()
-	t.Flavor.Refresh()
-	t.DeckInd.Refresh()
-	t.ResolveBG.Refresh()
-	for _, lyr := range t.Doc.ArtLayers() {
-		if lyr.Name() == "card_image" {
-			lyr.Refresh()
-		}
-	}
-}
-
-func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
-	for _, ldr := range sk.Leaders {
-		if ldr.Name == name {
-			banner = ldr.Banner
-			ind = ldr.Indicator
-		}
-	}
-	if banner == nil || ind == nil {
-		log.Panicf("Leader \"%s\" not found!", name)
-	}
-	barStroke := ps.Stroke{Size: 4, Color: banner}
-	t.ResolveBG.SetColor(banner)
-	t.SpeedBG.SetColor(banner)
-
-	t.Speed.SetStroke(barStroke, ps.Colors["White"])
-	t.Damage.SetStroke(barStroke, ps.Colors["White"])
-	return banner, ind
 }
 
 func New(mode ps.ModeEnum, file string) *Template {
@@ -163,6 +112,98 @@ func New(mode ps.ModeEnum, file string) *Template {
 		log.Panic("ArtLayer \"speed_background\" was not found!")
 	}
 	return t
+}
+
+func (t *Template) ApplyDataset(id, name string) {
+	if t.Dataset == id {
+		return
+	}
+	log.Printf("Applying dataset %s\n", id)
+	log.SetPrefix(fmt.Sprintf("[%s] ", id))
+	if t.Card == nil {
+		card, err := sql.Load(name)
+		if err != nil {
+			log.Println(card)
+			log.Panic(err)
+		}
+		t.Card = card
+	}
+	ps.ApplyDataset(id)
+	t.Name.Refresh()
+	t.ID.Refresh()
+	t.Resolve.Refresh()
+	t.Speed.Refresh()
+	t.Life.Refresh()
+	t.Damage.Refresh()
+	t.Speed.Refresh()
+	t.Short.Refresh()
+	t.Long.Refresh()
+	t.Flavor.Refresh()
+	t.DeckInd.Refresh()
+	t.ResolveBG.Refresh()
+	t.SpeedBG.Refresh()
+	for _, lyr := range t.Doc.ArtLayers() {
+		if lyr.Name() == "card_image" {
+			lyr.Refresh()
+		}
+	}
+}
+
+func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
+	for _, ldr := range sk.Leaders {
+		if ldr.Name == name {
+			banner = ldr.Banner
+			ind = ldr.Indicator
+		}
+	}
+	if banner == nil || ind == nil {
+		log.Panicf("Leader \"%s\" not found!", name)
+	}
+	barStroke := ps.Stroke{Size: 4, Color: banner}
+	t.ResolveBG.SetColor(banner)
+	t.SpeedBG.SetColor(ind)
+
+	t.Speed.SetStroke(barStroke, ps.Colors["White"])
+	t.Damage.SetStroke(barStroke, ps.Colors["White"])
+	return banner, ind
+}
+
+// FormatTextbox arranges text and background layers inside the textbox, hiding
+// layers as necessary.
+func (t *Template) FormatTextbox() {
+	log.Println("Formatting Textbox")
+	bot := t.Doc.Height() - sk.Tolerances["flavor"]
+
+	if t.Speed.Visible() {
+		t.Speed.SetColor(ps.Colors["Gray"])
+	}
+	t.Short.SetVisible(t.Short.Text != nil)
+	t.Long.SetVisible(t.Long.Text != nil && *t.Long.Text != "")
+	t.Flavor.SetVisible(t.Flavor.Text != nil)
+
+	bold, err := t.Card.Bold()
+	if err != nil {
+		log.Println(t.Card.Name(), err)
+	}
+	t.Short.SetActive()
+	t.Short.Format(0, len(*t.Short.Text), "Arial", "Regular")
+	for _, rng := range bold {
+		t.Short.Format(rng[0], rng[1], "Arial", "Bold")
+	}
+
+	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
+	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
+	t.Flavor.SetPos(t.Flavor.X1(), bot, "BL")
+
+	if t.Long.Visible() {
+		if t.Long.Y2() > bot {
+			t.Long.SetVisible(false)
+		} else {
+			if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
+				t.Flavor.SetVisible(false)
+			}
+		}
+	}
 }
 
 type DeckTemplate struct {
@@ -254,6 +295,7 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
+	// Skip if dataset already applied.
 	if d.Dataset == id {
 		return
 	}
@@ -266,6 +308,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.Card = card
 	d.SetLeader(d.Card.Leader())
 	d.Template.ApplyDataset(id, name)
+
 	// Update layer data
 	d.Cost.Refresh()
 	d.Type.Refresh()
@@ -274,12 +317,12 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.HeroLifeBG.Refresh()
 	d.DamageBG.Refresh()
 	d.LifeBG.Refresh()
-	d.SpeedBG.Refresh()
 	d.TypeInd.Refresh()
 
 	// TODO: Fix Border.Refresh()
 	// doc.LayerSet("Border").Refresh()
-	d.Format()
+	d.FormatTitle()
+	d.FormatTextbox()
 }
 
 func (d *DeckTemplate) SetLeader(name string) {
@@ -287,7 +330,6 @@ func (d *DeckTemplate) SetLeader(name string) {
 	// if ps.Mode == 2 && name == d.Card.Leader() {
 	// 	return
 	// }
-	// d.Leader = name
 	banner, ind := d.Template.SetLeader(name)
 
 	rarity := ps.Compare(banner, ind)
@@ -297,9 +339,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 
 	d.CostBG.SetColor(banner)
 	for _, lyr := range d.TypeInd.ArtLayers() {
-		// vis := lyr.Visible()
 		lyr.SetColor(ind)
-		// lyr.SetVisible(vis)
 	}
 	// Use indices instead of range because the bottom layer is the
 	// rarity_background and we want it to stay black.
@@ -312,27 +352,10 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.LBar.SetColor(banner)
 	d.HeroLifeBG.SetColor(ind)
 	d.DamageBG.SetColor(ind)
-	d.SpeedBG.SetColor(ind)
 	d.LifeBG.SetColor(ind)
 
-	for _, lyr := range d.DeckInd.ArtLayers() {
-		if lyr.Name() == name {
-			lyr.SetVisible(true)
-		} else {
-			lyr.SetVisible(false)
-		}
-	}
 	d.Cost.SetStroke(counterStroke, ps.Colors["White"])
 	d.HeroLife.SetStroke(barStroke, ps.Colors["White"])
-}
-
-// Format rearranges, hides, and colors layers as appropriate.
-func (d *DeckTemplate) Format() {
-	err := d.FormatTitle()
-	if err != nil {
-		panic(err)
-	}
-	d.FormatTextbox()
 }
 
 // FormatTitle finds the correct length background for the card's title, makes
@@ -353,44 +376,6 @@ func (d *DeckTemplate) FormatTitle() error {
 		return errors.New("Title too long.")
 	}
 	return nil
-}
-
-// FormatTextbox arranges text and background layers inside the textbox, hiding
-// layers as necessary.
-func (d *DeckTemplate) FormatTextbox() {
-	log.Println("Formatting Textbox")
-	bot := d.Doc.Height() - sk.Tolerances["flavor"]
-
-	if d.Speed.Visible() {
-		d.Speed.SetColor(ps.Colors["Gray"])
-	}
-	d.Short.SetVisible(d.Short.Text != nil)
-	d.Long.SetVisible(d.Long.Text != nil && *d.Long.Text != "")
-	d.Flavor.SetVisible(d.Flavor.Text != nil)
-
-	bold, err := d.Card.Bold()
-	if err != nil {
-		log.Panic(err)
-	}
-	d.Short.SetActive()
-	d.Short.Format(0, len(*d.Short.Text), "Arial", "Regular")
-	for _, rng := range bold {
-		d.Short.Format(rng[0], rng[1], "Arial", "Bold")
-	}
-
-	d.ShortBG.SetPos(d.ShortBG.X1(), d.Short.Y2()+sk.Tolerances["short"], "BL")
-	d.Long.SetPos(d.Long.X1(), d.ShortBG.Y2()+sk.Tolerances["long"], "TL")
-	d.Flavor.SetPos(d.Flavor.X1(), bot, "BL")
-
-	if d.Long.Visible() {
-		if d.Long.Y2() > bot {
-			d.Long.SetVisible(false)
-		} else {
-			if d.Flavor.Visible() && d.Long.Y2() > d.Flavor.Y1() {
-				d.Flavor.SetVisible(false)
-			}
-		}
-	}
 }
 
 // PNG saves a copy the produced card image as a .png file in the appropriate
@@ -432,6 +417,7 @@ type NonDeckTemplate struct {
 }
 
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
+	log.SetPrefix("[ps.NewNonDeck] ")
 	n := &NonDeckTemplate{Template: *New(mode, sk.HeroTemplate)}
 	areas := n.Doc.LayerSet("Areas")
 	if areas == nil {
@@ -477,6 +463,14 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 		return
 	}
 	id := name
+	card, err := sql.Load(name)
+	if err != nil {
+		log.Println(card)
+		log.Panic(err)
+	}
+	n.Card = card
+	log.SetPrefix(fmt.Sprintf("[ps.%s] ", name))
+	n.SetLeader(n.Card.Leader())
 	if strings.Contains(name, "(Halo)") {
 		tmp := strings.Split(name, " ")
 		name = tmp[0]
@@ -488,8 +482,6 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 func (n *NonDeckTemplate) SetLeader(name string) {
 	banner, ind := n.Template.SetLeader(name)
 	barStroke := ps.Stroke{Size: 4, Color: banner}
-	// counterStroke := ps.Stroke{Size: 4, Color: ind}
-	// log.Println(counterStroke)
 	for _, lyr := range n.LBar.ArtLayers() {
 		if lyr.Name() != "LeaderBar" {
 			lyr.SetColor(ind)
@@ -498,7 +490,10 @@ func (n *NonDeckTemplate) SetLeader(name string) {
 		}
 	}
 	for _, lyr := range n.Factions.ArtLayers() {
-		lyr.SetStroke(barStroke, ind)
+		log.Println(lyr.Name(), n.Card.Faction())
+		if lyr.Name() == n.Card.Faction() {
+			lyr.SetStroke(barStroke, ind)
+		}
 	}
 	halo := n.HaloInd.ArtLayers()
 	halo[0].SetColor(ind)
@@ -508,40 +503,4 @@ func (n *NonDeckTemplate) SetLeader(name string) {
 	n.Plus.SetStroke(barStroke, ps.Colors["White"])
 	n.Resolve.SetStroke(barStroke, ps.Colors["White"])
 	n.Life.SetStroke(ps.Stroke{Size: 0, Color: ind}, ps.Colors["Black"])
-}
-
-func (d *Template) FormatTextbox() {
-	log.Println("Formatting Textbox")
-	bot := d.Doc.Height() - sk.Tolerances["flavor"]
-
-	if d.Speed.Visible() {
-		d.Speed.SetColor(ps.Colors["Gray"])
-	}
-	d.Short.SetVisible(d.Short.Text != nil)
-	d.Long.SetVisible(d.Long.Text != nil && *d.Long.Text != "")
-	d.Flavor.SetVisible(d.Flavor.Text != nil)
-
-	bold, err := d.Card.Bold()
-	if err != nil {
-		log.Panic(err)
-	}
-	d.Short.SetActive()
-	d.Short.Format(0, len(*d.Short.Text), "Arial", "Regular")
-	for _, rng := range bold {
-		d.Short.Format(rng[0], rng[1], "Arial", "Bold")
-	}
-
-	d.ShortBG.SetPos(d.ShortBG.X1(), d.Short.Y2()+sk.Tolerances["short"], "BL")
-	d.Long.SetPos(d.Long.X1(), d.ShortBG.Y2()+sk.Tolerances["long"], "TL")
-	d.Flavor.SetPos(d.Flavor.X1(), bot, "BL")
-
-	if d.Long.Visible() {
-		if d.Long.Y2() > bot {
-			d.Long.SetVisible(false)
-		} else {
-			if d.Flavor.Visible() && d.Long.Y2() > d.Flavor.Y1() {
-				d.Flavor.SetVisible(false)
-			}
-		}
-	}
 }
