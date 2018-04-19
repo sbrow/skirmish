@@ -22,13 +22,15 @@ func TestFormatTitle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-}
+}*/
 
 func TestFormatTextBox(t *testing.T) {
-	FormatTextbox()
-	doc.Dump()
+	d := NewDeck(ps.Normal)
+	d.FormatTextbox()
+	d.Doc.Dump()
 }
 
+/*
 func TestApplyDataset(t *testing.T) {
 	ApplyDataset("Combust_1")
 	Save(true)
@@ -42,7 +44,7 @@ func TestApplyDataset(t *testing.T) {
 */
 func TestDeckTemplate(t *testing.T) {
 	d := NewDeck(ps.Normal)
-	d.ApplyDataset("Chaotic Blast_1")
+	d.ApplyDataset("Rumour_1")
 	d.PNG(true)
 	// d.ApplyDataset("Paranoia_1")
 	// d.Doc.Dump()
@@ -97,6 +99,13 @@ func TestEntireDeck(t *testing.T) {
 	}
 }
 
+//39, 45, 39
+func TestText(t *testing.T) {
+	n := NewDeck(ps.Normal)
+	n.ApplyDataset("Rumour_1")
+	n.AddSymbols()
+	n.Doc.Dump()
+}
 func BenchmarkDeckTemplate(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -31,7 +31,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	app "github.com/sbrow/ps"
+	// app "github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
 	// "github.com/sbrow/skirmish/build"
 	// "bytes"
@@ -39,15 +39,31 @@ import (
 	"github.com/sbrow/skirmish/sql"
 	"log"
 	"os"
-	// "os/exec"
+	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
+func init() {
+	cmd := exec.Command("go", "install",
+		"github.com/sbrow/skirmish/ps/cmd")
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	output, err := cmd.Output()
+	if len(output) > 0 {
+		fmt.Println(string(output))
+	}
+	if err != nil {
+		log.Panic(err)
+	}
+
+}
 func main() {
+	log.SetPrefix("[main] ")
 	card := flag.String("card", "", "card get info on a card.")
 	flag.Parse()
-	args := []string{}
-	cmd := ""
+	var args []string
+	var cmd string
 	switch {
 	case len(os.Args) > 2:
 		args = os.Args[2:]
@@ -57,18 +73,12 @@ func main() {
 	}
 	switch {
 	case cmd == "ps":
-		switch args[0] {
-		case "crop":
-		case "undo":
-			err := app.DoAction("DK", strings.Title(args[0]))
-			if err != nil {
-				panic(err)
-			}
-		case "save":
-			// ps.Save(true, args...)
-		default:
-			// ps.Format()
-		}
+		comm := exec.Command(filepath.Join(os.Getenv("GOBIN"), "cmd.exe"), args...)
+		comm.Stdout = os.Stdout
+		comm.Stdin = os.Stdin
+		comm.Stderr = os.Stderr
+		comm.Run()
+		return
 	case cmd == "card" || *card != "":
 		name := *card
 		if name == "" {
@@ -81,12 +91,8 @@ func main() {
 		fmt.Println(card)
 	case cmd == "build":
 		log.SetPrefix("[main] ")
-		// if !*fast {
 		log.Println("Generating cards")
 		sql.GenData()
-		// }
-		// log.SetPrefix("[photoshop] ")
-		// build.PSDs()
 		log.Println("Cards successfully generated!")
 	case cmd == "db":
 		opt := args[0]

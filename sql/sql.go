@@ -181,8 +181,8 @@ func Dump(dir string) {
 
 // GenData creates a dataset file for Photoshop to load from.
 func GenData() {
-	genDataSet("deckcards", "cards.Leader IS NOT NULL")
-	genDataSet("nondeckcards", "cards.Leader IS NULL")
+	genDataSet("deckcards", "cards.Leader IS NOT NULL ORDER BY name ASC")
+	genDataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
 }
 
 func genDataSet(name, query string) {

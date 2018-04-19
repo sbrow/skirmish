@@ -306,6 +306,7 @@ func (c *card) String() string {
 func (c *card) Bold() ([][]int, error) {
 	reg, err := regexp.Compile(c.regexp)
 	if err != nil {
+		fmt.Println(c.regexp)
 		return [][]int{}, err
 	}
 	return reg.FindAllStringIndex(c.short, -1), nil
@@ -404,19 +405,25 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 			if err == nil {
 				out[1] = append(out[1], cost)
 			} else {
-				panic(err)
+				log.Panic(err)
 			}
 		case "type":
-			out[1] = append(out[1], d.Type())
+			if len(d.stype) > 0 {
+				out[1] = append(out[1], fmt.Sprintf("%s %s",
+					strings.Join(d.stype, " "), d.Type()))
+			} else {
+				out[1] = append(out[1], d.Type())
+			}
 		case "action":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Action")))
+			fallthrough
 		case "event":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Event")))
+			fallthrough
+		case "item":
+			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(),
+				strings.Title(label))))
 		case "continuous":
 			out[1] = append(out[1], fmt.Sprint(strings.Contains(
 				strings.Join(d.STypes(), ","), "Continuous")))
-		case "item":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Item")))
 		case "show_resolve":
 			out[1] = append(out[1], fmt.Sprint(d.Resolve() != "0" &&
 				d.Resolve() != ""))
@@ -429,7 +436,6 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		case "border_normal":
 			out[1] = append(out[1], fmt.Sprint(d.NormalBorder()))
 		}
-
 		if strings.Contains("common,uncommon,rare", label) {
 			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
 		}
@@ -440,22 +446,25 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 	}
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
 	i := -1
-	for j, col := range out[1] {
+	for j, col := range out[0] {
 		if col == "card_image" {
 			i = j
 			break
 		}
 	}
+	if i == -1 {
+		log.Panic("card_image not found!")
+	}
 	tmp[0] = out[0]
 	tmp[1] = out[1]
 	out = tmp
 	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
-	out[1][col] = imgs[0]
-	for i := 2; i <= len(imgs); i++ {
-		out[i] = make([]string, len(out[i-1]))
-		copy(out[i], out[i-1])
-		out[i][0] = fmt.Sprintf("%s_%d", d.name, i)
-		out[i][col] = imgs[i-1]
+	out[1][i] = imgs[0]
+	for j := 2; j <= len(imgs); j++ {
+		out[j] = make([]string, len(out[j-1]))
+		copy(out[j], out[j-1])
+		out[j][0] = fmt.Sprintf("%s_%d", d.name, j)
+		out[j][i] = imgs[j-1]
 	}
 	if lbls {
 		return out
@@ -572,10 +581,10 @@ func (n *NonDeckCard) CSV(lbls bool) [][]string {
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
 	tmp[0] = out[0]
 	tmp[1] = out[1]
-	j := -1
-	for k, col := range out[1] {
+	i := -1
+	for j, col := range out[0] {
 		if col == "card_image" {
-			j = k
+			i = j
 			break
 		}
 	}
@@ -583,15 +592,15 @@ func (n *NonDeckCard) CSV(lbls bool) [][]string {
 	out[1][0] = n.name
 	out[1][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
 	out[1][2] = string(out[1][2][1])
-	out[1][9] = imgs[0]
+	out[1][i] = imgs[0]
 	// out[1][20] = "true"
-	for i := 2; i <= len(imgs); i++ {
-		out[i] = make([]string, len(out[i-1]))
-		copy(out[i], out[i-1])
-		out[i][0] = fmt.Sprintf("%s (Halo)", n.name)
-		out[i][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
-		out[i][j] = imgs[i-1]
-		out[i][20] = "true"
+	for j := 2; j <= len(imgs); j++ {
+		out[j] = make([]string, len(out[j-1]))
+		copy(out[j], out[j-1])
+		out[j][0] = fmt.Sprintf("%s (Halo)", n.name)
+		out[j][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
+		out[j][i] = imgs[j-1]
+		out[j][20] = "true"
 	}
 	if lbls {
 		return out

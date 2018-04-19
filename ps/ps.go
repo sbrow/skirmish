@@ -9,39 +9,58 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
 type Template struct {
-	Doc       *ps.Document
-	Card      sk.Card
-	Dataset   string
-	ID        *ps.ArtLayer
-	Name      *ps.ArtLayer
-	Resolve   *ps.ArtLayer
-	Speed     *ps.ArtLayer
-	Life      *ps.ArtLayer
-	Damage    *ps.ArtLayer
-	Short     *ps.ArtLayer
-	Long      *ps.ArtLayer
-	Flavor    *ps.ArtLayer
-	ShortBG   *ps.ArtLayer
-	ResolveBG *ps.ArtLayer
-	DeckInd   *ps.LayerSet
-	SpeedBG   *ps.ArtLayer
-	LifeBG    *ps.ArtLayer
+	Doc         *ps.Document
+	ResolveSymb *ps.LayerSet
+	Card        sk.Card
+	Dataset     string
+	ID          *ps.ArtLayer
+	Name        *ps.ArtLayer
+	Resolve     *ps.ArtLayer
+	Speed       *ps.ArtLayer
+	Life        *ps.ArtLayer
+	Damage      *ps.ArtLayer
+	Short       *ps.ArtLayer
+	Long        *ps.ArtLayer
+	Flavor      *ps.ArtLayer
+	ShortBG     *ps.ArtLayer
+	ResolveBG   *ps.ArtLayer
+	DeckInd     *ps.LayerSet
+	SpeedBG     *ps.ArtLayer
+	LifeBG      *ps.ArtLayer
 }
 
 func New(mode ps.ModeEnum, file string) *Template {
+	t := &Template{}
+	/*
+		defer func(t *Template) *Template {
+			if r := recover(); r != nil {
+				log.Println("Something went wrong. Trying again in safe mode.")
+				if ps.Mode == ps.Safe {
+					log.Fatal("Crashed.")
+				} else {
+					return New(ps.Safe, file)
+				}
+			}
+			return t
+		}(t)
+	*/
 	ps.Open(file)
 	ps.Mode = mode
-	t := &Template{}
 	log.Printf("Creating new template with mode %d", mode)
 	doc, err := ps.ActiveDocument()
 	if err != nil {
 		log.Fatal(err)
 	}
 	t.Doc = doc
+	t.ResolveSymb = doc.LayerSet("ResolveGem")
+	if t.ResolveSymb == nil {
+		log.Panic("LayerSet \"ResolveGem\" was not found!")
+	}
 	txt := doc.LayerSet("Text")
 	if txt == nil {
 		log.Panic("LayerSet \"Text\" was not found!")
@@ -115,8 +134,11 @@ func New(mode ps.ModeEnum, file string) *Template {
 }
 
 func (t *Template) ApplyDataset(id, name string) {
-	if t.Dataset == id {
+	if ps.Mode == ps.Fast && t.Dataset == id {
 		return
+	}
+	if ps.Mode == ps.Normal {
+		defer t.Doc.Dump()
 	}
 	log.Printf("Applying dataset %s\n", id)
 	log.SetPrefix(fmt.Sprintf("[%s] ", id))
@@ -150,6 +172,9 @@ func (t *Template) ApplyDataset(id, name string) {
 }
 
 func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
+	if ps.Mode == ps.Normal {
+		defer t.Doc.Dump()
+	}
 	for _, ldr := range sk.Leaders {
 		if ldr.Name == name {
 			banner = ldr.Banner
@@ -171,8 +196,11 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 // FormatTextbox arranges text and background layers inside the textbox, hiding
 // layers as necessary.
 func (t *Template) FormatTextbox() {
+	if ps.Mode == ps.Normal {
+		defer t.Doc.Dump()
+	}
 	log.Println("Formatting Textbox")
-	bot := t.Doc.Height() - sk.Tolerances["flavor"]
+	bot := t.Doc.Height() - sk.Tolerances["bottom"]
 
 	if t.Speed.Visible() {
 		t.Speed.SetColor(ps.Colors["Gray"])
@@ -193,10 +221,11 @@ func (t *Template) FormatTextbox() {
 
 	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
 	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
-	t.Flavor.SetPos(t.Flavor.X1(), bot, "BL")
+	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-sk.Tolerances["flavor"], "BL")
 
 	if t.Long.Visible() {
 		if t.Long.Y2() > bot {
+			fmt.Println(t.Long.Y2()-bot, sk.Tolerances["long"], bot)
 			t.Long.SetVisible(false)
 		} else {
 			if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
@@ -204,6 +233,79 @@ func (t *Template) FormatTextbox() {
 			}
 		}
 	}
+}
+
+// TODO: Function to Replace '{1}'  with resolve crystals.
+func (t *Template) AddSymbols() {
+	if ps.Mode == ps.Normal {
+		defer t.Doc.Dump()
+	}
+	// Confirm that there is a resolve symbol in the text.
+	reg, err := regexp.Compile("{[1-9]}")
+	if err != nil {
+		log.Panic(err)
+	}
+	temp := reg.FindStringIndex(*t.Short.Text)
+	if temp == nil {
+		t.ResolveSymb.SetVisible(false)
+		return
+	}
+
+	// Reverse engineer the line breaks in the text.
+	lineHeight := 30
+	var bnd [2][2]int
+	words := strings.Split(strings.Replace(*t.Short.Text, "\r", "\\r ", -1), " ")
+	out := words[0]
+	for _, word := range words[1:] {
+		tmp := out
+		if !strings.HasSuffix(out, "\\r") {
+			tmp += " "
+		}
+		tmp += word
+		bnd = t.Short.Bounds()
+		t.Short.SetText(tmp)
+		switch {
+		case t.Short.Y2()-bnd[1][1] >= lineHeight:
+			if !strings.HasSuffix(out, "\\r") {
+				out += "\\r"
+			}
+		default:
+			out += " "
+		}
+		out += word
+	}
+	out = strings.Replace(out, "\\r ", "\\r", -1)
+	t.Short.SetText(out)
+
+	// Find the resolve symbol
+	rows := strings.Split(out, "\\r")
+	for i, r := range rows {
+		temp = reg.FindStringIndex(r)
+		if temp != nil {
+			// Get the BR y value.
+			if i+1 != len(rows) {
+				t.Short.SetText(strings.Join(rows[:i+1], "\\r"))
+			}
+			y := t.Short.Y2()
+			// Get the BR x val
+			if i != 0 {
+				t.Short.SetText(rows[i][temp[0]:temp[1]])
+			}
+			x := t.Short.X2()
+			// Move it.
+			t.ResolveSymb.SetVisible(true)
+			t.ResolveSymb.SetPos(x+2, y+11, "BR")
+		}
+	}
+	t.Short.SetText(out)
+
+	// Color it
+	// colorlayer(resolveCircle, color)
+	//
+	// Place and color the number.
+	//
+	// Scrub away the old text, add space as necessary.
+	//
 }
 
 type DeckTemplate struct {
@@ -299,6 +401,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	if d.Dataset == id {
 		return
 	}
+
+	if ps.Mode == ps.Normal {
+		defer d.Doc.Dump()
+	}
 	name := strings.TrimRight(id, `_123`)
 	card, err := sql.Load(name)
 	if err != nil {
@@ -330,6 +436,9 @@ func (d *DeckTemplate) SetLeader(name string) {
 	// if ps.Mode == 2 && name == d.Card.Leader() {
 	// 	return
 	// }
+	if ps.Mode == ps.Normal {
+		defer d.Doc.Dump()
+	}
 	banner, ind := d.Template.SetLeader(name)
 
 	rarity := ps.Compare(banner, ind)
@@ -337,7 +446,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarities := d.RarityInd.ArtLayers()
 
-	d.CostBG.SetColor(banner)
+	d.CostBG.SetColor(ind)
 	for _, lyr := range d.TypeInd.ArtLayers() {
 		lyr.SetColor(ind)
 	}
@@ -362,6 +471,9 @@ func (d *DeckTemplate) SetLeader(name string) {
 // it visible, and hides the rest. Returns an error if the title was longer than
 // the longest background.
 func (d *DeckTemplate) FormatTitle() error {
+	if ps.Mode == ps.Normal {
+		defer d.Doc.Dump()
+	}
 	tol := sk.Tolerances["title"]
 	found := false
 	for _, lyr := range d.Banners.ArtLayers() {
@@ -462,6 +574,9 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	if n.Dataset == name {
 		return
 	}
+	if ps.Mode == ps.Normal {
+		defer n.Doc.Dump()
+	}
 	id := name
 	card, err := sql.Load(name)
 	if err != nil {
@@ -480,6 +595,9 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 }
 
 func (n *NonDeckTemplate) SetLeader(name string) {
+	if ps.Mode == ps.Normal {
+		defer n.Doc.Dump()
+	}
 	banner, ind := n.Template.SetLeader(name)
 	barStroke := ps.Stroke{Size: 4, Color: banner}
 	for _, lyr := range n.LBar.ArtLayers() {
