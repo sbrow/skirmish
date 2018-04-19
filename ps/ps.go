@@ -36,19 +36,6 @@ type Template struct {
 
 func New(mode ps.ModeEnum, file string) *Template {
 	t := &Template{}
-	/*
-		defer func(t *Template) *Template {
-			if r := recover(); r != nil {
-				log.Println("Something went wrong. Trying again in safe mode.")
-				if ps.Mode == ps.Safe {
-					log.Fatal("Crashed.")
-				} else {
-					return New(ps.Safe, file)
-				}
-			}
-			return t
-		}(t)
-	*/
 	ps.Open(file)
 	ps.Mode = mode
 	log.Printf("Creating new template with mode %d", mode)
@@ -209,6 +196,7 @@ func (t *Template) FormatTextbox() {
 	t.Long.SetVisible(t.Long.Text != nil && *t.Long.Text != "")
 	t.Flavor.SetVisible(t.Flavor.Text != nil)
 
+	t.AddSymbols()
 	bold, err := t.Card.Bold()
 	if err != nil {
 		log.Println(t.Card.Name(), err)
@@ -225,7 +213,6 @@ func (t *Template) FormatTextbox() {
 
 	if t.Long.Visible() {
 		if t.Long.Y2() > bot {
-			fmt.Println(t.Long.Y2()-bot, sk.Tolerances["long"], bot)
 			t.Long.SetVisible(false)
 		} else {
 			if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
@@ -235,7 +222,6 @@ func (t *Template) FormatTextbox() {
 	}
 }
 
-// TODO: Function to Replace '{1}'  with resolve crystals.
 func (t *Template) AddSymbols() {
 	if ps.Mode == ps.Normal {
 		defer t.Doc.Dump()
@@ -250,6 +236,7 @@ func (t *Template) AddSymbols() {
 		t.ResolveSymb.SetVisible(false)
 		return
 	}
+	t.ResolveSymb.SetVisible(true)
 
 	// Reverse engineer the line breaks in the text.
 	lineHeight := 30
@@ -288,24 +275,14 @@ func (t *Template) AddSymbols() {
 			}
 			y := t.Short.Y2()
 			// Get the BR x val
-			if i != 0 {
-				t.Short.SetText(rows[i][temp[0]:temp[1]])
-			}
+			t.Short.SetText(rows[i][temp[0]:temp[1]])
 			x := t.Short.X2()
 			// Move it.
 			t.ResolveSymb.SetVisible(true)
-			t.ResolveSymb.SetPos(x+2, y+11, "BR")
+			t.ResolveSymb.SetPos(x+3, y+7, "BR")
 		}
 	}
 	t.Short.SetText(out)
-
-	// Color it
-	// colorlayer(resolveCircle, color)
-	//
-	// Place and color the number.
-	//
-	// Scrub away the old text, add space as necessary.
-	//
 }
 
 type DeckTemplate struct {
@@ -409,7 +386,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	card, err := sql.Load(name)
 	if err != nil {
 		log.Println(card)
-		log.Panic(err)
+		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
 	}
 	d.Card = card
 	d.SetLeader(d.Card.Leader())
@@ -446,7 +423,11 @@ func (d *DeckTemplate) SetLeader(name string) {
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarities := d.RarityInd.ArtLayers()
 
-	d.CostBG.SetColor(ind)
+	if strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
+		d.CostBG.SetColor(ind)
+	} else {
+		d.CostBG.SetColor(ps.Colors["Gray"])
+	}
 	for _, lyr := range d.TypeInd.ArtLayers() {
 		lyr.SetColor(ind)
 	}

@@ -26,6 +26,7 @@
 //		skir card $CARDNAME
 //
 // TODO: config file for non-programmers
+// TODO: Separate out all subprocesses.
 package main
 
 import (

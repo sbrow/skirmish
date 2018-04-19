@@ -1,17 +1,26 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	app "github.com/sbrow/ps"
+	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/sql"
 	"log"
 	"os"
 	"strings"
+	"sync"
+	"time"
 )
 
 func main() {
+	start := time.Now()
+	fast := flag.Bool("f", false, "fast skip dataset generation.")
+	flag.Parse()
 	log.SetPrefix("[ps] ")
+	log.Println("Opening Photoshop")
+	app.Open(sk.Template)
 	args := os.Args[1:]
 	switch args[0] {
 	case "crop":
@@ -21,7 +30,8 @@ func main() {
 			log.Panic(err)
 		}
 	case "deck":
-		cards, err := sql.LoadMany(fmt.Sprintf("cards.leader='%s'", args[1]))
+		cards, err := sql.LoadMany(fmt.Sprintf(
+			"cards.leader='%s' ORDER BY name ASC", args[1]))
 		if err != nil {
 			log.Panic(err)
 		}
@@ -32,11 +42,21 @@ func main() {
 			d.PNG(false)
 		}
 	default:
-		sql.GenData()
+		// TODO: run GenData in a separate Goroutine, syncing with a WaitGroup.
+		var wg sync.WaitGroup
+		if !*fast {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				sql.GenData()
+			}()
+		}
 		app.Wait("$ Import the current dataset file into photoshop," +
-			" then press enter to continue")
+			" then press enter to continue\r\n")
+		wg.Wait()
 		d := ps.NewDeck(app.Normal)
 		d.ApplyDataset(strings.Join(args, " "))
 		d.PNG(false)
 	}
+	fmt.Println(time.Since(start))
 }
