@@ -424,7 +424,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 	rarities := d.RarityInd.ArtLayers()
 
 	if strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
-		d.CostBG.SetColor(ind)
+		d.CostBG.SetColor(rarity)
 	} else {
 		d.CostBG.SetColor(ps.Colors["Gray"])
 	}
