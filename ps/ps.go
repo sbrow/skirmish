@@ -34,6 +34,7 @@ type Template struct {
 	LifeBG      *ps.ArtLayer
 }
 
+// TODO: Recover - run in safe mode.
 func New(mode ps.ModeEnum, file string) *Template {
 	t := &Template{}
 	ps.Open(file)
@@ -144,7 +145,6 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.Speed.Refresh()
 	t.Life.Refresh()
 	t.Damage.Refresh()
-	t.Speed.Refresh()
 	t.Short.Refresh()
 	t.Long.Refresh()
 	t.Flavor.Refresh()
@@ -175,7 +175,7 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 	t.ResolveBG.SetColor(banner)
 	t.SpeedBG.SetColor(ind)
 
-	t.Speed.SetStroke(barStroke, ps.Colors["White"])
+	t.Speed.SetStroke(barStroke, nil)
 	t.Damage.SetStroke(barStroke, ps.Colors["White"])
 	return banner, ind
 }
@@ -206,6 +206,7 @@ func (t *Template) FormatTextbox() {
 	for _, rng := range bold {
 		t.Short.Format(rng[0], rng[1], "Arial", "Bold")
 	}
+	// t.Short.Refresh()
 
 	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
 	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
@@ -444,7 +445,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.DamageBG.SetColor(ind)
 	d.LifeBG.SetColor(ind)
 
-	d.Cost.SetStroke(counterStroke, ps.Colors["White"])
+	d.Cost.SetStroke(ps.Stroke{4, rarity}, ps.Colors["White"])
 	d.HeroLife.SetStroke(barStroke, ps.Colors["White"])
 }
 
@@ -476,6 +477,7 @@ func (d *DeckTemplate) FormatTitle() error {
 // If crop is true, the bleed area around the card is cropped out of the image
 // before saving.
 func (d *DeckTemplate) PNG(crop bool) {
+	log.Println("Saving copy as PNG")
 	if !crop {
 		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
 			*d.ID.Text))

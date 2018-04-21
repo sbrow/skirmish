@@ -31,12 +31,16 @@ func main() {
 		}
 	case "deck":
 		cards, err := sql.LoadMany(fmt.Sprintf(
-			"cards.leader='%s' ORDER BY name ASC", args[1]))
+			"cards.leader='%s' ORDER BY cards.supertypes, cards.type, char_length(name) ASC",
+			args[1]))
 		if err != nil {
 			log.Panic(err)
 		}
-		d := ps.NewDeck(app.Normal)
+		d := ps.NewDeck(app.Fast)
 		defer d.Doc.Dump()
+		defer app.Close(app.PSSaveChanges)
+		app.Wait("$ Import the current dataset file into photoshop," +
+			" then press enter to continue")
 		for _, card := range cards {
 			d.ApplyDataset(card.Name() + "_1")
 			d.PNG(false)
@@ -52,7 +56,7 @@ func main() {
 			}()
 		}
 		app.Wait("$ Import the current dataset file into photoshop," +
-			" then press enter to continue\r\n")
+			" then press enter to continue")
 		wg.Wait()
 		d := ps.NewDeck(app.Normal)
 		d.ApplyDataset(strings.Join(args, " "))
