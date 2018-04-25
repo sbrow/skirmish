@@ -32,37 +32,33 @@ package main
 import (
 	"flag"
 	"fmt"
-	// app "github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
-	// "github.com/sbrow/skirmish/build"
-	// "bytes"
-	// "github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/sql"
+	"github.com/sbrow/update"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
 func init() {
-	cmd := exec.Command("go", "install",
-		"github.com/sbrow/skirmish/ps/cmd")
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	output, err := cmd.Output()
-	if len(output) > 0 {
-		fmt.Println(string(output))
-	}
-	if err != nil {
-		log.Panic(err)
-	}
+	_, filename, _, ok := runtime.Caller(0)
 
+	if !ok {
+		panic("shit")
+	}
+	dir := filepath.Dir(filename)
+	fmt.Println(dir)
+	update.Update(filepath.Dir(dir), dir)
 }
+
 func main() {
 	log.SetPrefix("[main] ")
 	card := flag.String("card", "", "card get info on a card.")
 	flag.Parse()
+
 	var args []string
 	var cmd string
 	switch {
@@ -75,7 +71,6 @@ func main() {
 	switch {
 	case cmd == "ps":
 		comm := exec.Command(filepath.Join(os.Getenv("GOBIN"), "cmd.exe"), args...)
-		comm.Stdout = os.Stdout
 		comm.Stdin = os.Stdin
 		comm.Stderr = os.Stderr
 		comm.Run()

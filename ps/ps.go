@@ -139,23 +139,29 @@ func (t *Template) ApplyDataset(id, name string) {
 		t.Card = card
 	}
 	ps.ApplyDataset(id)
-	t.Name.Refresh()
+	for _, lyr := range t.Doc.ArtLayers() {
+		if lyr.Name() == "card_image" {
+			lyr.Refresh()
+		}
+	}
+	t.Flavor.Refresh()
 	t.ID.Refresh()
+	// TODO: Skip the rest if id is different but name is not
+	if *t.Name.Text == name && *t.ID.Text != id {
+		fmt.Println("Skipping")
+		return
+	}
+
+	t.Name.Refresh()
 	t.Resolve.Refresh()
 	t.Speed.Refresh()
 	t.Life.Refresh()
 	t.Damage.Refresh()
 	t.Short.Refresh()
 	t.Long.Refresh()
-	t.Flavor.Refresh()
 	t.DeckInd.Refresh()
 	t.ResolveBG.Refresh()
 	t.SpeedBG.Refresh()
-	for _, lyr := range t.Doc.ArtLayers() {
-		if lyr.Name() == "card_image" {
-			lyr.Refresh()
-		}
-	}
 }
 
 func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
@@ -375,27 +381,33 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
-	// Skip if dataset already applied.
-	if d.Dataset == id {
-		return
-	}
+	name := strings.TrimRight(id, `_123`)
 
+	// Skip if dataset already applied.
+	if d.Dataset == id && d.Card != nil {
+		if d.Card.Name() == name {
+			return
+		}
+	}
 	if ps.Mode == ps.Normal {
 		defer d.Doc.Dump()
 	}
-	name := strings.TrimRight(id, `_123`)
+
 	card, err := sql.Load(name)
 	if err != nil {
-		log.Println(card)
 		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
 	}
 	d.Card = card
+
+	// TODO: Skip SetLeader when appropriate.
 	d.SetLeader(d.Card.Leader())
+
+	// TODO: run this as a go routine?
 	d.Template.ApplyDataset(id, name)
+	d.Type.Refresh()
 
 	// Update layer data
 	d.Cost.Refresh()
-	d.Type.Refresh()
 	d.HeroLife.Refresh()
 	d.RarityInd.Refresh()
 	d.HeroLifeBG.Refresh()
@@ -424,7 +436,8 @@ func (d *DeckTemplate) SetLeader(name string) {
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarities := d.RarityInd.ArtLayers()
 
-	if strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
+	if d.Card != nil &&
+		strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
 		d.CostBG.SetColor(rarity)
 	} else {
 		d.CostBG.SetColor(ps.Colors["Gray"])
