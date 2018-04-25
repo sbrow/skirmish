@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	sk "github.com/sbrow/skirmish"
 	"log"
@@ -139,7 +140,10 @@ func LoadMany(cond string) ([]sk.Card, error) {
 // a struct of the appropriate card type.
 func Load(name string) (sk.Card, error) {
 	cards, err := LoadMany(fmt.Sprintf("name='%s'", name))
-	return cards[0], err
+	if len(cards) > 0 {
+		return cards[0], err
+	}
+	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
 
 // Recover runs pg_recover, loading database data from a SQL file.
@@ -148,7 +152,6 @@ func Recover(dir string) {
 	var errs bytes.Buffer
 
 	cmd := exec.Command("psql", "-U", "postgres", "-f", filepath.Join(dir, "skirmish_db.sql"))
-	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	err := cmd.Run()
 	if err != nil {
@@ -165,7 +168,6 @@ func Dump(dir string) {
 
 	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-n", "public",
 		"-c", "--if-exists", "--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
-	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	err := cmd.Run()
 	if err != nil {
