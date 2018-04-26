@@ -373,7 +373,7 @@ func (d *DeckCard) SetRarity(r int) {
 func (d *DeckCard) Labels() []string {
 	labels := append(d.card.Labels(), "cost", "type", "border_normal", "action",
 		"event", "continuous", "item", "show_resolve", "show_speed",
-		"show_tough", "show_life", "common", "uncommon", "rare")
+		"show_tough", "show_life", "common", "uncommon", "rare", "rare_border")
 	return labels
 }
 
@@ -435,6 +435,9 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Hero")))
 		case "border_normal":
 			out[1] = append(out[1], fmt.Sprint(d.NormalBorder()))
+		case "rare_border":
+			out[1] = append(out[1], fmt.Sprint(d.Rarity() == "rare" &&
+				!strings.Contains(strings.Join(d.STypes(), ","), "Continuous")))
 		}
 		if strings.Contains("common,uncommon,rare", label) {
 			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))

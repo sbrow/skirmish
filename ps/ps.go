@@ -6,12 +6,17 @@ import (
 	"github.com/sbrow/ps"
 	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/sql"
+	"github.com/sbrow/update"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+func init() {
+	update.Update()
+}
 
 type Template struct {
 	Doc         *ps.Document
@@ -147,7 +152,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.Flavor.Refresh()
 	t.ID.Refresh()
 	// TODO: Skip the rest if id is different but name is not
-	if *t.Name.Text == name && *t.ID.Text != id {
+	if t.Name.TextItem.Contents() == name && t.ID.TextItem.Contents() != id {
 		fmt.Println("Skipping")
 		return
 	}
@@ -159,7 +164,10 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.Damage.Refresh()
 	t.Short.Refresh()
 	t.Long.Refresh()
-	t.DeckInd.Refresh()
+	// TODO: (5) pprof: Improved, but can still be better.
+	for _, lyr := range t.DeckInd.ArtLayers() {
+		lyr.Refresh()
+	}
 	t.ResolveBG.Refresh()
 	t.SpeedBG.Refresh()
 }
@@ -198,9 +206,9 @@ func (t *Template) FormatTextbox() {
 	if t.Speed.Visible() {
 		t.Speed.SetColor(ps.Colors["Gray"])
 	}
-	t.Short.SetVisible(t.Short.Text != nil)
-	t.Long.SetVisible(t.Long.Text != nil && *t.Long.Text != "")
-	t.Flavor.SetVisible(t.Flavor.Text != nil)
+	t.Short.SetVisible(t.Short.TextItem != nil)
+	t.Long.SetVisible(t.Long.TextItem != nil && t.Long.TextItem.Contents() != "")
+	t.Flavor.SetVisible(t.Flavor.TextItem != nil)
 
 	t.AddSymbols()
 	bold, err := t.Card.Bold()
@@ -208,9 +216,9 @@ func (t *Template) FormatTextbox() {
 		log.Println(t.Card.Name(), err)
 	}
 	t.Short.SetActive()
-	t.Short.Format(0, len(*t.Short.Text), "Arial", "Regular")
+	t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
 	for _, rng := range bold {
-		t.Short.Format(rng[0], rng[1], "Arial", "Bold")
+		t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
 	}
 	// t.Short.Refresh()
 
@@ -238,7 +246,7 @@ func (t *Template) AddSymbols() {
 	if err != nil {
 		log.Panic(err)
 	}
-	temp := reg.FindStringIndex(*t.Short.Text)
+	temp := reg.FindStringIndex(t.Short.TextItem.Contents())
 	if temp == nil {
 		t.ResolveSymb.SetVisible(false)
 		return
@@ -248,7 +256,7 @@ func (t *Template) AddSymbols() {
 	// Reverse engineer the line breaks in the text.
 	lineHeight := 30
 	var bnd [2][2]int
-	words := strings.Split(strings.Replace(*t.Short.Text, "\r", "\\r ", -1), " ")
+	words := strings.Split(strings.Replace(t.Short.TextItem.Contents(), "\r", "\\r ", -1), " ")
 	out := words[0]
 	for _, word := range words[1:] {
 		tmp := out
@@ -317,7 +325,7 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 		log.Panic("LayerSet \"TitleBackground\" was not found!")
 	}
 	if ps.Mode == 2 {
-		d.Dataset = *d.ID.Text
+		d.Dataset = d.ID.TextItem.Contents()
 	}
 	d.Cost = txt.ArtLayer("cost")
 	if d.Cost == nil {
@@ -461,6 +469,15 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.Cost.SetStroke(ps.Stroke{4, rarity}, ps.Colors["White"])
 	d.HeroLife.SetStroke(barStroke, ps.Colors["White"])
 }
+func (d *DeckTemplate) FormatTextbox() {
+	// TODO: (3) Make type font smaller when 2 or more supertypes.
+	if len(d.Card.STypes()) > 1 {
+		d.Type.TextItem.SetSize(9.0)
+	} else {
+		d.Type.TextItem.SetSize(10.0)
+	}
+	d.Template.FormatTextbox()
+}
 
 // FormatTitle finds the correct length background for the card's title, makes
 // it visible, and hides the rest. Returns an error if the title was longer than
@@ -493,7 +510,7 @@ func (d *DeckTemplate) PNG(crop bool) {
 	log.Println("Saving copy as PNG")
 	if !crop {
 		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
-			*d.ID.Text))
+			d.ID.TextItem.Contents()))
 		if err != nil {
 			log.Panic(err)
 		}
@@ -504,7 +521,7 @@ func (d *DeckTemplate) PNG(crop bool) {
 		panic(err)
 	}
 	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
-		*d.ID.Text))
+		d.ID.TextItem.Contents()))
 	if err != nil {
 		panic(err)
 	}

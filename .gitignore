@@ -3,3 +3,9 @@
 *.txt
 
 sql/test\.csv
+
+*.prof
+
+*.out
+
+*.exe

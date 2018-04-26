@@ -106,17 +106,40 @@ func TestText(t *testing.T) {
 	n.AddSymbols()
 	n.Doc.Dump()
 }
-func BenchmarkDeckTemplate(b *testing.B) {
+
+func TestSize(t *testing.T) {
+	v := 9.0
+	log.Printf("%f\n", v)
+	d := NewDeck(ps.Normal)
+	lyr := d.Doc.LayerSet("Text").ArtLayer("type")
+	lyr.TextItem.SetSize(v)
+	log.Println(lyr.TextItem.Size())
+}
+
+// func BenchmarkDeckTemplate(b *testing.B) {
+// 	b.ResetTimer()
+// 	for i := 0; i < b.N; i++ {
+// 		d := NewDeck(ps.Normal)
+// 		d.ApplyDataset("Combust_1")
+// 	}
+// }
+
+// 40s
+func BenchmarkDeckInd(b *testing.B) {
+	d := NewDeck(ps.Normal)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d := NewDeck(ps.Normal)
-		d.ApplyDataset("Combust_1")
+		d.DeckInd.Refresh()
 	}
 }
 
-// func BenchmarkNoTemplate(b *testing.B) {
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		ApplyDataset("Combust_1")
-// 	}
-// }
+// 17s
+func BenchmarkDeckIndRefresh(b *testing.B) {
+	d := NewDeck(ps.Normal)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, lyr := range d.DeckInd.ArtLayers() {
+			lyr.Refresh()
+		}
+	}
+}

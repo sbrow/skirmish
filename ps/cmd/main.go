@@ -7,21 +7,37 @@ import (
 	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/sql"
+	"github.com/sbrow/update"
 	"log"
 	"os"
+	"runtime/pprof"
 	"strings"
 	"sync"
 	"time"
 )
 
+var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+
+func init() {
+	update.Update()
+}
+
 func main() {
 	start := time.Now()
 	fast := flag.Bool("f", false, " fast mode- skip dataset generation.")
 	flag.Parse()
+	if *flagCpuprofile != "" {
+		f, err := os.Create(*flagCpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 	log.SetPrefix("[ps] ")
 	log.Println("Opening Photoshop")
 	app.Open(sk.Template)
-	args := os.Args[1:]
+	args := flag.Args()
 	var leaders []string
 	var condition string
 
@@ -59,10 +75,10 @@ func main() {
 		if err != nil {
 			log.Panic(err)
 		}
-		d := ps.NewDeck(app.Fast)
+		d := ps.NewDeck(app.Normal)
 		defer d.Doc.Dump()
 		defer app.Close(app.PSSaveChanges)
-		app.Wait("$ Import the current dataset file into photoshop," +
+		app.Wait("$ Import the current dataset file into Photoshop," +
 			" then press enter to continue")
 		wg.Wait()
 		for _, ldr := range leaders {
@@ -83,13 +99,14 @@ func main() {
 		app.Wait("$ Import the current dataset file into photoshop," +
 			" then press enter to continue")
 		wg.Wait()
-		d := ps.NewDeck(app.Normal)
+		d := ps.NewDeck(app.Fast)
 		name := strings.Join(args, " ")
 		if !strings.HasSuffix(name[:len(name)-1], "_") {
 			name += "_1"
 		}
 		d.ApplyDataset(name)
 		d.PNG(false)
+		d.Doc.Dump()
 	}
 	fmt.Println(time.Since(start))
 }

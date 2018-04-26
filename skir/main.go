@@ -39,35 +39,20 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
 func init() {
-	_, filename, _, ok := runtime.Caller(0)
-
-	if !ok {
-		panic("shit")
-	}
-	dir := filepath.Dir(filename)
-	fmt.Println(dir)
-	update.Update(filepath.Dir(dir), dir)
+	update.Update()
 }
 
 func main() {
+	flag.Parse()
 	log.SetPrefix("[main] ")
 	card := flag.String("card", "", "card get info on a card.")
-	flag.Parse()
-
-	var args []string
-	var cmd string
-	switch {
-	case len(os.Args) > 2:
-		args = os.Args[2:]
-		fallthrough
-	case len(os.Args) > 1:
-		cmd = os.Args[1]
-	}
+	args := flag.Args()[1:]
+	cmd := flag.Args()[0]
+	fmt.Println(args)
 	switch {
 	case cmd == "ps":
 		comm := exec.Command(filepath.Join(os.Getenv("GOBIN"), "cmd.exe"), args...)
