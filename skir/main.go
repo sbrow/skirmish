@@ -52,7 +52,6 @@ func main() {
 	card := flag.String("card", "", "card get info on a card.")
 	args := flag.Args()[1:]
 	cmd := flag.Args()[0]
-	fmt.Println(args)
 	switch {
 	case cmd == "ps":
 		comm := exec.Command(filepath.Join(os.Getenv("GOBIN"), "cmd.exe"), args...)

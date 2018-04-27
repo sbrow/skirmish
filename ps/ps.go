@@ -130,14 +130,12 @@ func (t *Template) ApplyDataset(id, name string) {
 	if ps.Mode == ps.Fast && t.Dataset == id {
 		return
 	}
-	if ps.Mode == ps.Normal {
-		defer t.Doc.Dump()
-	}
 	log.Printf("Applying dataset %s\n", id)
 	log.SetPrefix(fmt.Sprintf("[%s] ", id))
 	if t.Card == nil {
 		card, err := sql.Load(name)
 		if err != nil {
+			t.Doc.Dump()
 			log.Println(card)
 			log.Panic(err)
 		}
@@ -173,9 +171,6 @@ func (t *Template) ApplyDataset(id, name string) {
 }
 
 func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
-	if ps.Mode == ps.Normal {
-		defer t.Doc.Dump()
-	}
 	for _, ldr := range sk.Leaders {
 		if ldr.Name == name {
 			banner = ldr.Banner
@@ -197,9 +192,6 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 // FormatTextbox arranges text and background layers inside the textbox, hiding
 // layers as necessary.
 func (t *Template) FormatTextbox() {
-	if ps.Mode == ps.Normal {
-		defer t.Doc.Dump()
-	}
 	log.Println("Formatting Textbox")
 	bot := t.Doc.Height() - sk.Tolerances["bottom"]
 
@@ -213,6 +205,7 @@ func (t *Template) FormatTextbox() {
 	t.AddSymbols()
 	bold, err := t.Card.Bold()
 	if err != nil {
+		t.Doc.Dump()
 		log.Println(t.Card.Name(), err)
 	}
 	t.Short.SetActive()
@@ -238,12 +231,10 @@ func (t *Template) FormatTextbox() {
 }
 
 func (t *Template) AddSymbols() {
-	if ps.Mode == ps.Normal {
-		defer t.Doc.Dump()
-	}
 	// Confirm that there is a resolve symbol in the text.
 	reg, err := regexp.Compile("{[1-9]}")
 	if err != nil {
+		t.Doc.Dump()
 		log.Panic(err)
 	}
 	temp := reg.FindStringIndex(t.Short.TextItem.Contents())
@@ -397,12 +388,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 			return
 		}
 	}
-	if ps.Mode == ps.Normal {
-		defer d.Doc.Dump()
-	}
 
 	card, err := sql.Load(name)
 	if err != nil {
+		d.Doc.Dump()
 		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
 	}
 	d.Card = card
@@ -430,13 +419,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 }
 
 func (d *DeckTemplate) SetLeader(name string) {
-	// TODO: Fix
+	// TODO: Fix DeckTemplate.SetLeader skip
 	// if ps.Mode == 2 && name == d.Card.Leader() {
 	// 	return
 	// }
-	if ps.Mode == ps.Normal {
-		defer d.Doc.Dump()
-	}
 	banner, ind := d.Template.SetLeader(name)
 
 	rarity := ps.Compare(banner, ind)
@@ -483,9 +469,6 @@ func (d *DeckTemplate) FormatTextbox() {
 // it visible, and hides the rest. Returns an error if the title was longer than
 // the longest background.
 func (d *DeckTemplate) FormatTitle() error {
-	if ps.Mode == ps.Normal {
-		defer d.Doc.Dump()
-	}
 	tol := sk.Tolerances["title"]
 	found := false
 	for _, lyr := range d.Banners.ArtLayers() {
@@ -497,6 +480,7 @@ func (d *DeckTemplate) FormatTitle() error {
 		}
 	}
 	if !found {
+		d.Doc.Dump()
 		return errors.New("Title too long.")
 	}
 	return nil
@@ -512,21 +496,25 @@ func (d *DeckTemplate) PNG(crop bool) {
 		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
 			d.ID.TextItem.Contents()))
 		if err != nil {
+			d.Doc.Dump()
 			log.Panic(err)
 		}
 		return
 	}
 	err := ps.DoAction("DK", "Crop")
 	if err != nil {
+		d.Doc.Dump()
 		panic(err)
 	}
 	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
 		d.ID.TextItem.Contents()))
 	if err != nil {
+		d.Doc.Dump()
 		panic(err)
 	}
 	err = ps.DoAction("DK", "Undo")
 	if err != nil {
+		d.Doc.Dump()
 		panic(err)
 	}
 }
@@ -587,12 +575,10 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	if n.Dataset == name {
 		return
 	}
-	if ps.Mode == ps.Normal {
-		defer n.Doc.Dump()
-	}
 	id := name
 	card, err := sql.Load(name)
 	if err != nil {
+		n.Doc.Dump()
 		log.Println(card)
 		log.Panic(err)
 	}
@@ -608,9 +594,6 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 }
 
 func (n *NonDeckTemplate) SetLeader(name string) {
-	if ps.Mode == ps.Normal {
-		defer n.Doc.Dump()
-	}
 	banner, ind := n.Template.SetLeader(name)
 	barStroke := ps.Stroke{Size: 4, Color: banner}
 	for _, lyr := range n.LBar.ArtLayers() {

@@ -63,36 +63,35 @@ func main() {
 		for i, ldr := range sk.Leaders {
 			leaders[i] = ldr.Name
 		}
-		condition = "NOT cards.leader=NULL"
+		condition = "NOT cards.leader is NULL"
 		fallthrough
 	case "deck":
 		if len(leaders) == 0 {
 			leaders = []string{args[1]}
 			condition = fmt.Sprintf("cards.leader='%s'", args[1])
 		}
+		condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
 		order := "cards.leader, cards.supertypes, cards.type, char_length(name) ASC"
 		cards, err := sql.LoadMany(fmt.Sprintf("%s ORDER BY %s", condition, order))
 		if err != nil {
 			log.Panic(err)
 		}
+		fmt.Println("Cards", len(cards))
 		d := ps.NewDeck(app.Normal)
 		defer d.Doc.Dump()
 		defer app.Close(app.PSSaveChanges)
 		app.Wait("$ Import the current dataset file into Photoshop," +
 			" then press enter to continue")
 		wg.Wait()
-		for _, ldr := range leaders {
-			d.SetLeader(ldr)
-			for _, card := range cards {
-				imgs, err := card.Images()
-				if err != nil {
-					log.Println("ERROR:", err)
-					imgs = []string{"1"}
-				}
-				for i := range imgs {
-					d.ApplyDataset(fmt.Sprintf("%s_%d", card.Name(), i+1))
-					d.PNG(false)
-				}
+		for _, card := range cards {
+			imgs, err := card.Images()
+			if err != nil {
+				log.Println("ERROR:", err)
+				imgs = []string{"1"}
+			}
+			for i := range imgs {
+				d.ApplyDataset(fmt.Sprintf("%s_%d", card.Name(), i+1))
+				d.PNG(false)
 			}
 		}
 	default:
@@ -100,13 +99,13 @@ func main() {
 			" then press enter to continue")
 		wg.Wait()
 		d := ps.NewDeck(app.Fast)
+		defer d.Doc.Dump()
 		name := strings.Join(args, " ")
 		if !strings.HasSuffix(name[:len(name)-1], "_") {
 			name += "_1"
 		}
 		d.ApplyDataset(name)
 		d.PNG(false)
-		d.Doc.Dump()
 	}
 	fmt.Println(time.Since(start))
 }

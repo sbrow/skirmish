@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	sk "github.com/sbrow/skirmish"
+	"github.com/sbrow/update"
 	"log"
 	"os"
 	"os/exec"
@@ -21,6 +22,7 @@ func init() {
 	if len(sk.Leaders) == 0 {
 		// log.Fatal("No Leaders")
 	}
+	update.Update()
 }
 
 // LoadMany selects more than one card at a time from the database.
@@ -139,7 +141,7 @@ func LoadMany(cond string) ([]sk.Card, error) {
 // Load Selects a card from the database given it's name, and returns in
 // a struct of the appropriate card type.
 func Load(name string) (sk.Card, error) {
-	cards, err := LoadMany(fmt.Sprintf("name='%s'", name))
+	cards, err := LoadMany(fmt.Sprintf("name='%s'", strings.Replace(name, "'", "''", -1)))
 	if len(cards) > 0 {
 		return cards[0], err
 	}

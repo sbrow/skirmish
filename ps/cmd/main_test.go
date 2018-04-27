@@ -15,7 +15,7 @@ func TestRefresh(t *testing.T) {
 
 func TestText(t *testing.T) {
 	d := ps.NewDeck(app.Normal)
-	d.ApplyDataset("Chaotic Blast_1")
+	// d.ApplyDataset("Chaotic Blast_1")
 	d.FormatTextbox()
 }
 
