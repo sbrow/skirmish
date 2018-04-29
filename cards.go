@@ -448,26 +448,36 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		log.Println(err)
 	}
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
-	i := -1
+	img_i, type_i := -1
 	for j, col := range out[0] {
-		if col == "card_image" {
-			i = j
+		switch col {
+		case "card_image":
+			img_i = j
+		case "name":
+			type_i = j
+		}
+		if img_i != -1 && type_i != -1 {
 			break
 		}
 	}
-	if i == -1 {
+	if img_i == -1 {
 		log.Panic("card_image not found!")
+	}
+	if type_i == -1 {
+		log.Panic("type not found!")
 	}
 	tmp[0] = out[0]
 	tmp[1] = out[1]
 	out = tmp
 	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
-	out[1][i] = imgs[0]
+	out[1][img_i] = imgs[0]
 	for j := 2; j <= len(imgs); j++ {
 		out[j] = make([]string, len(out[j-1]))
 		copy(out[j], out[j-1])
 		out[j][0] = fmt.Sprintf("%s_%d", d.name, j)
-		out[j][i] = imgs[j-1]
+		out[j][img_i] = imgs[j-1]
+		out[j][type_i] = fmt.Sprintf("%s- %s", out[j][type_i],
+			filepath.Base(imgs[j-1]))
 	}
 	if lbls {
 		return out
