@@ -8,12 +8,15 @@
 //
 // This package selects cards from SQL and creates .csv files to be read into
 // Photoshop as datasets.
+//
+// TODO: Cameo card flavor text.
 package skirmish
 
 import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/sbrow/update"
 	"log"
 	"os"
 	"path/filepath"
@@ -48,6 +51,7 @@ func (l *leaders) Names() []string {
 }
 
 func init() {
+	update.Update()
 	Delim = ","
 	// Connect to the Database
 	var err error

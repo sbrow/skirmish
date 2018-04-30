@@ -203,36 +203,45 @@ func (t *Template) FormatTextbox() {
 	t.Flavor.SetVisible(t.Flavor.TextItem != nil)
 
 	t.AddSymbols()
-	bold, err := t.Card.Bold()
-	if err != nil {
-		t.Doc.Dump()
-		log.Println(t.Card.Name(), err)
-	}
-	t.Short.SetActive()
-	t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
-	for _, rng := range bold {
-		t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
-	}
-	// t.Short.Refresh()
+	t.Bold()
+	// bold, err := t.Bold()
+	// if err != nil {
+	// 	t.Doc.Dump()
+	// 	log.Println(t.Card.Name(), err)
+	// }
+	// t.Short.SetActive()
+	// t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
+	// for _, rng := range bold {
+	// 	t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
+	// }
 
 	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
 	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
 	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-sk.Tolerances["flavor"], "BL")
 
+	lines := strings.Split(t.Long.TextItem.Contents(), "\r")
 	if t.Long.Visible() {
+		for i := len(lines) - 1; i > 0; i-- {
+			if t.Long.Y2() > bot {
+				fmt.Println("Setting Text", strings.Join(lines[:i-1], "\r"))
+				t.Long.SetText(strings.Join(lines[:i-1], "\r"))
+				t.Long.Refresh()
+			} else {
+				break
+			}
+		}
 		if t.Long.Y2() > bot {
 			t.Long.SetVisible(false)
-		} else {
-			if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
-				t.Flavor.SetVisible(false)
-			}
+		}
+		if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
+			t.Flavor.SetVisible(false)
 		}
 	}
 }
 
 func (t *Template) AddSymbols() {
 	// Confirm that there is a resolve symbol in the text.
-	reg, err := regexp.Compile("{[1-9]}")
+	reg, err := regexp.Compile("({[1-9]})")
 	if err != nil {
 		t.Doc.Dump()
 		log.Panic(err)
@@ -256,7 +265,8 @@ func (t *Template) AddSymbols() {
 		}
 		tmp += word
 		bnd = t.Short.Bounds()
-		t.Short.SetText(tmp)
+		t.Short.TextItem.SetText(tmp)
+		// t.Bold()
 		switch {
 		case t.Short.Y2()-bnd[1][1] >= lineHeight:
 			if !strings.HasSuffix(out, "\\r") {
@@ -268,7 +278,7 @@ func (t *Template) AddSymbols() {
 		out += word
 	}
 	out = strings.Replace(out, "\\r ", "\\r", -1)
-	t.Short.SetText(out)
+	t.Short.TextItem.SetText(out)
 
 	// Find the resolve symbol
 	rows := strings.Split(out, "\\r")
@@ -277,18 +287,39 @@ func (t *Template) AddSymbols() {
 		if temp != nil {
 			// Get the BR y value.
 			if i+1 != len(rows) {
-				t.Short.SetText(strings.Join(rows[:i+1], "\\r"))
+				t.Short.TextItem.SetText(strings.Join(rows[:i+1], "\\r"))
 			}
+			fmt.Println("y:", t.Short.TextItem.Contents())
 			y := t.Short.Y2()
 			// Get the BR x val
-			t.Short.SetText(rows[i][temp[0]:temp[1]])
+			t.Short.TextItem.SetText(rows[i][:temp[1]])
+			t.Bold()
+			t.Short.Refresh()
+			fmt.Println("x:", t.Short.TextItem.Contents())
 			x := t.Short.X2()
+
 			// Move it.
 			t.ResolveSymb.SetVisible(true)
-			t.ResolveSymb.SetPos(x+3, y+7, "BR")
+			t.ResolveSymb.SetPos(x+13, y+7, "BR")
 		}
 	}
-	t.Short.SetText(out)
+	t.Short.TextItem.SetText(reg.ReplaceAllString(out, " $1"))
+}
+
+func (t *Template) Bold() {
+	reg, err := regexp.Compile(t.Card.Regexp())
+	if err != nil {
+		fmt.Println(t.Card.Regexp())
+		t.Doc.Dump()
+		log.Println(t.Card.Name())
+		log.Panic("Oops.")
+	}
+	bold := reg.FindAllStringIndex(t.Short.TextItem.Contents(), -1)
+	t.Short.SetActive()
+	t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
+	for _, rng := range bold {
+		t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
+	}
 }
 
 type DeckTemplate struct {
@@ -457,11 +488,13 @@ func (d *DeckTemplate) SetLeader(name string) {
 }
 func (d *DeckTemplate) FormatTextbox() {
 	// TODO: (3) Make type font smaller when 2 or more supertypes.
-	if len(d.Card.STypes()) > 1 {
-		d.Type.TextItem.SetSize(9.0)
-	} else {
-		d.Type.TextItem.SetSize(10.0)
-	}
+	/*
+		if len(d.Card.STypes()) > 1 {
+			d.Type.TextItem.SetSize(9.0)
+		} else {
+			d.Type.TextItem.SetSize(10.0)
+		}
+	*/
 	d.Template.FormatTextbox()
 }
 

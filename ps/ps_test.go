@@ -102,8 +102,7 @@ func TestEntireDeck(t *testing.T) {
 //39, 45, 39
 func TestText(t *testing.T) {
 	n := NewDeck(ps.Normal)
-	n.ApplyDataset("Rumour_1")
-	n.AddSymbols()
+	n.ApplyDataset("Spiral Minion_1")
 	n.Doc.Dump()
 }
 
