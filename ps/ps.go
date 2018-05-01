@@ -11,11 +11,15 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
+var Errors int
+
 func init() {
 	update.Update()
+	Errors = 0
 }
 
 type Template struct {
@@ -184,7 +188,7 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 	t.ResolveBG.SetColor(banner)
 	t.SpeedBG.SetColor(ind)
 
-	t.Speed.SetStroke(barStroke, nil)
+	t.Speed.SetStroke(barStroke, ps.Colors["Gray"])
 	t.Damage.SetStroke(barStroke, ps.Colors["White"])
 	return banner, ind
 }
@@ -204,38 +208,48 @@ func (t *Template) FormatTextbox() {
 
 	t.AddSymbols()
 	t.Bold()
-	// bold, err := t.Bold()
-	// if err != nil {
-	// 	t.Doc.Dump()
-	// 	log.Println(t.Card.Name(), err)
-	// }
-	// t.Short.SetActive()
-	// t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
-	// for _, rng := range bold {
-	// 	t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
-	// }
 
 	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
 	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
 	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-sk.Tolerances["flavor"], "BL")
 
-	lines := strings.Split(t.Long.TextItem.Contents(), "\r")
 	if t.Long.Visible() {
-		for i := len(lines) - 1; i > 0; i-- {
-			if t.Long.Y2() > bot {
-				fmt.Println("Setting Text", strings.Join(lines[:i-1], "\r"))
-				t.Long.SetText(strings.Join(lines[:i-1], "\r"))
-				t.Long.Refresh()
-			} else {
-				break
+		/*
+			fmt.Println(strings.Replace(strings.Replace(t.Long.TextItem.Contents(), "\r", "\\r", -1), "\n", "\\n", -1))
+			reg := regexp.MustCompile(`\r[^\r]+$`)
+			tmp := t.Long.TextItem.Contents()
+			for strings.Count(tmp, "\r") >= 1 {
+				if t.Long.Y2() > bot {
+					// err := t.Long.TextItem.SetText(strings.Join(lines[:i-1], "\r"))
+					tmp = reg.ReplaceAllString(tmp, "")
+					fmt.Println(tmp)
+					err := t.Long.TextItem.SetText(tmp)
+					fmt.Println("TXTXTXTXT")
+					safeError(err)
+					if err != nil {
+						fmt.Println("TEXT:", tmp)
+						break
+					}
+				} else {
+					break
+				}
 			}
-		}
+		*/
 		if t.Long.Y2() > bot {
 			t.Long.SetVisible(false)
 		}
 		if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
 			t.Flavor.SetVisible(false)
 		}
+	}
+}
+
+// safeError prints errors instead of panicking.
+func safeError(err error) {
+	if err != nil {
+		pc, file, line, ok := runtime.Caller(1)
+		log.Println("ERROR:", pc, file, line, ok, err)
+		Errors++
 	}
 }
 
@@ -265,7 +279,9 @@ func (t *Template) AddSymbols() {
 		}
 		tmp += word
 		bnd = t.Short.Bounds()
-		t.Short.TextItem.SetText(tmp)
+		err := t.Short.TextItem.SetText(tmp)
+		safeError(err)
+
 		// t.Bold()
 		switch {
 		case t.Short.Y2()-bnd[1][1] >= lineHeight:
@@ -279,6 +295,7 @@ func (t *Template) AddSymbols() {
 	}
 	out = strings.Replace(out, "\\r ", "\\r", -1)
 	t.Short.TextItem.SetText(out)
+	safeError(err)
 
 	// Find the resolve symbol
 	rows := strings.Split(out, "\\r")
@@ -288,14 +305,14 @@ func (t *Template) AddSymbols() {
 			// Get the BR y value.
 			if i+1 != len(rows) {
 				t.Short.TextItem.SetText(strings.Join(rows[:i+1], "\\r"))
+				safeError(err)
 			}
-			fmt.Println("y:", t.Short.TextItem.Contents())
 			y := t.Short.Y2()
 			// Get the BR x val
 			t.Short.TextItem.SetText(rows[i][:temp[1]])
+			safeError(err)
 			t.Bold()
 			t.Short.Refresh()
-			fmt.Println("x:", t.Short.TextItem.Contents())
 			x := t.Short.X2()
 
 			// Move it.
@@ -304,6 +321,7 @@ func (t *Template) AddSymbols() {
 		}
 	}
 	t.Short.TextItem.SetText(reg.ReplaceAllString(out, " $1"))
+	safeError(err)
 }
 
 func (t *Template) Bold() {
@@ -414,7 +432,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	name := strings.TrimRight(id, `_123`)
 
 	// Skip if dataset already applied.
-	if d.Dataset == id && d.Card != nil {
+	if ps.Mode == ps.Fast && d.Dataset == id && d.Card != nil {
 		if d.Card.Name() == name {
 			return
 		}
@@ -537,18 +555,18 @@ func (d *DeckTemplate) PNG(crop bool) {
 	err := ps.DoAction("DK", "Crop")
 	if err != nil {
 		d.Doc.Dump()
-		panic(err)
+		log.Panic(err)
 	}
 	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
 		d.ID.TextItem.Contents()))
 	if err != nil {
 		d.Doc.Dump()
-		panic(err)
+		log.Panic(err)
 	}
 	err = ps.DoAction("DK", "Undo")
 	if err != nil {
 		d.Doc.Dump()
-		panic(err)
+		log.Panic(err)
 	}
 }
 
@@ -605,9 +623,10 @@ func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 }
 
 func (n *NonDeckTemplate) ApplyDataset(name string) {
-	if n.Dataset == name {
+	if ps.Mode == ps.Fast && n.Dataset == name {
 		return
 	}
+
 	id := name
 	card, err := sql.Load(name)
 	if err != nil {

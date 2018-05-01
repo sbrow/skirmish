@@ -9,3 +9,5 @@ sql/test\.csv
 *.out
 
 *.exe
+
+ps/sha

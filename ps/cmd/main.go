@@ -12,7 +12,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"strings"
-	"sync"
+	// "sync"
 	"time"
 )
 
@@ -41,19 +41,20 @@ func main() {
 	var leaders []string
 	var condition string
 
-	var wg sync.WaitGroup
+	// var wg sync.WaitGroup
 	if !*fast {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			sql.GenData()
-		}()
+		go sql.GenData()
+		// wg.Add(1)
+		// go func() {
+		// defer wg.Done()
+		// sql.GenData()
+		// }()
 	}
 
 	switch args[0] {
 	case "crop":
 	case "undo":
-		wg.Wait()
+		// wg.Wait()
 		err := app.DoAction("DK", strings.Title(args[0]))
 		if err != nil {
 			log.Panic(err)
@@ -82,7 +83,7 @@ func main() {
 		defer app.Close(app.PSSaveChanges)
 		app.Wait("$ Import the current dataset file into Photoshop," +
 			" then press enter to continue")
-		wg.Wait()
+		// wg.Wait()
 		for _, card := range cards {
 			imgs, err := card.Images()
 			if err != nil {
@@ -97,7 +98,7 @@ func main() {
 	default:
 		app.Wait("$ Import the current dataset file into photoshop," +
 			" then press enter to continue")
-		wg.Wait()
+		// wg.Wait()
 		d := ps.NewDeck(app.Fast)
 		defer d.Doc.Dump()
 		name := strings.Join(args, " ")
