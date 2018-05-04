@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sbrow/ps"
+	"github.com/sbrow/ps/colors"
 	sk "github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/sql"
 	"github.com/sbrow/update"
@@ -174,7 +175,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.SpeedBG.Refresh()
 }
 
-func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
+func (t *Template) SetLeader(name string) (banner, ind colors.Hex) {
 	for _, ldr := range sk.Leaders {
 		if ldr.Name == name {
 			banner = ldr.Banner
@@ -184,12 +185,12 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 	if banner == nil || ind == nil {
 		log.Panicf("Leader \"%s\" not found!", name)
 	}
-	barStroke := ps.Stroke{Size: 4, Color: banner}
+	barStroke := colors.Stroke{Size: 4, Color: banner}
 	t.ResolveBG.SetColor(banner)
 	t.SpeedBG.SetColor(ind)
 
-	t.Speed.SetStroke(barStroke, ps.Colors["Gray"])
-	t.Damage.SetStroke(barStroke, ps.Colors["White"])
+	t.Speed.SetStroke(barStroke, colors.Gray())
+	t.Damage.SetStroke(barStroke, colors.White())
 	return banner, ind
 }
 
@@ -200,7 +201,7 @@ func (t *Template) FormatTextbox() {
 	bot := t.Doc.Height() - sk.Tolerances["bottom"]
 
 	if t.Speed.Visible() {
-		t.Speed.SetColor(ps.Colors["Gray"])
+		t.Speed.SetColor(colors.Gray())
 	}
 	t.Short.SetVisible(t.Short.TextItem != nil)
 	t.Long.SetVisible(t.Long.TextItem != nil && t.Long.TextItem.Contents() != "")
@@ -279,8 +280,7 @@ func (t *Template) AddSymbols() {
 		}
 		tmp += word
 		bnd = t.Short.Bounds()
-		err := t.Short.TextItem.SetText(tmp)
-		safeError(err)
+		t.Short.TextItem.SetText(tmp)
 
 		// t.Bold()
 		switch {
@@ -474,16 +474,16 @@ func (d *DeckTemplate) SetLeader(name string) {
 	// }
 	banner, ind := d.Template.SetLeader(name)
 
-	rarity := ps.Compare(banner, ind)
-	barStroke := ps.Stroke{Size: 4, Color: banner}
-	counterStroke := ps.Stroke{Size: 4, Color: ind}
+	rarity := colors.Compare(banner, ind)
+	barStroke := colors.Stroke{Size: 4, Color: banner}
+	counterStroke := colors.Stroke{Size: 4, Color: ind}
 	rarities := d.RarityInd.ArtLayers()
 
 	if d.Card != nil &&
 		strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
 		d.CostBG.SetColor(rarity)
 	} else {
-		d.CostBG.SetColor(ps.Colors["Gray"])
+		d.CostBG.SetColor(colors.Gray())
 	}
 	for _, lyr := range d.TypeInd.ArtLayers() {
 		lyr.SetColor(ind)
@@ -493,16 +493,16 @@ func (d *DeckTemplate) SetLeader(name string) {
 	for i := 0; i < 3; i++ {
 		rarities[i].SetColor(rarity)
 	}
-	d.Resolve.SetStroke(counterStroke, ps.Colors["White"])
-	d.Life.SetStroke(barStroke, ps.Colors["White"])
+	d.Resolve.SetStroke(counterStroke, colors.White())
+	d.Life.SetStroke(barStroke, colors.White())
 
 	d.LBar.SetColor(banner)
 	d.HeroLifeBG.SetColor(ind)
 	d.DamageBG.SetColor(ind)
 	d.LifeBG.SetColor(ind)
 
-	d.Cost.SetStroke(ps.Stroke{4, rarity}, ps.Colors["White"])
-	d.HeroLife.SetStroke(barStroke, ps.Colors["White"])
+	d.Cost.SetStroke(colors.Stroke{4, rarity}, colors.White())
+	d.HeroLife.SetStroke(barStroke, colors.White())
 }
 func (d *DeckTemplate) FormatTextbox() {
 	// TODO: (3) Make type font smaller when 2 or more supertypes.
@@ -647,7 +647,7 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 
 func (n *NonDeckTemplate) SetLeader(name string) {
 	banner, ind := n.Template.SetLeader(name)
-	barStroke := ps.Stroke{Size: 4, Color: banner}
+	barStroke := colors.Stroke{Size: 4, Color: banner}
 	for _, lyr := range n.LBar.ArtLayers() {
 		if lyr.Name() != "LeaderBar" {
 			lyr.SetColor(ind)
@@ -666,7 +666,7 @@ func (n *NonDeckTemplate) SetLeader(name string) {
 	halo[1].SetColor(banner)
 	n.HeroInd.SetColor(ind)
 	n.BtmBG.SetColor(banner)
-	n.Plus.SetStroke(barStroke, ps.Colors["White"])
-	n.Resolve.SetStroke(barStroke, ps.Colors["White"])
-	n.Life.SetStroke(ps.Stroke{Size: 0, Color: ind}, ps.Colors["Black"])
+	n.Plus.SetStroke(barStroke, colors.White())
+	n.Resolve.SetStroke(barStroke, colors.White())
+	n.Life.SetStroke(colors.Stroke{Size: 0, Color: ind}, colors.Black())
 }
