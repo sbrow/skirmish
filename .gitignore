@@ -11,3 +11,6 @@ sql/test\.csv
 *.exe
 
 ps/sha
+.vscode/**
+*.a
+*.test

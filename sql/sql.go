@@ -6,13 +6,13 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	sk "github.com/sbrow/skirmish"
-	"github.com/sbrow/update"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	sk "github.com/sbrow/skirmish"
 )
 
 func init() {
@@ -22,7 +22,6 @@ func init() {
 	if len(sk.Leaders) == 0 {
 		// log.Fatal("No Leaders")
 	}
-	update.Update()
 }
 
 // LoadMany selects more than one card at a time from the database.

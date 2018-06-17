@@ -3,24 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	app "github.com/sbrow/ps"
-	sk "github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/ps"
-	"github.com/sbrow/skirmish/sql"
-	"github.com/sbrow/update"
 	"log"
 	"os"
 	"runtime/pprof"
 	"strings"
-	// "sync"
 	"time"
+
+	app "github.com/sbrow/ps"
+	sk "github.com/sbrow/skirmish"
+	"github.com/sbrow/skirmish/ps"
+	"github.com/sbrow/skirmish/sql"
 )
 
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
-
-func init() {
-	update.Update()
-}
 
 func main() {
 	start := time.Now()
@@ -80,7 +75,7 @@ func main() {
 		fmt.Println("Cards", len(cards))
 		d := ps.NewDeck(app.Normal)
 		defer d.Doc.Dump()
-		defer app.Close(app.PSSaveChanges)
+		defer app.Close(app.SaveChanges)
 		app.Wait("$ Import the current dataset file into Photoshop," +
 			" then press enter to continue")
 		// wg.Wait()

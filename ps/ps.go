@@ -3,23 +3,21 @@ package ps
 import (
 	"errors"
 	"fmt"
-	"github.com/sbrow/ps"
-	"github.com/sbrow/ps/colors"
-	sk "github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/sql"
-	"github.com/sbrow/update"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/sbrow/ps"
+	sk "github.com/sbrow/skirmish"
+	"github.com/sbrow/skirmish/sql"
 )
 
 var Errors int
 
 func init() {
-	update.Update()
 	Errors = 0
 }
 
@@ -175,7 +173,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.SpeedBG.Refresh()
 }
 
-func (t *Template) SetLeader(name string) (banner, ind colors.Hex) {
+func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 	for _, ldr := range sk.Leaders {
 		if ldr.Name == name {
 			banner = ldr.Banner
@@ -185,12 +183,12 @@ func (t *Template) SetLeader(name string) (banner, ind colors.Hex) {
 	if banner == nil || ind == nil {
 		log.Panicf("Leader \"%s\" not found!", name)
 	}
-	barStroke := colors.Stroke{Size: 4, Color: banner}
+	barStroke := ps.Stroke{Size: 4, Color: banner}
 	t.ResolveBG.SetColor(banner)
 	t.SpeedBG.SetColor(ind)
 
-	t.Speed.SetStroke(barStroke, colors.Gray())
-	t.Damage.SetStroke(barStroke, colors.White())
+	t.Speed.SetStroke(barStroke, ps.ColorGray)
+	t.Damage.SetStroke(barStroke, ps.ColorWhite)
 	return banner, ind
 }
 
@@ -201,7 +199,7 @@ func (t *Template) FormatTextbox() {
 	bot := t.Doc.Height() - sk.Tolerances["bottom"]
 
 	if t.Speed.Visible() {
-		t.Speed.SetColor(colors.Gray())
+		t.Speed.SetColor(ps.ColorGray)
 	}
 	t.Short.SetVisible(t.Short.TextItem != nil)
 	t.Long.SetVisible(t.Long.TextItem != nil && t.Long.TextItem.Contents() != "")
@@ -329,6 +327,7 @@ func (t *Template) Bold() {
 	if err != nil {
 		fmt.Println(t.Card.Regexp())
 		t.Doc.Dump()
+
 		log.Println(t.Card.Name())
 		log.Panic("Oops.")
 	}
@@ -474,16 +473,16 @@ func (d *DeckTemplate) SetLeader(name string) {
 	// }
 	banner, ind := d.Template.SetLeader(name)
 
-	rarity := colors.Compare(banner, ind)
-	barStroke := colors.Stroke{Size: 4, Color: banner}
-	counterStroke := colors.Stroke{Size: 4, Color: ind}
+	rarity := ps.Compare(banner, ind)
+	barStroke := ps.Stroke{Size: 4, Color: banner}
+	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarities := d.RarityInd.ArtLayers()
 
 	if d.Card != nil &&
 		strings.Contains(strings.Join(d.Card.STypes(), ","), "Channeled") {
 		d.CostBG.SetColor(rarity)
 	} else {
-		d.CostBG.SetColor(colors.Gray())
+		d.CostBG.SetColor(ps.ColorGray)
 	}
 	for _, lyr := range d.TypeInd.ArtLayers() {
 		lyr.SetColor(ind)
@@ -493,16 +492,16 @@ func (d *DeckTemplate) SetLeader(name string) {
 	for i := 0; i < 3; i++ {
 		rarities[i].SetColor(rarity)
 	}
-	d.Resolve.SetStroke(counterStroke, colors.White())
-	d.Life.SetStroke(barStroke, colors.White())
+	d.Resolve.SetStroke(counterStroke, ps.ColorWhite)
+	d.Life.SetStroke(barStroke, ps.ColorWhite)
 
 	d.LBar.SetColor(banner)
 	d.HeroLifeBG.SetColor(ind)
 	d.DamageBG.SetColor(ind)
 	d.LifeBG.SetColor(ind)
 
-	d.Cost.SetStroke(colors.Stroke{4, rarity}, colors.White())
-	d.HeroLife.SetStroke(barStroke, colors.White())
+	d.Cost.SetStroke(ps.Stroke{4, rarity}, ps.ColorWhite)
+	d.HeroLife.SetStroke(barStroke, ps.ColorWhite)
 }
 func (d *DeckTemplate) FormatTextbox() {
 	// TODO: (3) Make type font smaller when 2 or more supertypes.
@@ -647,7 +646,7 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 
 func (n *NonDeckTemplate) SetLeader(name string) {
 	banner, ind := n.Template.SetLeader(name)
-	barStroke := colors.Stroke{Size: 4, Color: banner}
+	barStroke := ps.Stroke{Size: 4, Color: banner}
 	for _, lyr := range n.LBar.ArtLayers() {
 		if lyr.Name() != "LeaderBar" {
 			lyr.SetColor(ind)
@@ -666,7 +665,7 @@ func (n *NonDeckTemplate) SetLeader(name string) {
 	halo[1].SetColor(banner)
 	n.HeroInd.SetColor(ind)
 	n.BtmBG.SetColor(banner)
-	n.Plus.SetStroke(barStroke, colors.White())
-	n.Resolve.SetStroke(barStroke, colors.White())
-	n.Life.SetStroke(colors.Stroke{Size: 0, Color: ind}, colors.Black())
+	n.Plus.SetStroke(barStroke, ps.ColorWhite)
+	n.Resolve.SetStroke(barStroke, ps.ColorWhite)
+	n.Life.SetStroke(ps.Stroke{Size: 0, Color: ind}, ps.ColorBlack)
 }

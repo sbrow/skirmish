@@ -32,19 +32,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/sql"
-	"github.com/sbrow/update"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-)
 
-func init() {
-	update.Update()
-}
+	"github.com/sbrow/skirmish"
+	"github.com/sbrow/skirmish/sql"
+)
 
 func main() {
 	flag.Parse()
@@ -96,7 +92,7 @@ func main() {
 
 		for rows.Next() {
 
-			for i, _ := range columns {
+			for i := range columns {
 				valuePtrs[i] = &values[i]
 			}
 

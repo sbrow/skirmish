@@ -1,11 +1,10 @@
 package main
 
 import (
+	"testing"
+
 	app "github.com/sbrow/ps"
 	"github.com/sbrow/skirmish/ps"
-	// "github.com/sbrow/skirmish/sql"
-	// "sync"
-	"testing"
 )
 
 func TestRefresh(t *testing.T) {

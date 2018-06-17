@@ -15,11 +15,12 @@ package skirmish
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
-	"github.com/sbrow/update"
 	"log"
 	"os"
 	"path/filepath"
+
+	// PSQL implementation.
+	_ "github.com/lib/pq"
 )
 
 var Template = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
@@ -51,7 +52,6 @@ func (l *leaders) Names() []string {
 }
 
 func init() {
-	update.Update()
 	Delim = ","
 	// Connect to the Database
 	var err error
