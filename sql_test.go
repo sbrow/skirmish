@@ -1,9 +1,8 @@
-package sql
+package skirmish
 
 import (
 	"encoding/csv"
 	"fmt"
-	sk "github.com/sbrow/skirmish"
 	"log"
 	"os"
 	"testing"
@@ -11,7 +10,7 @@ import (
 
 func TestSimple(t *testing.T) {
 	var text *string
-	err := sk.DB.QueryRow(
+	err := DB.QueryRow(
 		"SELECT type FROM public.all_cards WHERE name='Anger'").Scan(&text)
 	if err != nil {
 		panic(err)
@@ -69,16 +68,16 @@ func TestCSV(t *testing.T) {
 
 func TestQuery(t *testing.T) {
 	var name, typ *string
-	query := `SELECT name, type FROM skirmish.deckcards WHERE "name"=$1`
-	sk.DB.QueryRow(query, "Anger").Scan(&name, &typ)
+	query := `SELECT name, type FROM deckcards WHERE "name"=$1`
+	DB.QueryRow(query, "Anger").Scan(&name, &typ)
 	if name == nil || typ == nil {
 		log.Fatal("Noop!")
 	}
 }
 
 func TestSQL(t *testing.T) {
-	Recover(sk.DataDir)
-	Dump(sk.DataDir)
+	Recover(DataDir)
+	Dump(DataDir)
 }
 
 func TestLoadMany(t *testing.T) {
@@ -89,6 +88,6 @@ func TestLoadMany(t *testing.T) {
 	}
 }
 
-func TestGenData(t *testing.T) {
-	GenData()
+func TestDecks(t *testing.T) {
+	Decks()
 }

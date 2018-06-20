@@ -1,32 +1,21 @@
-package sql
+package skirmish
 
 import (
 	"bytes"
 	"database/sql"
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	sk "github.com/sbrow/skirmish"
+	"github.com/sbrow/prob/combin"
 )
 
-func init() {
-	if sk.DB == nil {
-		log.Fatal("No database")
-	}
-	if len(sk.Leaders) == 0 {
-		// log.Fatal("No Leaders")
-	}
-}
-
 // LoadMany selects more than one card at a time from the database.
-func LoadMany(cond string) ([]sk.Card, error) {
-	out := make([]sk.Card, 0)
+func LoadMany(cond string) ([]Card, error) {
+	out := make([]Card, 0)
 	props := []string{"\"name\"", "cards.type", "cards.supertypes",
 		"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
 		"cards.life", "cards.faction, cards.cost, cards.rarity, cards.leader",
@@ -34,11 +23,11 @@ func LoadMany(cond string) ([]sk.Card, error) {
 		"cards.short_b", "cards.long_b", "cards.flavor_b, cards.regexp"}
 	str := fmt.Sprintf("select %s from cards where %s",
 		strings.Join(props, ", "), cond)
-	rows, err := sk.DB.Query(str)
+	rows, err := DB.Query(str)
 	defer rows.Close()
 	if err == sql.ErrNoRows {
 		log.Printf("No card was found with condition \"%s\"\n", cond)
-		return []sk.Card{}, err
+		return []Card{}, err
 	} else if err != nil {
 		log.Println("Error:" + str)
 		return nil, err
@@ -51,8 +40,8 @@ func LoadMany(cond string) ([]sk.Card, error) {
 			&flavor, &resolve, &speed, &damage, &life, &faction, &cost, &rarity,
 			&leader, &resolveB, &lifeB, &speedB, &damageB, &shortB, &longB, &flavorB,
 			&regexp)
-		var c sk.Card
-		c = sk.NewCard()
+		var c Card
+		c = NewCard()
 		switch {
 		case err == sql.ErrNoRows:
 			log.Printf("No card was found with condition \"%s\"\n", cond)
@@ -95,7 +84,7 @@ func LoadMany(cond string) ([]sk.Card, error) {
 		}
 		switch {
 		case cost != nil:
-			d := &sk.DeckCard{}
+			d := &DeckCard{}
 			d.SetCard(c)
 			d.SetCost(*cost)
 			if rarity != nil {
@@ -106,7 +95,7 @@ func LoadMany(cond string) ([]sk.Card, error) {
 			}
 			out = append(out, d)
 		case *typ == "Leader":
-			n := &sk.NonDeckCard{}
+			n := &NonDeckCard{}
 			c.SetLeader(*title)
 			n.SetCard(c)
 			n.ResolveB = resolveB
@@ -139,7 +128,7 @@ func LoadMany(cond string) ([]sk.Card, error) {
 
 // Load Selects a card from the database given it's name, and returns in
 // a struct of the appropriate card type.
-func Load(name string) (sk.Card, error) {
+func Load(name string) (Card, error) {
 	cards, err := LoadMany(fmt.Sprintf("name='%s'", strings.Replace(name, "'", "''", -1)))
 	if len(cards) > 0 {
 		return cards[0], err
@@ -182,31 +171,43 @@ func Dump(dir string) {
 	}
 }
 
-// GenData creates a dataset file for Photoshop to load from.
-func GenData() {
-	genDataSet("deckcards", "cards.Leader IS NOT NULL ORDER BY name ASC")
-	genDataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
-}
-
-func genDataSet(name, query string) {
-	log.SetPrefix(fmt.Sprintf("[%s] ", name))
-	log.Println(`Generating Dataset`)
-	cards, err := LoadMany(query)
-	if err != nil {
-		log.Panic(err)
+func Decks() {
+	str :=
+		`<?xml version="1.0" encoding="UTF-8"?>
+<cockatrice_deck version="1">
+	<deckname></deckname>
+	<comments></comments>
+	<zone name="main">
+`
+	light := combin.NewSet("Bast", "Igrath", "Lilith", "Vi", "Scinter").Combine()
+	queries := []string{}
+	for _, combo := range light {
+		queries = append(queries,
+			fmt.Sprintf("%s|%s",
+				combo[0].(string), combo[1].(string)))
 	}
-	dat := [][]string{cards[0].Labels()}
-	for _, card := range cards {
-		dat = append(dat, card.CSV(false)...)
-	}
-	path := filepath.Join(sk.DataDir, fmt.Sprintf("%s.csv", name))
-	f, err := os.Create(path)
+	rows, err := DB.Query("Select cards.rarity, name from cards where cards.leader ~ $1 ORDER BY name ASC", queries[0])
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	for rows.Next() {
+		var name string
+		var copies int
+		rows.Scan(&copies, &name)
+		str += fmt.Sprintf("\t\t<card number=\"%d\" name=\"%s\"/>\n", copies, name)
+	}
+	str += "\t</zone>\n\t<zone name=\"side\">\n"
+	rows, err = DB.Query("SELECT name from cards where name ~ $1", queries[0])
+	if err != nil {
+		log.Println("error:", err)
+	}
+	for rows.Next() {
+		var name string
+		rows.Scan(&name)
+		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s\"/>\n", name)
+		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s (Halo)\"/>\n", name)
+	}
 
-	w := csv.NewWriter(f)
-	w.WriteAll(dat)
-	log.Println(path, "generated!")
+	str += "\t</zone>\n</cockatrice_deck>"
+	fmt.Println(str)
 }

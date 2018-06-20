@@ -11,8 +11,7 @@ import (
 	"strings"
 
 	"github.com/sbrow/ps"
-	sk "github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/sql"
+	"github.com/sbrow/skirmish"
 )
 
 var Errors int
@@ -24,7 +23,7 @@ func init() {
 type Template struct {
 	Doc         *ps.Document
 	ResolveSymb *ps.LayerSet
-	Card        sk.Card
+	Card        skirmish.Card
 	Dataset     string
 	ID          *ps.ArtLayer
 	Name        *ps.ArtLayer
@@ -136,7 +135,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	log.Printf("Applying dataset %s\n", id)
 	log.SetPrefix(fmt.Sprintf("[%s] ", id))
 	if t.Card == nil {
-		card, err := sql.Load(name)
+		card, err := skirmish.Load(name)
 		if err != nil {
 			t.Doc.Dump()
 			log.Println(card)
@@ -174,7 +173,7 @@ func (t *Template) ApplyDataset(id, name string) {
 }
 
 func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
-	for _, ldr := range sk.Leaders {
+	for _, ldr := range skirmish.Leaders {
 		if ldr.Name == name {
 			banner = ldr.Banner
 			ind = ldr.Indicator
@@ -196,7 +195,7 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 // layers as necessary.
 func (t *Template) FormatTextbox() {
 	log.Println("Formatting Textbox")
-	bot := t.Doc.Height() - sk.Tolerances["bottom"]
+	bot := t.Doc.Height() - skirmish.Tolerances["bottom"]
 
 	if t.Speed.Visible() {
 		t.Speed.SetColor(ps.ColorGray)
@@ -208,32 +207,11 @@ func (t *Template) FormatTextbox() {
 	t.AddSymbols()
 	t.Bold()
 
-	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+sk.Tolerances["short"], "BL")
-	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+sk.Tolerances["long"], "TL")
-	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-sk.Tolerances["flavor"], "BL")
+	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+skirmish.Tolerances["short"], "BL")
+	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+skirmish.Tolerances["long"], "TL")
+	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-skirmish.Tolerances["flavor"], "BL")
 
 	if t.Long.Visible() {
-		/*
-			fmt.Println(strings.Replace(strings.Replace(t.Long.TextItem.Contents(), "\r", "\\r", -1), "\n", "\\n", -1))
-			reg := regexp.MustCompile(`\r[^\r]+$`)
-			tmp := t.Long.TextItem.Contents()
-			for strings.Count(tmp, "\r") >= 1 {
-				if t.Long.Y2() > bot {
-					// err := t.Long.TextItem.SetText(strings.Join(lines[:i-1], "\r"))
-					tmp = reg.ReplaceAllString(tmp, "")
-					fmt.Println(tmp)
-					err := t.Long.TextItem.SetText(tmp)
-					fmt.Println("TXTXTXTXT")
-					safeError(err)
-					if err != nil {
-						fmt.Println("TEXT:", tmp)
-						break
-					}
-				} else {
-					break
-				}
-			}
-		*/
 		if t.Long.Y2() > bot {
 			t.Long.SetVisible(false)
 		}
@@ -322,14 +300,13 @@ func (t *Template) AddSymbols() {
 	safeError(err)
 }
 
-func (t *Template) Bold() {
+func (t *Template) Bold() error {
 	reg, err := regexp.Compile(t.Card.Regexp())
 	if err != nil {
 		fmt.Println(t.Card.Regexp())
 		t.Doc.Dump()
-
 		log.Println(t.Card.Name())
-		log.Panic("Oops.")
+		return err
 	}
 	bold := reg.FindAllStringIndex(t.Short.TextItem.Contents(), -1)
 	t.Short.SetActive()
@@ -337,6 +314,7 @@ func (t *Template) Bold() {
 	for _, rng := range bold {
 		t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
 	}
+	return nil
 }
 
 type DeckTemplate struct {
@@ -354,7 +332,7 @@ type DeckTemplate struct {
 }
 
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{Template: *New(mode, sk.Template)}
+	d := &DeckTemplate{Template: *New(mode, skirmish.Template)}
 	txt := d.Doc.LayerSet("Text")
 	if txt == nil {
 		log.Panic("LayerSet \"Text\" was not found!")
@@ -437,7 +415,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 		}
 	}
 
-	card, err := sql.Load(name)
+	card, err := skirmish.Load(name)
 	if err != nil {
 		d.Doc.Dump()
 		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
@@ -519,7 +497,7 @@ func (d *DeckTemplate) FormatTextbox() {
 // it visible, and hides the rest. Returns an error if the title was longer than
 // the longest background.
 func (d *DeckTemplate) FormatTitle() error {
-	tol := sk.Tolerances["title"]
+	tol := skirmish.Tolerances["title"]
 	found := false
 	for _, lyr := range d.Banners.ArtLayers() {
 		if !found && d.Name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
@@ -581,7 +559,7 @@ type NonDeckTemplate struct {
 
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	log.SetPrefix("[ps.NewNonDeck] ")
-	n := &NonDeckTemplate{Template: *New(mode, sk.HeroTemplate)}
+	n := &NonDeckTemplate{Template: *New(mode, skirmish.HeroTemplate)}
 	areas := n.Doc.LayerSet("Areas")
 	if areas == nil {
 		log.Panic("LayerSet \"Areas\" was not found!")
@@ -627,7 +605,7 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	}
 
 	id := name
-	card, err := sql.Load(name)
+	card, err := skirmish.Load(name)
 	if err != nil {
 		n.Doc.Dump()
 		log.Println(card)

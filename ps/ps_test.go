@@ -1,31 +1,31 @@
 package ps
 
 import (
-	"bufio"
-	"encoding/csv"
-	"github.com/sbrow/ps"
-	sk "github.com/sbrow/skirmish"
-	"log"
-	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/sbrow/ps"
+	"github.com/sbrow/skirmish"
 )
 
-/*
+var tmp *Template
+
+func init() {
+	tmp = New(ps.Normal, skirmish.Template)
+}
+
 func TestSetLeader(t *testing.T) {
-	SetLeader("Tinsel")
+	tmp.SetLeader("Tinsel")
 }
 
 func TestFormatTitle(t *testing.T) {
-	ps.Open(skirmish.Template)
-	err := FormatTitle()
-	if err != nil {
-		t.Fatal(err)
-	}
-}*/
+	d := NewDeck(ps.Normal)
+	d.FormatTitle()
+	d.Doc.Dump()
+}
 
 func TestFormatTextBox(t *testing.T) {
 	d := NewDeck(ps.Normal)
+	d.ApplyDataset("Combust_1")
 	d.FormatTextbox()
 	d.Doc.Dump()
 }
@@ -42,6 +42,7 @@ func TestApplyDataset(t *testing.T) {
 	// ApplyDataset("Paranoia_1")
 }
 */
+/*
 func TestDeckTemplate(t *testing.T) {
 	d := NewDeck(ps.Normal)
 	d.ApplyDataset("Rumour_1")
@@ -76,13 +77,13 @@ func TestEntireDeck(t *testing.T) {
 
 	//Parse Data
 	id := -1
-	ldr := -1
+	leader := -1
 	for i, lbl := range cards[0] {
 		if lbl == "id" {
 			id = i
 		}
 		if lbl == "Bast" {
-			ldr = i
+			leader = i
 			break
 		}
 	}
@@ -92,7 +93,7 @@ func TestEntireDeck(t *testing.T) {
 
 	// Use Data
 	for _, row := range cards[1:] {
-		if row[ldr] == "true" {
+		if row[leader] == "true" {
 			d.ApplyDataset(row[id])
 			d.PNG(true)
 		}
@@ -142,3 +143,4 @@ func BenchmarkDeckIndRefresh(b *testing.B) {
 		}
 	}
 }
+*/

@@ -10,9 +10,8 @@ import (
 	"time"
 
 	app "github.com/sbrow/ps"
-	sk "github.com/sbrow/skirmish"
+	"github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/ps"
-	"github.com/sbrow/skirmish/sql"
 )
 
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
@@ -31,18 +30,20 @@ func main() {
 	}
 	log.SetPrefix("[ps] ")
 	log.Println("Opening Photoshop")
-	app.Open(sk.Template)
+	app.Open(skirmish.Template)
 	args := flag.Args()
 	var leaders []string
 	var condition string
 
 	// var wg sync.WaitGroup
 	if !*fast {
-		go sql.GenData()
+
+		// go skirmish.GenData()
+
 		// wg.Add(1)
 		// go func() {
 		// defer wg.Done()
-		// sql.GenData()
+		// skirmish.GenData()
 		// }()
 	}
 
@@ -55,8 +56,8 @@ func main() {
 			log.Panic(err)
 		}
 	case "all":
-		leaders = make([]string, len(sk.Leaders))
-		for i, ldr := range sk.Leaders {
+		leaders = make([]string, len(skirmish.Leaders))
+		for i, ldr := range skirmish.Leaders {
 			leaders[i] = ldr.Name
 		}
 		condition = "NOT cards.leader is NULL"
@@ -68,7 +69,7 @@ func main() {
 		}
 		condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
 		order := "cards.leader, cards.supertypes, cards.type, char_length(name) ASC"
-		cards, err := sql.LoadMany(fmt.Sprintf("%s ORDER BY %s", condition, order))
+		cards, err := skirmish.LoadMany(fmt.Sprintf("%s ORDER BY %s", condition, order))
 		if err != nil {
 			log.Panic(err)
 		}

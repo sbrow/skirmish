@@ -14,3 +14,7 @@ ps/sha
 .vscode/**
 *.a
 *.test
+
+ps/vendor/
+
+*.code-workspace

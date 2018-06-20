@@ -23,6 +23,7 @@ import (
 type Card interface {
 	Name() string
 	Card() card
+	FullType() string
 	SetName(string)
 	Type() string
 	SetType(string)
@@ -47,12 +48,14 @@ type Card interface {
 	SetLong(string)
 	Flavor() string
 	SetFlavor(string)
-	UEJSON(bool) ([]byte, error)
 	Labels() []string
 	String() string
-	CSV(bool) [][]string
 	Images() ([]string, error)
 	Bold() ([][]int, error)
+
+	UEJSON(bool) ([]byte, error)
+	CSV(bool) [][]string
+	XML() ([]byte, error)
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
@@ -282,6 +285,13 @@ func (c *card) JSON() ([]byte, error) {
 	return bytes, err
 }
 
+func (c *card) FullType() string {
+	if len(c.STypes()) == 0 {
+		return c.ctype
+	}
+	return fmt.Sprintf("%s- %s", c.ctype, strings.Join(c.stype, " "))
+}
+
 func (c *card) String() string {
 	str := c.Name()
 	if c.resolve != "0" {
@@ -296,7 +306,7 @@ func (c *card) String() string {
 			str += fmt.Sprintf("%s ", elem)
 		}
 	}
-	str += fmt.Sprintf("%s", c.ctype)
+	str += c.ctype
 	str += fmt.Sprintf(" \"%s",
 		strings.Replace(c.short, "\r\n", " ", -1))
 	str += "\""
@@ -337,21 +347,8 @@ func (d *DeckCard) SetCost(c string) {
 
 func (d *DeckCard) String() string {
 	str := fmt.Sprintf("%dx[%s] %s", d.rarity, d.leader, d.card.String())
-	return strings.Replace(str, d.name+" ", fmt.Sprintf("%s (%d)",
+	return strings.Replace(str, d.name+" ", fmt.Sprintf("%s (%s)",
 		d.name, d.cost), 1)
-	/*	str := d.Name() //fmt.Sprintf(`"%s"`, d.Name())
-		if cost, err := d.Cost(); err == nil {
-			str += fmt.Sprintf(" (%s)", cost)
-		}
-		if d.resolve != 0 {
-			str += fmt.Sprintf("%+d", d.resolve)
-		}
-		str += fmt.Sprintf(" %d/%d", d.damage, d.life)
-		str += fmt.Sprintf(" %s \"%s", d.Type(),
-			strings.Replace(d.short, "\r\n", "\\r", -1))
-		str += "\""
-		return str
-	*/
 }
 
 func (d *DeckCard) Rarity() string {
@@ -383,7 +380,7 @@ func (d *DeckCard) NormalBorder() bool {
 		fallthrough
 	case d.Type() == "Action":
 		fallthrough
-	case d.Type() == "Hero":
+	case d.Type() == "Deck Hero":
 		fallthrough
 	case d.Type() == "Item":
 		fallthrough
