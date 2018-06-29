@@ -21,12 +21,9 @@ func (c card) UEJSON(ident bool) ([]byte, error) {
 	obj := CardUEJSON{}
 	obj.Name = c.name
 	obj.Type = "CTE_" + c.ctype
-	resolve, err := strconv.Atoi(c.resolve)
-	if err != nil {
-		return []byte{}, err
-	}
-	obj.Stats = Stats{Life: c.life, Damage: c.damage, Speed: c.speed,
-		Resolve: resolve, Short: c.short, Long: c.long, Flavor: c.flavor}
+	resolve, _ := strconv.Atoi(c.resolve)
+	obj.Stats = Stats{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
+		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
 	obj.Abilities = make([]string, 0)
 	obj.Visual = *NewVisual(c.name, "Common", 1)
 	obj.SystemData = SystemData{make([]string, 0), make([]string, 0), make([]string, 0)}
@@ -46,6 +43,7 @@ type Visual struct {
 	StatsIcon     string
 	FrontMaterial string
 	BackMaterial  string
+	Resolve       string
 }
 
 func NewVisual(name, leader string, copies int) *Visual {
@@ -60,6 +58,7 @@ func NewVisual(name, leader string, copies int) *Visual {
 		StatsIcon:     "None",
 		FrontMaterial: "None",
 		BackMaterial:  "None",
+		Resolve:       "None",
 	}
 }
 
@@ -103,9 +102,10 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	obj.Supertypes = "CTE_" + strings.Join(d.stype, "_")
 	obj.Name = strings.Replace(d.name, " ", "", -1)
 	obj.Leader = d.leader
-	obj.Copies = d.rarity
-	obj.Visual = *NewVisual(d.name, d.leader, d.rarity)
-	//TODO: UE COST BROKEN
+	obj.Copies = d.copies
+	obj.Visual = *NewVisual(d.name, d.leader, d.copies)
+	//TODO(sbrow): UE COST BROKEN
+
 	// obj.Stats.Cost = d.cost
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")
@@ -121,8 +121,7 @@ type NonDeckCardUEJSON struct {
 	ActiveStats Stats
 }
 
-// TODO: Fix UECardJSON
-/*
+// TODO(sbrow): Fix UECardJSON
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {
@@ -134,46 +133,43 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 		log.Panic(err)
 	}
 	obj.Faction = "FE_" + n.faction
-	if n.resolveB != nil {
-		resolve, err := strconv.Atoi(*n.resolveB)
+	if n.ResolveB != nil {
+		resolve, err := strconv.Atoi(*n.ResolveB)
 		if err != nil {
 			return []byte{}, err
 		}
-		if n.speedB != nil {
-			obj.ActiveStats.Speed = *n.speedB
+		if n.SpeedB != nil {
+			obj.ActiveStats.Speed = *n.SpeedB
 		}
-		if n.damageB != nil {
-			obj.ActiveStats.Damage = *n.damageB
+		if n.DamageB != nil {
+			obj.ActiveStats.Damage = *n.DamageB
 		}
-		if n.lifeB != nil {
-			life, err := strconv.Atoi(*n.lifeB)
+		if n.LifeB != nil {
+			life, err := strconv.Atoi(*n.LifeB)
 			if err != nil {
 				return []byte{}, err
 			}
 			obj.ActiveStats.Life = life
 		}
-		if n.shortB != nil {
-			obj.ActiveStats.Short = *n.shortB
+		if n.ShortB != nil {
+			obj.ActiveStats.Short = *n.ShortB
 		}
-		if n.longB != nil {
-			obj.ActiveStats.Long = *n.longB
+		if n.LongB != nil {
+			obj.ActiveStats.Long = *n.LongB
 		}
-		if n.flavorB != nil {
-			obj.ActiveStats.Flavor = *n.flavorB
+		if n.FlavorB != nil {
+			obj.ActiveStats.Flavor = *n.FlavorB
 		}
 		obj.ActiveStats.Resolve = resolve
 	}
 	obj.Visual.BackTexture = strings.Replace(obj.Visual.BackTexture,
 		"CardBack", fmt.Sprintf("01x_%s_Halo", n.name), -1)
-	mat := "MaterialInstanceConstant'/Game/Materials"
-	obj.Visual.FrontMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'",
-		mat, "Front")
-	obj.Visual.BackMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'",
-		mat, "Back")
+	// mat := "MaterialInstanceConstant'/Game/Materials"
+	// obj.Visual.FrontMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'", mat, "Front")
+	// obj.Visual.BackMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'", mat, "Back")
 	obj.DeckCards = fmt.Sprintf("DataTable'/Game/Data/%sDeck.%[1]sDeck'", n.name)
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")
 	}
 	return json.Marshal(obj)
 }
-*/

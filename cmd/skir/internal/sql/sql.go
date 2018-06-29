@@ -4,7 +4,7 @@ import (
 	"github.com/sbrow/skirmish/cmd/skir/internal/base"
 )
 
-// TODO: Fix
+// TODO(sbrow): Fix
 var CmdSql = &base.Command{
 	UsageLine: "sql [PSQL query]",
 	Short:     "query the database",

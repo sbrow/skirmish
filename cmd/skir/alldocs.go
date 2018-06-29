@@ -15,7 +15,7 @@
 //
 // 	build       compile cards from database to csv
 // 	card        return the text of a given card
-// 	qry         query the database
+// 	query         query the database
 //
 // Use "skir help [command]" for more information about a command.
 //
@@ -43,9 +43,7 @@
 //
 // Usage:
 //
-// 	skir qry [PSQL query]
+// 	skir sql [PSQL query]
 //
-// 'Skir qry' queries the database for any desired information.
-//
-//
+// 'Skir sql' queries the database for any desired information.
 package main

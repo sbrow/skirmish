@@ -18,3 +18,9 @@ ps/sha
 ps/vendor/
 
 *.code-workspace
+
+Unreal_JSONs/
+
+Unreal_JSONs\.zip
+
+*.csv

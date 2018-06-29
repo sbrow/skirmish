@@ -10,18 +10,38 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sbrow/prob/combin"
+	// PSQL Driver.
+	_ "github.com/lib/pq"
 )
 
-// LoadMany selects more than one card at a time from the database.
+// The database to retrieve card info from.
+var DB *sql.DB
+
+// Connect connects to the given database with options.
+func Connect(user, dbname, sslmode string) error {
+	connStr := fmt.Sprintf("user=%s dbname=%s sslmode=%s",
+		user, dbname, sslmode)
+	var err error
+	DB, err = sql.Open(dbname, connStr)
+	return err
+}
+
+// LoadMany queries the database for all cards that match the given condition
+// and returns them as a slice of Card objects.
 func LoadMany(cond string) ([]Card, error) {
+	if DB == nil {
+		// TODO(sbrow): Fix
+		if err := Connect("postgres", "postgres", "disable"); err != nil {
+			return []Card{}, err
+		}
+	}
 	out := make([]Card, 0)
 	props := []string{"\"name\"", "cards.type", "cards.supertypes",
 		"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
 		"cards.life", "cards.faction, cards.cost, cards.rarity, cards.leader",
 		"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
 		"cards.short_b", "cards.long_b", "cards.flavor_b, cards.regexp"}
-	str := fmt.Sprintf("select %s from cards where %s",
+	str := fmt.Sprintf("select %s from cards where %s ORDER BY name ASC",
 		strings.Join(props, ", "), cond)
 	rows, err := DB.Query(str)
 	defer rows.Close()
@@ -126,8 +146,8 @@ func LoadMany(cond string) ([]Card, error) {
 	return out, nil
 }
 
-// Load Selects a card from the database given it's name, and returns in
-// a struct of the appropriate card type.
+// Load queries the database for a card with the given name, and returns the
+// results as a Card object.
 func Load(name string) (Card, error) {
 	cards, err := LoadMany(fmt.Sprintf("name='%s'", strings.Replace(name, "'", "''", -1)))
 	if len(cards) > 0 {
@@ -136,78 +156,35 @@ func Load(name string) (Card, error) {
 	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
 
-// Recover runs pg_recover, loading database data from a SQL file.
+// Recover runs pg_recover on the database, loading data from the SQL file in the given directory.
 func Recover(dir string) {
-	var out bytes.Buffer
-	var errs bytes.Buffer
+	var out, errs bytes.Buffer
 
 	cmd := exec.Command("psql", "-U", "postgres", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(out.Bytes()))
-	fmt.Println(string(errs.Bytes()))
+	fmt.Println(out.String(), "\n", errs.String())
 }
 
-// Dump runs pg_dump, saving the contents of the database to a SQL file.
+// Dump runs pg_dump, saving the contents of the database to a SQL file in the given directory.
 func Dump(dir string) {
-	var out bytes.Buffer
-	var errs bytes.Buffer
+	var out, errs bytes.Buffer
 
 	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-n", "public",
 		"-c", "--if-exists", "--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmd.Stdout = &out
 	cmd.Stderr = &errs
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+	if err := cmd.Run(); err != nil {
+		log.Println(err)
 	}
-	if len(out.Bytes()) > 0 {
-		fmt.Println(string(out.Bytes()))
+	if len(out.String()) > 0 {
+		fmt.Println(out.String())
 	}
-	if len(errs.Bytes()) > 0 {
-		fmt.Println(string(errs.Bytes()))
+	if len(errs.String()) > 0 {
+		fmt.Println(errs.String())
 	}
-}
-
-func Decks() {
-	str :=
-		`<?xml version="1.0" encoding="UTF-8"?>
-<cockatrice_deck version="1">
-	<deckname></deckname>
-	<comments></comments>
-	<zone name="main">
-`
-	light := combin.NewSet("Bast", "Igrath", "Lilith", "Vi", "Scinter").Combine()
-	queries := []string{}
-	for _, combo := range light {
-		queries = append(queries,
-			fmt.Sprintf("%s|%s",
-				combo[0].(string), combo[1].(string)))
-	}
-	rows, err := DB.Query("Select cards.rarity, name from cards where cards.leader ~ $1 ORDER BY name ASC", queries[0])
-	if err != nil {
-		panic(err)
-	}
-	for rows.Next() {
-		var name string
-		var copies int
-		rows.Scan(&copies, &name)
-		str += fmt.Sprintf("\t\t<card number=\"%d\" name=\"%s\"/>\n", copies, name)
-	}
-	str += "\t</zone>\n\t<zone name=\"side\">\n"
-	rows, err = DB.Query("SELECT name from cards where name ~ $1", queries[0])
-	if err != nil {
-		log.Println("error:", err)
-	}
-	for rows.Next() {
-		var name string
-		rows.Scan(&name)
-		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s\"/>\n", name)
-		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s (Halo)\"/>\n", name)
-	}
-
-	str += "\t</zone>\n</cockatrice_deck>"
-	fmt.Println(str)
 }

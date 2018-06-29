@@ -30,7 +30,7 @@ func main() {
 	}
 	log.SetPrefix("[ps] ")
 	log.Println("Opening Photoshop")
-	app.Open(skirmish.Template)
+	app.Open(ps.CardTemplate)
 	args := flag.Args()
 	var leaders []string
 	var condition string

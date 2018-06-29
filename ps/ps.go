@@ -12,12 +12,46 @@ import (
 
 	"github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
+
+	app "github.com/sbrow/ps"
 )
 
 var Errors int
 
+var CardTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
+var HeroTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
+
+var Tolerances map[string]int
+
+func Fix(s *app.LayerSet, l *app.LayerSet) {
+	if l == nil {
+		panic("AAAAAAH")
+	}
+	s = l
+}
+
+func GetTolerances() {
+	Tolerances = make(map[string]int)
+	rows, err := skirmish.DB.Query("SELECT name, px FROM tolerances;")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		var px int
+		if err := rows.Scan(&name, &px); err != nil {
+			log.Fatal(err)
+		}
+		Tolerances[name] = px
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+}
 func init() {
 	Errors = 0
+	GetTolerances()
 }
 
 type Template struct {
@@ -41,7 +75,7 @@ type Template struct {
 	LifeBG      *ps.ArtLayer
 }
 
-// TODO: Recover - run in safe mode.
+// TODO(sbrow): Recover - run in safe mode.
 func New(mode ps.ModeEnum, file string) *Template {
 	t := &Template{}
 	ps.Open(file)
@@ -53,17 +87,8 @@ func New(mode ps.ModeEnum, file string) *Template {
 	}
 	t.Doc = doc
 	t.ResolveSymb = doc.LayerSet("ResolveGem")
-	if t.ResolveSymb == nil {
-		log.Panic("LayerSet \"ResolveGem\" was not found!")
-	}
 	txt := doc.LayerSet("Text")
-	if txt == nil {
-		log.Panic("LayerSet \"Text\" was not found!")
-	}
 	t.Name = txt.ArtLayer("name")
-	if t.Name == nil {
-		log.Panic("ArtLayer \"name\" was not found!")
-	}
 	t.ID = txt.ArtLayer("id")
 	if t.ID == nil {
 		log.Panic("ArtLayer \"id\" was not found!")
@@ -117,7 +142,8 @@ func New(mode ps.ModeEnum, file string) *Template {
 	if ind == nil {
 		log.Panic("LayerSet \"Indicators\" was not found!")
 	}
-	t.DeckInd = ind.LayerSet("Deck")
+	t.DeckInd = ind.MustExist("Deck")
+	// t.DeckInd = ind.LayerSet("Deck")
 	if t.DeckInd == nil {
 		log.Panic("LayerSet \"Deck\" was not found!")
 	}
@@ -151,7 +177,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	}
 	t.Flavor.Refresh()
 	t.ID.Refresh()
-	// TODO: Skip the rest if id is different but name is not
+	// TODO(sbrow): Skip the rest if id is different but name is not
 	if t.Name.TextItem.Contents() == name && t.ID.TextItem.Contents() != id {
 		fmt.Println("Skipping")
 		return
@@ -164,7 +190,7 @@ func (t *Template) ApplyDataset(id, name string) {
 	t.Damage.Refresh()
 	t.Short.Refresh()
 	t.Long.Refresh()
-	// TODO: (5) pprof: Improved, but can still be better.
+	// TODO(sbrow): (5) pprof: Improved, but can still be better.
 	for _, lyr := range t.DeckInd.ArtLayers() {
 		lyr.Refresh()
 	}
@@ -195,7 +221,7 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 // layers as necessary.
 func (t *Template) FormatTextbox() {
 	log.Println("Formatting Textbox")
-	bot := t.Doc.Height() - skirmish.Tolerances["bottom"]
+	bot := t.Doc.Height() - Tolerances["bottom"]
 
 	if t.Speed.Visible() {
 		t.Speed.SetColor(ps.ColorGray)
@@ -207,9 +233,9 @@ func (t *Template) FormatTextbox() {
 	t.AddSymbols()
 	t.Bold()
 
-	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+skirmish.Tolerances["short"], "BL")
-	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+skirmish.Tolerances["long"], "TL")
-	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-skirmish.Tolerances["flavor"], "BL")
+	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+Tolerances["short"], "BL")
+	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+Tolerances["long"], "TL")
+	t.Flavor.SetPos(t.Flavor.X1(), t.Doc.Height()-Tolerances["flavor"], "BL")
 
 	if t.Long.Visible() {
 		if t.Long.Y2() > bot {
@@ -332,7 +358,7 @@ type DeckTemplate struct {
 }
 
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{Template: *New(mode, skirmish.Template)}
+	d := &DeckTemplate{Template: *New(mode, CardTemplate)}
 	txt := d.Doc.LayerSet("Text")
 	if txt == nil {
 		log.Panic("LayerSet \"Text\" was not found!")
@@ -422,10 +448,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	}
 	d.Card = card
 
-	// TODO: Skip SetLeader when appropriate.
+	// TODO(sbrow): Skip SetLeader when appropriate.
 	d.SetLeader(d.Card.Leader())
 
-	// TODO: run this as a go routine?
+	// TODO(sbrow): run this as a go routine?
 	d.Template.ApplyDataset(id, name)
 	d.Type.Refresh()
 
@@ -438,14 +464,14 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.LifeBG.Refresh()
 	d.TypeInd.Refresh()
 
-	// TODO: Fix Border.Refresh()
+	// TODO(sbrow): Fix Border.Refresh()
 	// doc.LayerSet("Border").Refresh()
 	d.FormatTitle()
 	d.FormatTextbox()
 }
 
 func (d *DeckTemplate) SetLeader(name string) {
-	// TODO: Fix DeckTemplate.SetLeader skip
+	// TODO(sbrow): Fix DeckTemplate.SetLeader skip
 	// if ps.Mode == 2 && name == d.Card.Leader() {
 	// 	return
 	// }
@@ -482,7 +508,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.HeroLife.SetStroke(barStroke, ps.ColorWhite)
 }
 func (d *DeckTemplate) FormatTextbox() {
-	// TODO: (3) Make type font smaller when 2 or more supertypes.
+	// TODO(sbrow): (3) Make type font smaller when 2 or more supertypes.
 	/*
 		if len(d.Card.STypes()) > 1 {
 			d.Type.TextItem.SetSize(9.0)
@@ -497,7 +523,7 @@ func (d *DeckTemplate) FormatTextbox() {
 // it visible, and hides the rest. Returns an error if the title was longer than
 // the longest background.
 func (d *DeckTemplate) FormatTitle() error {
-	tol := skirmish.Tolerances["title"]
+	tol := Tolerances["title"]
 	found := false
 	for _, lyr := range d.Banners.ArtLayers() {
 		if !found && d.Name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
@@ -559,7 +585,7 @@ type NonDeckTemplate struct {
 
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	log.SetPrefix("[ps.NewNonDeck] ")
-	n := &NonDeckTemplate{Template: *New(mode, skirmish.HeroTemplate)}
+	n := &NonDeckTemplate{Template: *New(mode, HeroTemplate)}
 	areas := n.Doc.LayerSet("Areas")
 	if areas == nil {
 		log.Panic("LayerSet \"Areas\" was not found!")

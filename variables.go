@@ -1,0 +1,82 @@
+//go:generate sh -c "godoc2md -template ./.doc.template github.com/sbrow/skirmish > README.md"
+
+// Package skirmish contains code for production of the
+// Dreamkeepers: Skirmish battle card game.
+//
+// More specifically, it provides an interface between the SQL database
+// that contains card data, Photoshop, and the user (via CLI).
+//
+// Photoshop
+//
+// This package selects cards from SQL and creates .csv files to be read into
+// Photoshop as datasets.
+//
+// TODO(sbrow): Cameo card flavor text.
+package skirmish
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
+
+var ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
+var DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
+
+// TODO(sbrow): Move these vars to appropriate places.
+var DataDir = filepath.Join(os.Getenv("SK_SQL"))
+var Delim = ","
+var Leaders leaders
+
+type leader struct {
+	Name      string
+	Banner    []uint8
+	Indicator []uint8
+}
+type leaders []leader
+
+func (l *leaders) names() []string {
+	s := make([]string, len(*l))
+	for i, ldr := range *l {
+		s[i] = ldr.Name
+	}
+	return s
+}
+
+func (l *leaders) load() error {
+	rows, err := DB.Query(
+		`SELECT "name", banner, indicator FROM leaders`)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+	i := 0
+	for rows.Next() {
+		var name string
+		var banner []uint8
+		var indicator []uint8
+		if err := rows.Scan(&name, &banner, &indicator); err != nil {
+			return err
+		}
+		next := leader{name, banner, indicator}
+		if i >= len(*l) {
+			*l = append(*l, next)
+		} else {
+			(*l)[i] = next
+		}
+		i++
+	}
+	return nil
+}
+
+func init() {
+	if DB == nil {
+		if err := Connect("postgres", "postgres", "disable"); err != nil {
+			log.Fatal(err)
+		}
+	}
+	Leaders = []leader{}
+	if err := Leaders.load(); err != nil {
+		log.Fatal(err)
+	}
+}

@@ -3,6 +3,9 @@ package skirmish
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
+
+	"github.com/sbrow/prob/combin"
 )
 
 type CardXML struct {
@@ -67,4 +70,44 @@ func (c *DeckCard) MarshalXML() ([]byte, error) {
 		obj.Text = fmt.Sprintf("%d Speed.\n%s", c.Speed(), obj.Text)
 	}
 	return xml.MarshalIndent(obj, "\t\t", "\t")
+}
+func Decks() {
+	str :=
+		`<?xml version="1.0" encoding="UTF-8"?>
+<cockatrice_deck version="1">
+	<deckname></deckname>
+	<comments></comments>
+	<zone name="main">
+`
+	light := combin.NewSet("Bast", "Igrath", "Lilith", "Vi", "Scinter").Combine()
+	queries := []string{}
+	for _, combo := range light {
+		queries = append(queries,
+			fmt.Sprintf("%s|%s",
+				combo[0].(string), combo[1].(string)))
+	}
+	rows, err := DB.Query("Select cards.rarity, name from cards where cards.leader ~ $1 ORDER BY name ASC", queries[0])
+	if err != nil {
+		panic(err)
+	}
+	for rows.Next() {
+		var name string
+		var copies int
+		rows.Scan(&copies, &name)
+		str += fmt.Sprintf("\t\t<card number=\"%d\" name=\"%s\"/>\n", copies, name)
+	}
+	str += "\t</zone>\n\t<zone name=\"side\">\n"
+	rows, err = DB.Query("SELECT name from cards where name ~ $1", queries[0])
+	if err != nil {
+		log.Println("error:", err)
+	}
+	for rows.Next() {
+		var name string
+		rows.Scan(&name)
+		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s\"/>\n", name)
+		str += fmt.Sprintf("\t\t<card number=\"1\" name=\"%s (Halo)\"/>\n", name)
+	}
+
+	str += "\t</zone>\n</cockatrice_deck>"
+	fmt.Println(str)
 }

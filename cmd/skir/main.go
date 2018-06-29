@@ -1,3 +1,9 @@
+//go:generate bash ./mkalldocs.sh
+
+//	- Query the database
+//  - Get a card from the database in X format.
+// 	- Get all cards from the database into X format.
+//
 // PS
 //
 // Fills out a document (psd) template with data from a dataset (csv) file and
@@ -7,10 +13,7 @@
 //		skir ps -deck=$DECKNAME
 //		skir ps action $ACTIONNAME
 //
-// TODO: config file for non-programmers
-//
-//go:generate bash ./mkalldocs.sh
-
+// TODO(sbrow): config file for non-programmers
 package main
 
 import (
@@ -19,15 +22,15 @@ import (
 	"os"
 
 	"github.com/sbrow/skirmish/cmd/skir/internal/base"
-	"github.com/sbrow/skirmish/cmd/skir/internal/build"
 	"github.com/sbrow/skirmish/cmd/skir/internal/card"
+	"github.com/sbrow/skirmish/cmd/skir/internal/export"
 	"github.com/sbrow/skirmish/cmd/skir/internal/help"
 	"github.com/sbrow/skirmish/cmd/skir/internal/sql"
 )
 
 func init() {
 	base.Commands = []*base.Command{
-		build.CmdBuild,
+		export.CmdExport,
 		card.CmdCard,
 		sql.CmdSql,
 	}
