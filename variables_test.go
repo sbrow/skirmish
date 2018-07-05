@@ -1,6 +1,8 @@
 package skirmish
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestImageDir(t *testing.T) {
 	want := `F:\GitLab\dreamkeepers-psd\Images`

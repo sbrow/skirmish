@@ -41,15 +41,19 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to handle id.
 
+`sbrow:` Fix
+
 `sbrow:` Return error when not found.
 
 `sbrow:` Make getters/setters for NonDeckCard
 
-`sbrow:` Cameo card flavor text.
-
 `sbrow:` UE COST BROKEN
 
 `sbrow:` Fix UECardJSON
+
+`sbrow:` Cameo card flavor text.
+
+`sbrow:` Move these vars to appropriate places.
 
 ## <a name="pkg-doc">Documentation</a>
 For full Documentation please visit https://godoc.org/github.com/sbrow/skirmish
