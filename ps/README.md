@@ -37,6 +37,8 @@ $ go get -u github.com/sbrow/skirmish/ps
 
 `sbrow:` Fix err.time
 
+`sbrow:` Cover GetTolerances
+
 `sbrow:` Recover - run in safe mode.
 
 `sbrow:` Skip the rest if id is different but name is not
