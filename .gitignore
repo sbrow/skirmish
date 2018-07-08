@@ -25,5 +25,4 @@ Unreal_JSONs\.zip
 *.csv
 config.yml
 \.default_config\.yml
-
-*.yml
+\.test\.yml
