@@ -51,6 +51,8 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Cameo card flavor text.
 
+`sbrow:` define elsewhere.
+
 `sbrow:` Move these vars to appropriate places.
 
 ## <a name="pkg-doc">Documentation</a>

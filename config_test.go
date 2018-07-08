@@ -7,7 +7,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/go-yaml/yaml"
@@ -121,7 +120,7 @@ func TestConf_Save(t *testing.T) {
 	}
 }
 
-func copyFile(path string) (pathToCopy string) {
+/* func copyFile(path string) (pathToCopy string) {
 	filename := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	_, _ = os.Stat(filename)
 	if strings.Index(path, "_copy") == -1 {
@@ -133,7 +132,8 @@ func copyFile(path string) (pathToCopy string) {
 		log.Println(err)
 	}
 	return pathToCopy
-}
+} */
+
 func TestConf_SetEnvs(t *testing.T) {
 	user, err := user.Current()
 	if err != nil {

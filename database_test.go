@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// TODO(sbrow): Fix TestConnect.
 func TestConnect(t *testing.T) {
 	type args struct {
 		Host string

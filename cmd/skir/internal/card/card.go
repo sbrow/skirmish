@@ -32,9 +32,11 @@ var formats = map[string]func(skirmish.Card) string{
 var DefaultFormat = "string"
 
 var CmdCard = &base.Command{
-	UsageLine: "card [card name]",
-	Short:     "return the text of a given card",
-	Long:      ``,
+	UsageLine: "card [-fmt] [card name]",
+	Short:     "show information about a specific card",
+	Long: `Card prints data for the given card to standard output.
+	
+The -fmt flag can be used to alter the output format.`,
 }
 
 var format *string
@@ -44,6 +46,16 @@ func init() {
 	format = flags.String("fmt", "string", "fmt determines which format to output in.")
 	CmdCard.Flag = *flags
 	CmdCard.Run = CardRun
+	CmdCard.Long += " The valid formats are:"
+	i := 0
+	for f := range formats {
+		if i+1 == len(formats) {
+			CmdCard.Long += fmt.Sprintf(` and "%s".`, f)
+		} else {
+			CmdCard.Long += fmt.Sprintf(` "%s",`, f)
+		}
+		i++
+	}
 }
 
 func CardRun(cmd *base.Command, args []string) {
@@ -51,6 +63,10 @@ func CardRun(cmd *base.Command, args []string) {
 		base.Errorf(err.Error())
 	}
 	args = cmd.Flag.Args()
+	if len(args) == 0 {
+		base.Run([]string{"skir", "help", "card"})
+		return
+	}
 	var card skirmish.Card
 	name := strings.Join(args, " ")
 	if name == "" {
@@ -60,5 +76,9 @@ func CardRun(cmd *base.Command, args []string) {
 	if err != nil {
 		base.Fatalf(err.Error())
 	}
-	fmt.Println(formats[*format](card))
+	f, ok := formats[*format]
+	if !ok {
+		base.Fatalf("format \"%s\" was not found.", *format)
+	}
+	fmt.Println(f(card))
 }

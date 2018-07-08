@@ -1,4 +1,5 @@
-// TODO(sbrow): Add other file formats.
+// TODO(sbrow): Add xml format to skir/export.
+
 package export
 
 import (
@@ -13,19 +14,45 @@ import (
 	"github.com/sbrow/skirmish/cmd/skir/internal/base"
 )
 
-var formats = map[string]func(){
-	"csv": func() {
-		DataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
-		DataSet("deckcards", "cards.Leader IS NOT NULL ORDER BY name ASC")
+func init() {
+	for name, f := range formats {
+		CmdExport.Long += fmt.Sprintf("\n\t%s\t%s", name, f.desc)
+	}
+}
+
+type format struct {
+	desc string
+	f    func()
+}
+
+var formats = map[string]format{
+	"csv": {
+		desc: `csv formatted files to use as datasets in Photoshop.
+		One file is generated for Deck Cards, and another is generated for Non-Deck Cards.`,
+		f: func() {
+			err := DataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
+			if err != nil {
+				base.Errorf("%s", err)
+			}
+			err = DataSet("deckcards", "cards.Leader IS NOT NULL ORDER BY name ASC")
+			if err != nil {
+				base.Errorf("%s", err)
+			}
+		},
 	},
-	"ue": UEJSON,
+	"ue": {
+		desc: `a collection of JSON files for importing into Unreal Engine.
+		Deck cards are grouped by deck, Non-Deck Cards are grouped together.`,
+		f: UEJSON,
+	},
 }
 var CmdExport = &base.Command{
-	UsageLine: "export",
-	Short:     "compile cards from database to csv",
-	Long: `'Skir export' pulls cards from a database and compiles them into a csv
-file to be used as a dataset in Photoshop.`,
-	Run: func(*base.Command, []string) { formats["ue"]() },
+	UsageLine: "export [format]",
+	Short:     "compile cards from the database to a specific format",
+	Long: `'Skir export' pulls information for all cards from the database and compiles them into the given format.
+
+The valid formats are:`,
+	Run: func(*base.Command, []string) { formats["ue"].f() },
 }
 
 // DataSet returns the cards as a Photoshop dataset formatted csv file.

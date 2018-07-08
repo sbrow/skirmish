@@ -62,7 +62,7 @@ func Help(args []string) {
 	os.Exit(2) // failed at 'skir help cmd'
 }
 
-var usageTemplate = `Skir is a toolset for developing the Skirmish card game.
+var usageTemplate = `Skir is a tool for developing the Skirmish card game.
 
 Usage:
 

@@ -1,5 +1,4 @@
-//go:generate bash ./mkalldocs.sh
-
+//go:generate ./mkalldocs.sh
 //	- Query the database
 //  - Get a card from the database in X format.
 // 	- Get all cards from the database into X format.
@@ -12,8 +11,7 @@
 //		skir ps -card=$CARDNAME // Builds the psd for the given card
 //		skir ps -deck=$DECKNAME
 //		skir ps action $ACTIONNAME
-//
-// TODO(sbrow): config file for non-programmers
+
 package main
 
 import (

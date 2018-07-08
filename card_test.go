@@ -118,7 +118,7 @@ func Test_card_String(t *testing.T) {
 		c    *card
 		want string
 	}{
-		// TODO: Add test cases.
+		// TODO(sbrow): Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -135,7 +135,7 @@ func TestDeckCard_String(t *testing.T) {
 		d    *DeckCard
 		want string
 	}{
-		// TODO: Add test cases.
+		// TODO(sbrow): Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -152,7 +152,7 @@ func TestNonDeckCard_String(t *testing.T) {
 		n    *NonDeckCard
 		want string
 	}{
-		// TODO: Add test cases.
+		// TODO(sbrow): Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
