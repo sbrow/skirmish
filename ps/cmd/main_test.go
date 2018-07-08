@@ -1,12 +1,6 @@
 package main
 
-import (
-	"testing"
-
-	app "github.com/sbrow/ps"
-	"github.com/sbrow/skirmish/ps"
-)
-
+/*
 func TestRefresh(t *testing.T) {
 	d := ps.NewDeck(app.Normal)
 	d.DeckInd.Refresh()
@@ -18,7 +12,6 @@ func TestText(t *testing.T) {
 	d.FormatTextbox()
 }
 
-/*
 func BenchmarkGoRoutine(b *testing.B) {
 	var wg sync.WaitGroup
 	wg.Add(1)

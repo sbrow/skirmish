@@ -13,9 +13,9 @@
 //
 // The commands are:
 //
-// 	build       compile cards from database to csv
+// 	export      compile cards from database to csv
 // 	card        return the text of a given card
-// 	query         query the database
+// 	sql         query the database
 //
 // Use "skir help [command]" for more information about a command.
 //
@@ -24,9 +24,9 @@
 //
 // Usage:
 //
-// 	skir build
+// 	skir export
 //
-// 'Skir build' pulls cards from a database and compiles them into a csv
+// 'Skir export' pulls cards from a database and compiles them into a csv
 // file to be used as a dataset in Photoshop.
 //
 //
@@ -46,4 +46,6 @@
 // 	skir sql [PSQL query]
 //
 // 'Skir sql' queries the database for any desired information.
+//
+//
 package main

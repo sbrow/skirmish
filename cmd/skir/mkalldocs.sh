@@ -5,7 +5,7 @@
 
 set -e
 
-go.exe build -o go.latest
+go build -o go.latest
 ./go.latest help documentation >alldocs.go
-gofmt.exe -w alldocs.go
+gofmt -w alldocs.go
 rm go.latest

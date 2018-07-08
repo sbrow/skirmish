@@ -16,10 +16,6 @@ Dreamkeepers: Skirmish battle card game.
 More specifically, it provides an interface between the SQL database
 that contains card data, Photoshop, and the user (via CLI).
 
-### Photoshop
-This package selects cards from SQL and creates .csv files to be read into
-Photoshop as datasets.
-
 TODO(sbrow): Cameo card flavor text.
 
 
@@ -41,7 +37,9 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to handle id.
 
-`sbrow:` Fix
+`sbrow:` change Dump() to support path instead of dir
+
+`sbrow:` change Recover() to support path instead of dir
 
 `sbrow:` Return error when not found.
 

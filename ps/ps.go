@@ -5,6 +5,7 @@ package ps
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"runtime"
 
 	"github.com/sbrow/skirmish"
@@ -34,7 +35,7 @@ func Error(e error) {
 	err.err = e
 	err.ok = ok
 	if ok {
-		err.file = file
+		err.file = filepath.Clean(file)
 		err.line = line
 	}
 	log.Println(err)
@@ -49,7 +50,7 @@ var Tolerances map[string]int
 // TODO(sbrow): Cover GetTolerances
 func GetTolerances() {
 	Tolerances = make(map[string]int)
-	rows, err := skirmish.DB.Query("SELECT name, px FROM tolerances;")
+	rows, err := skirmish.Query("SELECT name, px FROM tolerances;")
 	if err != nil {
 		log.Fatal(err)
 	}

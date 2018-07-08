@@ -71,7 +71,7 @@ func (c *DeckCard) MarshalXML() ([]byte, error) {
 	}
 	return xml.MarshalIndent(obj, "\t\t", "\t")
 }
-func Decks() {
+func decks() {
 	str :=
 		`<?xml version="1.0" encoding="UTF-8"?>
 <cockatrice_deck version="1">
@@ -86,7 +86,7 @@ func Decks() {
 			fmt.Sprintf("%s|%s",
 				combo[0].(string), combo[1].(string)))
 	}
-	rows, err := DB.Query("Select cards.rarity, name from cards where cards.leader ~ $1 ORDER BY name ASC", queries[0])
+	rows, err := Query("Select cards.rarity, name from cards where cards.leader ~ $1 ORDER BY name ASC", queries[0])
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func Decks() {
 		str += fmt.Sprintf("\t\t<card number=\"%d\" name=\"%s\"/>\n", copies, name)
 	}
 	str += "\t</zone>\n\t<zone name=\"side\">\n"
-	rows, err = DB.Query("SELECT name from cards where name ~ $1", queries[0])
+	rows, err = Query("SELECT name from cards where name ~ $1", queries[0])
 	if err != nil {
 		log.Println("error:", err)
 	}

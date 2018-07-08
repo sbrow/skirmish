@@ -8,32 +8,38 @@ import (
 	"strings"
 )
 
-type CardUEJSON struct {
+// cardUEJSON
+type cardUEJSON struct {
 	Name       string
 	Type       string `json:"Class"`
-	Visual     Visual
-	Stats      Stats
+	visual     `json:"Visual"`
+	Stats      statsUE
 	Abilities  []string
-	SystemData SystemData
+	SystemData systemData
 }
 
-func (c card) UEJSON(ident bool) ([]byte, error) {
-	obj := CardUEJSON{}
-	obj.Name = c.name
-	obj.Type = "CTE_" + c.ctype
-	resolve, _ := strconv.Atoi(c.resolve)
-	obj.Stats = Stats{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
-		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
-	obj.Abilities = make([]string, 0)
-	obj.Visual = *NewVisual(c.name, "Common", 1)
-	obj.SystemData = SystemData{make([]string, 0), make([]string, 0), make([]string, 0)}
-	if ident {
-		return json.MarshalIndent(obj, "", "\t")
-	}
-	return json.Marshal(obj)
+// statsUE holds Card data for UE Card objects.
+type statsUE struct {
+	Life        int `json:"Health_Toughness"`
+	Resolve     int `json:"ResolveGain"`
+	Cost        int `json:"ResolveCost"`
+	CurrResolve int `json:"Resolve"`
+	Damage      int `json:"Strength"`
+	Speed       int
+	Short       string `json:"Action"`
+	Long        string `json:"Description"`
+	Flavor      string `json:"Quote"`
 }
 
-type Visual struct {
+// SystemData holds data relevant to the UE rules engine.
+type systemData struct {
+	PlayConditions        []string
+	InteractionConditions []string
+	TurnConditions        []string
+}
+
+// visual holds the visual componenets of a UE Card object.
+type visual struct {
 	FrontTexture  string
 	BackTexture   string
 	FrameTexture  string
@@ -46,9 +52,9 @@ type Visual struct {
 	Resolve       string
 }
 
-func NewVisual(name, leader string, copies int) *Visual {
+func newVisual(name, leader string, copies int) *visual {
 	img := fmt.Sprintf("0%dx_%s", copies, name)
-	return &Visual{
+	return &visual{
 		FrontTexture:  fmt.Sprintf("Texture2D'/Game/Textures/Card_Decks/%[1]s/%[2]s.%[2]s'", leader, img),
 		BackTexture:   "Texture2D'/Game/Textures/Card_Decks/Common/CardBack.CardBack'",
 		FrameTexture:  "None",
@@ -62,26 +68,24 @@ func NewVisual(name, leader string, copies int) *Visual {
 	}
 }
 
-type Stats struct {
-	Life        int `json:"Health_Toughness"`
-	Resolve     int `json:"ResolveGain"`
-	Cost        int `json:"ResolveCost"`
-	CurrResolve int `json:"Resolve"`
-	Damage      int `json:"Strength"`
-	Speed       int
-	Short       string `json:"Action"`
-	Long        string `json:"Description"`
-	Flavor      string `json:"Quote"`
+func (c card) UEJSON(ident bool) ([]byte, error) {
+	obj := cardUEJSON{}
+	obj.Name = c.name
+	obj.Type = "CTE_" + c.ctype
+	resolve, _ := strconv.Atoi(c.resolve)
+	obj.Stats = statsUE{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
+		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
+	obj.Abilities = make([]string, 0)
+	obj.visual = *newVisual(c.name, "Common", 1)
+	obj.SystemData = systemData{make([]string, 0), make([]string, 0), make([]string, 0)}
+	if ident {
+		return json.MarshalIndent(obj, "", "\t")
+	}
+	return json.Marshal(obj)
 }
 
-type SystemData struct {
-	PlayConditions        []string
-	InteractionConditions []string
-	TurnConditions        []string
-}
-
-type DeckCardUEJSON struct {
-	CardUEJSON
+type deckCardUEJSON struct {
+	cardUEJSON
 	CardName   string
 	Leader     string
 	Supertypes string `json:"Subclass"`
@@ -93,8 +97,8 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	if err != nil {
 		log.Panic(err)
 	}
-	obj := DeckCardUEJSON{}
-	err = json.Unmarshal(byt, &obj.CardUEJSON)
+	obj := deckCardUEJSON{}
+	err = json.Unmarshal(byt, &obj.cardUEJSON)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -103,7 +107,7 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	obj.Name = strings.Replace(d.name, " ", "", -1)
 	obj.Leader = d.leader
 	obj.Copies = d.copies
-	obj.Visual = *NewVisual(d.name, d.leader, d.copies)
+	obj.visual = *newVisual(d.name, d.leader, d.copies)
 	//TODO(sbrow): UE COST BROKEN
 
 	// obj.Stats.Cost = d.cost
@@ -114,11 +118,11 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 }
 
 type NonDeckCardUEJSON struct {
-	CardUEJSON
+	cardUEJSON
 	Faction     string
 	DeckCards   string
 	Power       bool `json:"bHaveActivePower"`
-	ActiveStats Stats
+	ActiveStats statsUE
 }
 
 // TODO(sbrow): Fix UECardJSON
@@ -128,7 +132,7 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 		log.Panic(err)
 	}
 	obj := NonDeckCardUEJSON{}
-	err = json.Unmarshal(byt, &obj.CardUEJSON)
+	err = json.Unmarshal(byt, &obj.cardUEJSON)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -162,11 +166,7 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 		}
 		obj.ActiveStats.Resolve = resolve
 	}
-	obj.Visual.BackTexture = strings.Replace(obj.Visual.BackTexture,
-		"CardBack", fmt.Sprintf("01x_%s_Halo", n.name), -1)
-	// mat := "MaterialInstanceConstant'/Game/Materials"
-	// obj.Visual.FrontMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'", mat, "Front")
-	// obj.Visual.BackMaterial = fmt.Sprintf("%s/Card%s_Inst.Card%[2]s_Inst'", mat, "Back")
+	obj.visual.BackTexture = strings.Replace(obj.visual.BackTexture, "CardBack", fmt.Sprintf("01x_%s_Halo", n.name), -1)
 	obj.DeckCards = fmt.Sprintf("DataTable'/Game/Data/%sDeck.%[1]sDeck'", n.name)
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")

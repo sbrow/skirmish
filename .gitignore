@@ -20,8 +20,8 @@ ps/vendor/
 *.code-workspace
 
 Unreal_JSONs/
-
 Unreal_JSONs\.zip
 
 *.csv
 config.yml
+\.default_config\.yml

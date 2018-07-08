@@ -2,6 +2,8 @@ package ps
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -9,8 +11,16 @@ import (
 )
 
 func TestTemplate(t *testing.T) {
-	want := `F:\GitLab\dreamkeepers-psd\Template009.1.psd`
-	got := filepath.Join(skirmish.Config.PSD.Dir, skirmish.Config.PSD.Deck)
+	want := filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
+	got := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.Deck)
+	if got != want {
+		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
+	}
+}
+
+func TestHeroTemplate(t *testing.T) {
+	want := filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
+	got := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.NonDeck)
 	if got != want {
 		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
 	}
@@ -22,7 +32,11 @@ func TestError(t *testing.T) {
 		err  error
 		want string
 	}{
-		{"HelloWorld", errors.New("Hello, World"), " error at C:/Users/Spencer/go/src/github.com/sbrow/skirmish/ps/ps_test.go:75 Hello, World"},
+		{"HelloWorld", errors.New("Hello, World"),
+			fmt.Sprintf(" error at %s:44 Hello, World",
+				filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", "ps", "ps_test.go"),
+			),
+		},
 		// TODO(sbrow): Add error to ps.TestError that sources a different file.
 	}
 	for _, tt := range tests {

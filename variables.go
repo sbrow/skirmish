@@ -6,11 +6,6 @@
 // More specifically, it provides an interface between the SQL database
 // that contains card data, Photoshop, and the user (via CLI).
 //
-// Photoshop
-//
-// This package selects cards from SQL and creates .csv files to be read into
-// Photoshop as datasets.
-//
 // TODO(sbrow): Cameo card flavor text.
 package skirmish
 
@@ -20,6 +15,7 @@ import (
 	"path/filepath"
 )
 
+// TODO(sbrow): define elsewhere.
 var ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 var DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
 
@@ -44,12 +40,12 @@ func (l *leaders) names() []string {
 }
 
 func (l *leaders) load() error {
-	rows, err := DB.Query(
+	rows, err := Query(
 		`SELECT "name", banner, indicator FROM leaders`)
-	defer rows.Close()
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 	i := 0
 	for rows.Next() {
 		var name string
@@ -70,13 +66,13 @@ func (l *leaders) load() error {
 }
 
 func init() {
-	if DB == nil {
-		if err := Connect("postgres", "postgres", "disable"); err != nil {
-			log.Fatal(err)
+	if db == nil {
+		if err := Connect(Cfg.DBArgs()); err != nil {
+			log.Println(err)
 		}
 	}
 	Leaders = []leader{}
 	if err := Leaders.load(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
