@@ -91,6 +91,9 @@ func UEJSON() {
 		go func(name string) {
 			defer wg.Done()
 			cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader = '%s'", name))
+			if err != nil {
+				base.Fatalf(err.Error())
+			}
 			path := filepath.Join("Unreal_JSONs", name+".json")
 			f, err := os.Create(path)
 			if err != nil {
@@ -107,6 +110,9 @@ func UEJSON() {
 			}
 		}(leader.Name)
 		cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader is NULL"))
+		if err != nil {
+			base.Fatalf(err.Error())
+		}
 		f, err := os.Create(filepath.Join("./", "Unreal_JSONs", "Non_deck.json"))
 		if err != nil {
 			base.Fatalf(err.Error())

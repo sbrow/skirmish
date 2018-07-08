@@ -24,14 +24,43 @@ func (n *NonDeckCard) Faction() string {
 	return n.faction
 }
 
-func (n *NonDeckCard) SetFaction(faction string) {
-	n.faction = faction
+func (n *NonDeckCard) SetDamageB(d *int) {
+	n.DamageB = d
 }
+
+func (n *NonDeckCard) SetFaction(faction *string) {
+	if faction != nil {
+		n.faction = *faction
+	}
+}
+
+func (n *NonDeckCard) SetFlavorB(f *string) {
+	n.FlavorB = f
+}
+func (n *NonDeckCard) SetLifeB(l *string) {
+	n.LifeB = l
+}
+
+func (n *NonDeckCard) SetLongB(l *string) {
+	n.LongB = l
+}
+
+func (n *NonDeckCard) SetResolveB(r *string) {
+	n.ResolveB = r
+}
+
+func (n *NonDeckCard) SetShortB(s *string) {
+	n.ShortB = s
+}
+
+func (n *NonDeckCard) SetSpeedB(s *int) {
+	n.SpeedB = s
+}
+
 func (n *NonDeckCard) String() string {
 	return fmt.Sprintf("%s //\n%s (Halo) %s %s %d/%d/%s \"%s\"", n.card.String(), n.card.Name(), *n.ResolveB,
 		n.card.Type(), *n.SpeedB, *n.DamageB, *n.LifeB, pruneNewLines(*n.ShortB))
 }
-
 func (n *NonDeckCard) Images() (paths []string, err error) {
 	basePath := filepath.Join(ImageDir, "Heroes", n.Name())
 	imgs := []string{basePath + ".png", basePath + " (Halo).png"}

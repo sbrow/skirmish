@@ -28,10 +28,11 @@ func Connect(host string, port int, dbname, user, sslmode string) error {
 	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s sslmode=%s",
 		host, port, dbname, user, sslmode)
 	pwd, ok := os.LookupEnv("PSQL_PWD")
-	if ok {
+	if ok && !(user == "guest") {
 		connStr += fmt.Sprintf(" password=%s", pwd)
 	}
 	var err error
+
 	db, err = sql.Open("postgres", connStr)
 	return err
 }

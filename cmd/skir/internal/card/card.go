@@ -45,7 +45,7 @@ func init() {
 	flags := flag.NewFlagSet("flags", flag.ContinueOnError)
 	format = flags.String("fmt", "string", "fmt determines which format to output in.")
 	CmdCard.Flag = *flags
-	CmdCard.Run = CardRun
+	CmdCard.Run = Run
 	CmdCard.Long += " The valid formats are:"
 	i := 0
 	for f := range formats {
@@ -58,7 +58,7 @@ func init() {
 	}
 }
 
-func CardRun(cmd *base.Command, args []string) {
+func Run(cmd *base.Command, args []string) {
 	if err := cmd.Flag.Parse(args); err != nil {
 		base.Errorf(err.Error())
 	}

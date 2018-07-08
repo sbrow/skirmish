@@ -61,8 +61,10 @@ func (d *DeckCard) Rarity() string {
 	return ""
 }
 
-func (d *DeckCard) SetRarity(r int) {
-	d.copies = r
+func (d *DeckCard) SetRarity(r *int) {
+	if r != nil {
+		d.copies = *r
+	}
 }
 
 func (d *DeckCard) Labels() []string {

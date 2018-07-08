@@ -17,35 +17,43 @@ import (
 // 		- DeckCards can hold multiple cards with unique art.
 //		- NonDeckCards can hold their frontside Card and rearside Card.
 //
+//
+// Setters
+//
+// The Set methods accept pointers because SQL queries return pointer values.
+// Passing nil to a set value will generally result in no change to the Card.
+//
 // TODO(sbrow): Figure out how to handle id.
 type Card interface {
-	Name() string
 	Card() card
-	FullType() string
-	SetName(string)
-	Type() string
-	SetType(string)
-	STypes() []string
-	SetSTypes([]string)
-	Resolve() string
-	SetResolve(string)
-	Speed() int
 	Faction() string
-	SetSpeed(int)
+	Name() string
+	FullType() string
+	Resolve() string
+	STypes() []string
+	Speed() int
+	Type() string
+
+	SetDamage(*int)
+	SetFlavor(*string)
+	SetLeader(*string)
+	SetLife(*int)
+	SetLong(*string)
+	SetName(*string)
+	SetRegexp(*string)
+	SetResolve(*string)
+	SetShort(*string)
+	SetSpeed(*int)
+	SetSTypes([]string)
+	SetType(*string)
+
 	Damage() int
 	Leader() string
-	SetLeader(string)
-	SetDamage(int)
 	Life() int
-	SetLife(int)
 	Short() string
-	SetShort(string)
 	Regexp() string
-	SetRegexp(string)
 	Long() string
-	SetLong(string)
 	Flavor() string
-	SetFlavor(string)
 	Labels() []string
 	String() string
 	Images() ([]string, error)
@@ -102,75 +110,39 @@ func LoadMany(cond string) ([]Card, error) {
 		case err != nil:
 			return out, err
 		}
-		if typ != nil {
-			c.SetType(*typ)
-		}
+		c.SetType(typ)
 		if stype != nil {
-			c.SetSTypes(strings.Split(*stype, ","))
+			c.SetSTypes(strings.Split(*stype, ",")) // TODO(sbrow): here
 		}
-		if title != nil {
-			c.SetName(*title)
-		}
-		if short != nil {
-			c.SetShort(*short)
-		}
-		if long != nil {
-			c.SetLong(*long)
-		}
-		if flavor != nil {
-			c.SetFlavor(*flavor)
-		}
-		if resolve != nil {
-			c.SetResolve(*resolve)
-		}
-		if speed != nil {
-			c.SetSpeed(*speed)
-		}
-		if damage != nil {
-			c.SetDamage(*damage)
-		}
-		if life != nil {
-			c.SetLife(*life)
-		}
-		if regexp != nil {
-			c.SetRegexp(*regexp)
-		}
+		c.SetName(title)
+		c.SetShort(short)
+		c.SetLong(long)
+		c.SetFlavor(flavor)
+		c.SetResolve(resolve)
+		c.SetSpeed(speed)
+		c.SetDamage(damage)
+		c.SetLife(life)
+		c.SetRegexp(regexp)
 		switch {
 		case cost != nil:
 			d := &DeckCard{}
 			d.SetCard(c)
 			d.SetCost(*cost)
-			if rarity != nil {
-				d.SetRarity(*rarity)
-			}
-			if leader != nil {
-				d.SetLeader(*leader)
-			}
+			d.SetRarity(rarity)
+			d.SetLeader(leader)
 			out = append(out, d)
 		case *typ == "Leader":
 			n := &NonDeckCard{}
-			c.SetLeader(*title)
+			c.SetLeader(title)
 			n.SetCard(c)
-			n.ResolveB = resolveB
-			if lifeB != nil {
-				n.LifeB = lifeB
-			}
-			if speedB != nil {
-				n.SpeedB = speedB
-			}
-			if damageB != nil {
-				n.DamageB = damageB
-			}
-			if shortB != nil {
-				n.ShortB = shortB
-			}
-			if longB != nil {
-				n.LongB = longB
-			}
-			if flavorB != nil {
-				n.FlavorB = flavorB
-			}
-			n.SetFaction(*faction)
+			n.SetResolveB(resolveB)
+			n.SetLifeB(lifeB)
+			n.SetSpeedB(speedB)
+			n.SetDamageB(damageB)
+			n.SetShortB(shortB)
+			n.SetLongB(longB)
+			n.SetFlavorB(flavorB)
+			n.SetFaction(faction)
 			out = append(out, n)
 		default:
 			out = append(out, c)
@@ -181,22 +153,7 @@ func LoadMany(cond string) ([]Card, error) {
 
 // NewCard returns a new, empty Card object.
 func NewCard() Card {
-	return &card{
-		name:    "",
-		leader:  "",
-		ctype:   "",
-		stype:   nil,
-		resolve: "",
-		stats: stats{
-			speed:  0,
-			damage: 0,
-			life:   0,
-		},
-		short:  "",
-		long:   "",
-		flavor: "",
-		regexp: "",
-	}
+	return &card{}
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.
@@ -284,85 +241,105 @@ func (c *card) Card() card {
 	return *c
 }
 
-func (c *card) Resolve() string {
-	return fmt.Sprint(c.resolve)
-}
-
-func (c *card) Name() string {
-	return c.name
-}
-
-func (c *card) SetName(name string) {
-	c.name = name
-}
-func (c *card) Faction() string {
-	return ""
-}
-
-func (c *card) SetResolve(r string) {
-	m, err := regexp.Match(`[+\-][1-9]`, []byte(r))
-	if err != nil {
-		log.Panic(err)
-	}
-	if m {
-		c.resolve = r
-	}
-}
-
-func (c *card) Speed() int {
-	return c.stats.speed
-}
-
-func (c *card) SetSpeed(s int) {
-	c.stats.speed = s
-}
-
 func (c *card) Damage() int {
 	return c.stats.damage
-}
-
-func (c *card) SetDamage(d int) {
-	c.stats.damage = d
 }
 
 func (c *card) Life() int {
 	return c.stats.life
 }
 
-func (c *card) SetLife(l int) {
-	c.stats.life = l
+func (c *card) Faction() string {
+	return ""
+}
+
+func (c *card) Name() string {
+	return c.name
+}
+
+func (c *card) Resolve() string {
+	return fmt.Sprint(c.resolve)
+}
+
+func (c *card) Speed() int {
+	return c.stats.speed
+}
+
+func (c *card) SetDamage(d *int) {
+	if d != nil {
+		c.stats.damage = *d
+	}
+}
+
+func (c *card) SetLife(l *int) {
+	if l != nil {
+		c.stats.life = *l
+	}
+}
+
+func (c *card) SetName(name *string) {
+	if name != nil {
+		c.name = *name
+	}
+}
+
+func (c *card) SetResolve(r *string) {
+	if r == nil {
+		return
+	}
+	m, err := regexp.Match(`[+\-][1-9]`, []byte(*r))
+	if err != nil {
+		log.Panic(err)
+	}
+	if m {
+		c.resolve = *r
+	}
+}
+
+func (c *card) SetSpeed(s *int) {
+	if s != nil {
+		c.stats.speed = *s
+	}
 }
 
 func (c *card) Short() string {
 	return c.short
 }
 
-func (c *card) SetShort(s string) {
-	c.short = s
+func (c *card) SetShort(s *string) {
+	if s != nil {
+		c.short = *s
+	}
 }
 
 func (c *card) Long() string {
 	return c.long
 }
 
-func (c *card) SetLong(s string) {
-	c.long = s
+func (c *card) SetLong(s *string) {
+	if s != nil {
+		c.long = *s
+	}
 }
 
 func (c *card) Flavor() string {
 	return c.flavor
 }
 
-func (c *card) SetFlavor(s string) {
-	c.flavor = s
+func (c *card) SetFlavor(s *string) {
+	if s != nil {
+		c.flavor = *s
+	}
 }
 
 func (c *card) Type() string {
 	return c.ctype
 }
 
-func (c *card) SetType(t string) {
-	c.ctype = t
+func (c *card) SetType(t *string) {
+	if t != nil {
+		c.ctype = *t
+	}
 }
 
 func (c *card) STypes() []string {
@@ -370,19 +347,25 @@ func (c *card) STypes() []string {
 }
 
 func (c *card) SetSTypes(t []string) {
+	// if t != nil {
 	c.stype = t
+	// }
 }
 
 func (c *card) Leader() string {
 	return c.leader
 }
 
-func (c *card) SetLeader(l string) {
-	c.leader = l
+func (c *card) SetLeader(l *string) {
+	if l != nil {
+		c.leader = *l
+	}
 }
 
-func (c *card) SetRegexp(reg string) {
-	c.regexp = reg
+func (c *card) SetRegexp(reg *string) {
+	if reg != nil {
+		c.regexp = *reg
+	}
 }
 
 func (c *card) Regexp() string {

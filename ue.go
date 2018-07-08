@@ -102,6 +102,11 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	if err != nil {
 		log.Panic(err)
 	}
+	cost, err := strconv.Atoi(d.cost)
+	if err != nil {
+		log.Println(err)
+	}
+
 	obj.CardName = d.name
 	obj.Supertypes = "CTE_" + strings.Join(d.stype, "_")
 	obj.Name = strings.Replace(d.name, " ", "", -1)
@@ -109,15 +114,15 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	obj.Copies = d.copies
 	obj.visual = *newVisual(d.name, d.leader, d.copies)
 	//TODO(sbrow): UE COST BROKEN
+	obj.Stats.Cost = cost
 
-	// obj.Stats.Cost = d.cost
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")
 	}
 	return json.Marshal(obj)
 }
 
-type NonDeckCardUEJSON struct {
+type nonDeckCardUEJSON struct {
 	cardUEJSON
 	Faction     string
 	DeckCards   string
@@ -131,7 +136,7 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	if err != nil {
 		log.Panic(err)
 	}
-	obj := NonDeckCardUEJSON{}
+	obj := nonDeckCardUEJSON{}
 	err = json.Unmarshal(byt, &obj.cardUEJSON)
 	if err != nil {
 		log.Panic(err)
