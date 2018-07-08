@@ -82,7 +82,7 @@ func DataSet(name, query string) error {
 
 // UEJSON generates JSON files for import into Unreal Engine.
 func UEJSON() {
-	if err := os.Mkdir("Unreal_JSONs", os.ModeDir); err != nil {
+	if err := os.Mkdir("Unreal_JSONs", 0777); err != nil {
 		base.Errorf(err.Error())
 	}
 	wg := &sync.WaitGroup{}
@@ -91,9 +91,10 @@ func UEJSON() {
 		go func(name string) {
 			defer wg.Done()
 			cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader = '%s'", name))
-			f, err := os.Create(filepath.Join("./", "Unreal_JSONs", name+".json"))
+			path := filepath.Join("./", "Unreal_JSONs", name+".json")
+			f, err := os.Create(path)
 			if err != nil {
-				base.Fatalf(err.Error())
+				base.Fatalf("%s %s", path, err.Error())
 			}
 			defer f.Close()
 			for _, card := range cards {

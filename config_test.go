@@ -86,14 +86,14 @@ func TestConf_Save(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.args.temp {
-				os.Remove(tt.args.path)
-				defer os.Remove(tt.args.path)
-			} else {
-				cpy := copyFile(tt.args.path)
-				defer os.Remove(cpy)
-				defer copyFile(cpy)
-			}
+			/* 			if tt.args.temp {
+			   				os.Remove(tt.args.path)
+			   				defer os.Remove(tt.args.path)
+			   			} else {
+			   				cpy := copyFile(tt.args.path)
+			   				defer os.Remove(cpy)
+			   				defer copyFile(cpy)
+			   			} */
 			if err := Cfg.Save(tt.args.path); (err != nil) != tt.wantErr {
 				t.Errorf("Conf.Save() error = %v, wantErr %v", err, tt.wantErr)
 			}
