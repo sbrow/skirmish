@@ -25,8 +25,12 @@ var db *sql.DB
 //
 // See github.com/lib/pq for more information on sslmode.
 func Connect(host string, port int, dbname, user, sslmode string) error {
-	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s",
-		host, port, dbname, user, os.Getenv("PSQL_PWD"), sslmode)
+	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s sslmode=%s",
+		host, port, dbname, user, sslmode)
+	pwd, ok := os.LookupEnv("PSQL_PWD")
+	if ok {
+		connStr += fmt.Sprintf(" password=%s", pwd)
+	}
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	return err
