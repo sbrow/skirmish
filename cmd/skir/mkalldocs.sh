@@ -9,3 +9,6 @@ go build -o go.latest
 ./go.latest help documentation >alldocs.go
 gofmt -w alldocs.go
 rm go.latest
+
+godoc2md -template ../../.doc.template github.com/sbrow/skirmish/cmd/skir > README.md
+# godoc2md github.com/sbrow/skirmish/cmd/skir > README.md
