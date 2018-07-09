@@ -1,4 +1,5 @@
 //go:generate ./mkalldocs.sh
+
 //	- Query the database
 //  - Get a card from the database in X format.
 // 	- Get all cards from the database into X format.
