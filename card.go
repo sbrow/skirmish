@@ -73,6 +73,12 @@ func Load(name string) (Card, error) {
 	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
 
+var props = []string{"\"name\"", "cards.type", "cards.supertypes",
+	"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
+	"cards.life", "cards.faction", "cards.cost", "cards.rarity", "cards.leader",
+	"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
+	"cards.short_b", "cards.long_b", "cards.flavor_b", "cards.regexp"}
+
 // LoadMany queries the standard database for all cards that match the given condition
 // and returns them as a slice of Card objects.
 func LoadMany(cond string) ([]Card, error) {
@@ -82,11 +88,6 @@ func LoadMany(cond string) ([]Card, error) {
 		}
 	}
 	out := make([]Card, 0)
-	props := []string{"\"name\"", "cards.type", "cards.supertypes",
-		"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
-		"cards.life", "cards.faction, cards.cost, cards.rarity, cards.leader",
-		"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
-		"cards.short_b", "cards.long_b", "cards.flavor_b, cards.regexp"}
 	str := fmt.Sprintf("select %s from cards where %s ORDER BY name ASC",
 		strings.Join(props, ", "), cond)
 	rows, err := Query(str)

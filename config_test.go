@@ -2,7 +2,6 @@ package skirmish
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -12,14 +11,21 @@ import (
 	"github.com/go-yaml/yaml"
 )
 
-func check(t *testing.T, err error) {
-	if err != nil {
-		t.Error(err)
-	}
-}
-
 func TestConf_Load(t *testing.T) {
-	/* 	curr := Config{
+	tmpCfg := func(name string, cfg Config) *os.File {
+		f, err := ioutil.TempFile(os.Getenv("TEMP"), name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.Close()
+		err = cfg.Save(f.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		return f
+	}
+	// Config for "Current" test.
+	curr := Config{
 		PS: cfgPS{
 			Dir:     `F:\GitLab\dreamkeepers-psd`,
 			Deck:    `Template009.1.psd`,
@@ -33,30 +39,29 @@ func TestConf_Load(t *testing.T) {
 			User: "sbrow",
 			SSL:  false,
 		},
-	} */
+	}
+	currFile := tmpCfg("currentConfig", curr)
 	def := *DefaultCfg()
+	defFile := tmpCfg("defaultConfig", def)
+
 	tests := []struct {
 		name    string
 		path    string
 		want    Config
 		wantErr bool
 	}{
-		{"None", "", def, false},
-		// {"Current", "config.yml", curr, false},
-		// TODO(sbrow): Fix TestConf_Load.
+		{"None", defFile.Name(), def, false},
+		{"Current", currFile.Name(), curr, false},
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
 		// {"Default_NoArgs", "", curr, false},
 
-		// {"FakeConfig", "fake_config.yml", Config{}, true},
+		{"FakeConfig", "fake_config.yml", Config{}, true},
 	}
-	os.Remove("config.yml")
-	os.Remove(".default_config.yml")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := &Config{}
 			err := got.Load(tt.path)
-			log.Println(got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadCfg() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -78,22 +83,12 @@ func TestConf_Save(t *testing.T) {
 		args
 		wantErr bool
 	}{
-		// {"Current", args{"config.yml", false}, false},
-		{"Default", args{".default_config.yml", false}, false},
 		{"Temp", args{".test.yml", true}, false},
 
 		{"WriteProtected", args{"/config.yml", true}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			/* 			if tt.args.temp {
-			   				os.Remove(tt.args.path)
-			   				defer os.Remove(tt.args.path)
-			   			} else {
-			   				cpy := copyFile(tt.args.path)
-			   				defer os.Remove(cpy)
-			   				defer copyFile(cpy)
-			   			} */
 			if err := Cfg.Save(tt.args.path); (err != nil) != tt.wantErr {
 				t.Errorf("Conf.Save() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -104,6 +99,7 @@ func TestConf_Save(t *testing.T) {
 				}
 				t.Fatal(err)
 			}
+			defer os.Remove(f.Name())
 			defer f.Close()
 			got, err := ioutil.ReadAll(f)
 			if err != nil {
@@ -120,47 +116,23 @@ func TestConf_Save(t *testing.T) {
 	}
 }
 
-/* func copyFile(path string) (pathToCopy string) {
-	filename := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-	_, _ = os.Stat(filename)
-	if strings.Index(path, "_copy") == -1 {
-		pathToCopy = strings.Replace(path, filename, filename+"_copy", 1)
-	} else {
-		pathToCopy = strings.Replace(path, filename, strings.TrimSuffix(filename, "_copy"), 1)
-	}
-	if err := os.Rename(path, pathToCopy); err != nil {
-		log.Println(err)
-	}
-	return pathToCopy
-} */
-
 func TestConf_SetEnvs(t *testing.T) {
 	user, err := user.Current()
 	if err != nil {
 		t.Fatal("Could not get current user.")
 	}
-	type args struct {
-		path string
-	}
 	tests := []struct {
-		name string
-		args
+		name    string
+		cfg     Config
 		ps      string
 		db      string
 		wantErr bool
 	}{
-		// {"Current", args{"config.yml"}, `F:\GitLab\dreamkeepers-psd`, `F:\GitLab\dreamkeepers-dat`, false},
-		{"Default", args{"config.yml"}, filepath.Join(user.HomeDir, "dreamkeepers-psd"), filepath.Join(user.HomeDir, "dreamkeepers-dat"), false},
-
-		// {"NonExistent", args{"fake_config.yml"}, filepath.Join(user.HomeDir, "dreamkeepers-psd"), filepath.Join(user.HomeDir, "dreamkeepers-dat"), true},
+		{"Default", *DefaultCfg(), filepath.Join(user.HomeDir, "dreamkeepers-psd"), filepath.Join(user.HomeDir, "dreamkeepers-dat"), false},
 	}
-	os.Remove("config.yml")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Cfg.Load(tt.args.path); (err != nil) != tt.wantErr {
-				t.Errorf("Conf.Load() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err := Cfg.setEnvs(); err != nil {
+			if err := tt.cfg.setEnvs(); (err != nil) != tt.wantErr {
 				t.Errorf("Conf.setEnv() error = %v", err)
 			}
 			gotPS := os.Getenv("SK_PS")

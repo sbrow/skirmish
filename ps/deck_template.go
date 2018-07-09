@@ -32,69 +32,23 @@ type DeckTemplate struct {
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 	d := &DeckTemplate{Template: *New(mode, CardTemplate)}
 	txt := d.Doc.MustExist("Text").(*ps.LayerSet)
-	if txt == nil {
-		log.Panic("LayerSet \"Text\" was not found!")
-	}
 	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).MustExist("TitleBackground").(*ps.LayerSet)
-	if d.Banners == nil {
-		log.Panic("LayerSet \"TitleBackground\" was not found!")
-	}
 	if ps.Mode == 2 {
 		d.Dataset = d.ID.TextItem.Contents()
 	}
 	d.Cost = txt.MustExist("cost").(*ps.ArtLayer)
-	if d.Cost == nil {
-		log.Panic("ArtLayer \"cost\" was not found!")
-	}
 	d.Type = txt.MustExist("type").(*ps.ArtLayer)
-	if d.Type == nil {
-		log.Panic("ArtLayer \"type\" was not found!")
-	}
 	d.HeroLife = txt.MustExist("hero life").(*ps.ArtLayer)
-	if d.HeroLife == nil {
-		log.Panic("ArtLayer \"heroLife\" was not found!")
-	}
 	areas := d.Doc.MustExist("Areas").(*ps.LayerSet)
-	if areas == nil {
-		log.Panic("LayerSet \"Areas\" was not found!")
-	}
-	d.CostBG = areas.MustExist("CostBackground").(*ps.LayerSet).
-		ArtLayer("cost_color")
-	if d.CostBG == nil {
-		log.Panic("cost_bg layer not found!")
-	}
+	d.CostBG = areas.MustExist("CostBackground").(*ps.LayerSet).MustExist("cost_color").(*ps.ArtLayer)
 	ind := d.Doc.MustExist("Indicators").(*ps.LayerSet)
-	if ind == nil {
-		log.Panic("LayerSet \"Indicators\" was not found!")
-	}
 	bottom := areas.MustExist("Bottom").(*ps.LayerSet)
-	if bottom == nil {
-		log.Panic("LayerSet \"Bottom\" was not found!")
-	}
-	d.LBar = bottom.ArtLayer("L Bar")
-	if d.LBar == nil {
-		log.Panic("ArtLayer \"LBar\" was not found!")
-	}
-	d.HeroLifeBG = ind.ArtLayer("hero_life_background")
-	if d.HeroLifeBG == nil {
-		log.Panic("LayerSet \"hero_life_background\" was not found!")
-	}
-	d.DamageBG = ind.ArtLayer("damage_background")
-	if d.DamageBG == nil {
-		log.Panic("LayerSet \"damage_background\" was not found!")
-	}
-	d.LifeBG = ind.ArtLayer("life_background")
-	if d.LifeBG == nil {
-		log.Panic("LayerSet \"life_background\" was not found!")
-	}
+	d.LBar = bottom.MustExist("L Bar").(*ps.ArtLayer)
+	d.HeroLifeBG = ind.MustExist("hero_life_background").(*ps.ArtLayer)
+	d.DamageBG = ind.MustExist("damage_background").(*ps.ArtLayer)
+	d.LifeBG = ind.MustExist("life_background").(*ps.ArtLayer)
 	d.RarityInd = ind.MustExist("Rarity").(*ps.LayerSet)
-	if d.RarityInd == nil {
-		log.Panic("Rarity layers not found!")
-	}
 	d.TypeInd = ind.MustExist("Type").(*ps.LayerSet)
-	if d.TypeInd == nil {
-		log.Panic("Rarity layers not found!")
-	}
 	return d
 }
 
@@ -123,7 +77,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	// TODO(sbrow): Skip SetLeader when appropriate.
 	d.SetLeader(d.Card.Leader())
 
-	// TODO(sbrow): run this as a go routine?
+	// TODO(sbrow): run d.Template.ApplyDataset as a go routine?
 	d.Template.ApplyDataset(id, name)
 	d.Type.Refresh()
 
@@ -175,7 +129,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.DamageBG.SetColor(ind)
 	d.LifeBG.SetColor(ind)
 
-	d.Cost.SetStroke(ps.Stroke{4, rarity}, ps.ColorWhite)
+	d.Cost.SetStroke(ps.Stroke{Size: 4, Color: rarity}, ps.ColorWhite)
 	d.HeroLife.SetStroke(barStroke, ps.ColorWhite)
 }
 

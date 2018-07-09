@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 
 	"github.com/sbrow/skirmish"
@@ -15,8 +16,16 @@ import (
 )
 
 func init() {
-	for name, f := range formats {
-		CmdExport.Long += fmt.Sprintf("\n\t%s\t%s", name, f.desc)
+	fmts := make([]string, len(formats))
+	i := 0
+	for name := range formats {
+		fmts[i] = name
+		i++
+	}
+	sort.Strings(fmts)
+	for _, name := range fmts {
+		desc := formats[name].desc
+		CmdExport.Long += fmt.Sprintf("\n\t%s\t%s", name, desc)
 	}
 }
 

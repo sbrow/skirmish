@@ -1,7 +1,6 @@
 package skirmish
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -91,7 +90,7 @@ func (d *DeckCard) NormalBorder() bool {
 	}
 }
 
-func (d *DeckCard) CSV(lbls bool) [][]string {
+func (d *DeckCard) CSV(labels bool) [][]string {
 	out := d.card.CSV(true)
 	out[0] = d.Labels()
 	l := d.Labels()[len(d.card.Labels()):]
@@ -145,43 +144,43 @@ func (d *DeckCard) CSV(lbls bool) [][]string {
 		log.Println(err)
 	}
 	tmp := make([][]string, len(imgs)+1, len(out[0]))
-	img_i, type_i := -1, -1
+	imgIdx, typeIdx := -1, -1
 	for j, col := range out[0] {
 		switch col {
 		case "card_image":
-			img_i = j
+			imgIdx = j
 		case "type":
-			type_i = j
+			typeIdx = j
 		}
-		if img_i != -1 && type_i != -1 {
+		if imgIdx != -1 && typeIdx != -1 {
 			break
 		}
 	}
-	if img_i == -1 {
+	if imgIdx == -1 {
 		log.Panic("card_image not found!")
 	}
-	if type_i == -1 {
+	if typeIdx == -1 {
 		log.Panic("type not found!")
 	}
 	tmp[0] = out[0]
 	tmp[1] = out[1]
 	out = tmp
 	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
-	out[1][img_i] = imgs[0]
+	out[1][imgIdx] = imgs[0]
 	if len(imgs) > 1 {
-		out[1][type_i] = fmt.Sprintf("%s- %s", out[1][type_i],
+		out[1][typeIdx] = fmt.Sprintf("%s- %s", out[1][typeIdx],
 			strings.TrimSuffix(filepath.Base(imgs[0]), ".png"))
 	}
 	for j := 2; j <= len(imgs); j++ {
 		out[j] = make([]string, len(out[j-1]))
 		copy(out[j], out[j-1])
 		out[j][0] = fmt.Sprintf("%s_%d", d.name, j)
-		out[j][img_i] = imgs[j-1]
-		out[j][type_i] = fmt.Sprintf("%s- %s",
-			strings.Split(out[j-1][type_i], "-")[0],
+		out[j][imgIdx] = imgs[j-1]
+		out[j][typeIdx] = fmt.Sprintf("%s- %s",
+			strings.Split(out[j-1][typeIdx], "-")[0],
 			strings.TrimSuffix(filepath.Base(imgs[j-1]), ".png"))
 	}
-	if lbls {
+	if labels {
 		return out
 	}
 	return out[1:]
@@ -202,7 +201,7 @@ func (d *DeckCard) Images() (paths []string, err error) {
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		// If found, return it, if not, throw an error.
 		if _, err = os.Stat(path + ".png"); os.IsNotExist(err) {
-			return []string{DefaultImage}, errors.New(fmt.Sprintf(`No image found for card '%s'`, d.name))
+			return []string{DefaultImage}, fmt.Errorf(`No image found for card '%s'`, d.name)
 		}
 		return []string{path + ".png"}, nil
 	}

@@ -11,8 +11,8 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-// TODO(sbrow): Fix err.time
-type err struct {
+// TODO(sbrow): Fix psError.time
+type psError struct {
 	err error
 	// time string
 	file string
@@ -20,7 +20,7 @@ type err struct {
 	ok   bool
 }
 
-func (e *err) String() string {
+func (e *psError) String() string {
 	if e.ok {
 		return fmt.Sprintf(`%s error at %s:%d %s` /*e.time*/, "", e.file, e.line, e.err)
 	}
@@ -29,7 +29,7 @@ func (e *err) String() string {
 
 // Error adds an error to the list of runtime errors that have occurred so far.
 func Error(e error) {
-	err := err{}
+	err := psError{}
 	// err.time = fmt.Sprint(time.Now().Format("yyyy/MM/dd hh:mm:ss"))
 	_, file, line, ok := runtime.Caller(1)
 	err.err = e
@@ -43,8 +43,9 @@ func Error(e error) {
 }
 
 // Errors holds runtime errors that occur.
-var Errors []err
+var Errors []psError
 
+// Tolerances holds values for offset of template objects.
 var Tolerances map[string]int
 
 // TODO(sbrow): Cover GetTolerances
@@ -65,6 +66,6 @@ func GetTolerances() {
 	}
 }
 func init() {
-	Errors = []err{}
+	Errors = []psError{}
 	// GetTolerances()
 }

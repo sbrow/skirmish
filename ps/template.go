@@ -1,7 +1,6 @@
 package ps
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -59,9 +58,9 @@ func New(mode ps.ModeEnum, file string) *Template {
 
 	areas := doc.MustExist("Areas").(*ps.LayerSet)
 	bottom := areas.MustExist("Bottom").(*ps.LayerSet)
-	resolve_bg := areas.MustExist("ResolveBackground").(*ps.LayerSet)
+	resolveBG := areas.MustExist("ResolveBackground").(*ps.LayerSet)
 	t.ShortBG = bottom.ArtLayer("short_text_box")
-	t.ResolveBG = resolve_bg.MustExist("resolve_color").(*ps.ArtLayer)
+	t.ResolveBG = resolveBG.MustExist("resolve_color").(*ps.ArtLayer)
 	ind := doc.MustExist("Indicators").(*ps.LayerSet)
 	t.DeckInd = ind.MustExist("Deck").(*ps.LayerSet)
 	t.SpeedBG = ind.MustExist("speed_background").(*ps.ArtLayer)
@@ -122,7 +121,7 @@ func (t *Template) SetLeader(name string) (banner, ind ps.Hex) {
 		if ind := t.DeckInd.ArtLayer(ldr.Name); ind != nil {
 			ind.SetVisible(ldr.Name == name)
 		} else {
-			Error(errors.New(fmt.Sprintf("no Layer found at \"%s%s\"", t.DeckInd.Path(), ldr.Name)))
+			Error(fmt.Errorf("no Layer found at \"%s%s\"", t.DeckInd.Path(), ldr.Name))
 		}
 	}
 	if banner == nil || ind == nil {

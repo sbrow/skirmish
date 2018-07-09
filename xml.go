@@ -8,7 +8,7 @@ import (
 	"github.com/sbrow/prob/combin"
 )
 
-type CardXML struct {
+type cardXML struct {
 	XMLName xml.Name `xml:"card"`
 	Name    string   `xml:"name"`
 	Set     string   `xml:"set"`
@@ -19,7 +19,7 @@ type CardXML struct {
 }
 
 func (c *card) MarshalXML() ([]byte, error) {
-	obj := CardXML{
+	obj := cardXML{
 		Name: c.name,
 		Set:  "DKC",
 		Type: c.FullType(),
@@ -48,7 +48,7 @@ func (c *card) XML() ([]byte, error) {
 }
 
 func (c *DeckCard) MarshalXML() ([]byte, error) {
-	obj := CardXML{
+	obj := cardXML{
 		Name: c.name,
 		Set:  "DKC",
 		Type: c.FullType(),

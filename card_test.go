@@ -1,9 +1,73 @@
 package skirmish
 
 import (
+	"fmt"
+	"log"
 	"reflect"
+	"strings"
 	"testing"
+
+	_ "github.com/lib/pq"
 )
+
+var cols []string
+
+func execDB(query string, args ...interface{}) {
+	_, err := db.Exec(query, args...)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func createDB() {
+	err := Connect("localhost", 5432, "postgres", "postgres", "disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	execDB("DROP TABLE IF EXISTS cards")
+	cards := `CREATE TABLE cards (`
+	for i, c := range cols {
+		cards += fmt.Sprintf("\n\t%s TEXT", c)
+		if i+1 != len(cols) {
+			cards += ","
+		}
+	}
+	cards += "\n)"
+	execDB(cards)
+}
+func insertRecords(records ...Card) {
+	query := `INSERT INTO cards VALUES`
+	for i, r := range records {
+		superTypes := "NULL"
+		if len(r.STypes()) > 0 {
+			superTypes = fmt.Sprintf("'%s'", strings.Join(r.STypes(), Delim))
+		}
+		sql := fmt.Sprintf(`('%s', '%s', %s, '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s'`,
+			r.Name(), r.Type(), superTypes, r.Short(), strings.Replace(r.Long(), "'", "''", -1),
+			r.Flavor(), r.Resolve(), r.Speed(), r.Damage(), r.Life(), r.Faction())
+		switch r.(type) {
+		case *DeckCard:
+			val := r.(*DeckCard)
+			cost, _ := val.Cost()
+			sql += fmt.Sprintf(", '%s', '%d', '%s'", cost, val.Copies(), val.Leader())
+			sql += fmt.Sprintf(",NULL, NULL, NULL, NULL, NULL, NULL, NULL, '%s'", val.Regexp())
+		}
+		query += "\n" + sql + ")"
+		if i+1 != len(records) {
+			query += ","
+		}
+	}
+	log.Println(query)
+	execDB(query + ";")
+}
+
+func init() {
+	cols = make([]string, len(props))
+	for i, p := range props {
+		cols[i] = strings.TrimPrefix(p, "cards.")
+	}
+	createDB()
+}
 
 func TestLoad(t *testing.T) {
 	Ignite := &DeckCard{
@@ -39,8 +103,7 @@ func TestLoad(t *testing.T) {
 		cost:   "2",
 		copies: 3,
 	}
-
-	db = nil
+	insertRecords(Ignite, LoyalTrooper)
 	t.Run("One", func(t *testing.T) {
 		tests := []struct {
 			name    string
@@ -48,6 +111,7 @@ func TestLoad(t *testing.T) {
 			errWant bool
 		}{
 			{Ignite.Name(), Ignite, false},
+			{LoyalTrooper.Name(), LoyalTrooper, false},
 
 			{"Unknown_Card", nil, true},
 		}
@@ -58,12 +122,12 @@ func TestLoad(t *testing.T) {
 					t.Error(err)
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("wanted: %s\ngot: %s\n", tt.want, got)
+					t.Errorf("wanted: \"%+v\"\ngot: \"%+v\"\n", tt.want, got)
+					t.Error(tt.want.Long() == got.Long())
 				}
 			})
 		}
 	})
-	db = nil
 	t.Run("Many", func(t *testing.T) {
 		tests := []struct {
 			name    string
