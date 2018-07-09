@@ -3,6 +3,7 @@ package card
 import (
 	"flag"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/sbrow/skirmish"
@@ -47,14 +48,19 @@ func init() {
 	CmdCard.Flag = *flags
 	CmdCard.Run = Run
 	CmdCard.Long += " The valid formats are:"
+	fmts := make([]string, len(formats))
 	i := 0
 	for f := range formats {
-		if i+1 == len(formats) {
-			CmdCard.Long += fmt.Sprintf(` and "%s".`, f)
-		} else {
-			CmdCard.Long += fmt.Sprintf(` "%s",`, f)
-		}
+		fmts[i] = f
 		i++
+	}
+	sort.Strings(fmts)
+	for i, format := range fmts {
+		if i+1 == len(fmts) {
+			CmdCard.Long += fmt.Sprintf(` and "%s".`, format)
+		} else {
+			CmdCard.Long += fmt.Sprintf(` "%s",`, format)
+		}
 	}
 }
 
