@@ -1,5 +1,5 @@
 # skirmish
-[![GoDoc](https://godoc.org/github.com/sbrow/skirmish?status.svg)](https://godoc.org/github.com/sbrow/skirmish) [![Build Status](https://travis-ci.org/sbrow/skirmish.svg?branch=master)](https://travis-ci.org/sbrow/skirmish) [![Coverage Status](https://coveralls.io/repos/github/sbrow/skirmish/badge.svg?branch=master)](https://coveralls.io/github/sbrow/skirmish?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/sbrow/skirmish)](https://goreportcard.com/report/github.com/sbrow/skirmish)
+[![GoDoc](https://godoc.org/github.com/sbrow/skirmish?status.svg)](https://godoc.org/github.com/sbrow/skirmish) [![Build Status](https://travis-ci.org/sbrow/skirmish.svg?branch=develop)](https://travis-ci.org/sbrow/skirmish) [![Coverage Status](https://coveralls.io/repos/github/sbrow/skirmish/badge.svg?branch=develop)](https://coveralls.io/github/sbrow/skirmish?branch=develop) [![Go Report Card](https://goreportcard.com/badge/github.com/sbrow/skirmish)](https://goreportcard.com/report/github.com/sbrow/skirmish)
 
 `import "github.com/sbrow/skirmish"`
 

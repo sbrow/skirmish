@@ -1,4 +1,4 @@
-//go:generate sh -c "godoc2md -template ./.doc.template github.com/sbrow/skirmish > README.md"
+//go:generate mkmarkdown.sh
 
 // Package skirmish contains code for production of the
 // Dreamkeepers: Skirmish battle card game.
