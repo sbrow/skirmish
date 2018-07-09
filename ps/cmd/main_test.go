@@ -1,11 +1,16 @@
 package main
 
-import (
-	"github.com/sbrow/ps"
-	"github.com/sbrow/skirmish/sql"
-	"sync"
-	"testing"
-)
+/*
+func TestRefresh(t *testing.T) {
+	d := ps.NewDeck(app.Normal)
+	d.DeckInd.Refresh()
+}
+
+func TestText(t *testing.T) {
+	d := ps.NewDeck(app.Normal)
+	// d.ApplyDataset("Chaotic Blast_1")
+	d.FormatTextbox()
+}
 
 func BenchmarkGoRoutine(b *testing.B) {
 	var wg sync.WaitGroup
@@ -24,3 +29,4 @@ func BenchmarkSTD(b *testing.B) {
 	ps.Wait("$ Import the current dataset file into photoshop," +
 		" then press enter to continue")
 }
+*/
