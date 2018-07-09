@@ -24,6 +24,7 @@ import (
 	"github.com/sbrow/skirmish/cmd/skir/internal/export"
 	"github.com/sbrow/skirmish/cmd/skir/internal/help"
 	"github.com/sbrow/skirmish/cmd/skir/internal/sql"
+	"github.com/sbrow/skirmish/cmd/skir/internal/version"
 )
 
 func init() {
@@ -31,6 +32,7 @@ func init() {
 		export.CmdExport,
 		card.CmdCard,
 		sql.CmdSql,
+		version.CmdVersion,
 	}
 }
 

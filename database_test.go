@@ -21,7 +21,7 @@ func TestConnect(t *testing.T) {
 		{"standard", args{"localhost", 5432, "postgres", "skirmish", "disable"}, false},
 		{"ssl_Enabled", args{"localhost", 5432, "postgres", "skirmish", "require"}, false},
 
-		// TODO(sbrow): find out why connecting to database with non-existant user/database doesn't throw an error.
+		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error.
 		{"wrong_user", args{"localhost", 5432, "butts", "skirmish", "disable"}, false},
 		{"wrong_database", args{"localhost", 5432, "postgres", "skirmish23", "disable"}, false},
 	}

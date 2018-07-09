@@ -16,6 +16,7 @@
 // 	export      compile cards from the database to a specific format
 // 	card        show information about a specific card
 // 	sql         query the database
+// 	version     print skir version
 //
 // Use "skir help [command]" for more information about a command.
 //
@@ -43,7 +44,7 @@
 //
 // Card prints data for the given card to standard output.
 //
-// The -fmt flag can be used to alter the output format. The valid formats are: "xml", "string", and "ue".
+// The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
 //
 //
 // Query the database
@@ -53,6 +54,15 @@
 // 	skir sql [PSQL query]
 //
 // 'Skir sql' queries the database for any desired information.
+//
+//
+// Print skir version
+//
+// Usage:
+//
+// 	skir version
+//
+// Version prints the skir version.
 //
 //
 package main

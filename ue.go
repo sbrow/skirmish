@@ -38,7 +38,7 @@ type systemData struct {
 	TurnConditions        []string
 }
 
-// visual holds the visual componenets of a UE Card object.
+// visual holds the visual components of a UE Card object.
 type visual struct {
 	FrontTexture  string
 	BackTexture   string
