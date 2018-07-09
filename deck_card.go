@@ -194,7 +194,6 @@ func (d *DeckCard) Type() string {
 	return d.card.Type()
 }
 
-// TODO(sbrow): Return error when not found.
 func (d *DeckCard) Images() (paths []string, err error) {
 	// Path to a subfolder, assuming the card has multiple images.
 	path := filepath.Join(ImageDir, d.leader, d.Name())
@@ -203,8 +202,7 @@ func (d *DeckCard) Images() (paths []string, err error) {
 	if _, err = os.Stat(path); os.IsNotExist(err) {
 		// If found, return it, if not, throw an error.
 		if _, err = os.Stat(path + ".png"); os.IsNotExist(err) {
-			return []string{DefaultImage},
-				errors.New(fmt.Sprintf(`No image found for card '%s'`, d.name))
+			return []string{DefaultImage}, errors.New(fmt.Sprintf(`No image found for card '%s'`, d.name))
 		}
 		return []string{path + ".png"}, nil
 	}

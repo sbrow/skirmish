@@ -36,21 +36,15 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to handle id.
 
-`sbrow:` here
+`sbrow:` Figure out how to pass a pointer to card.SetSTypes
 
 `sbrow:` change Dump() to support path instead of dir
 
 `sbrow:` change Recover() to support path instead of dir
 
-`sbrow:` Return error when not found.
-
 `sbrow:` Cameo card flavor text.
 
-`sbrow:` Make getters/setters for NonDeckCard
-
-`sbrow:` UE COST BROKEN
-
-`sbrow:` Fix UECardJSON
+`sbrow:` Make getters for NonDeckCard
 
 `sbrow:` define elsewhere.
 

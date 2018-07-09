@@ -113,7 +113,6 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	obj.Leader = d.leader
 	obj.Copies = d.copies
 	obj.visual = *newVisual(d.name, d.leader, d.copies)
-	//TODO(sbrow): UE COST BROKEN
 	obj.Stats.Cost = cost
 
 	if ident {
@@ -130,7 +129,6 @@ type nonDeckCardUEJSON struct {
 	ActiveStats statsUE
 }
 
-// TODO(sbrow): Fix UECardJSON
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {

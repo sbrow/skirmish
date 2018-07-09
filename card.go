@@ -112,7 +112,7 @@ func LoadMany(cond string) ([]Card, error) {
 		}
 		c.SetType(typ)
 		if stype != nil {
-			c.SetSTypes(strings.Split(*stype, ",")) // TODO(sbrow): here
+			c.SetSTypes(strings.Split(*stype, ",")) // TODO(sbrow): Figure out how to pass a pointer to card.SetSTypes
 		}
 		c.SetName(title)
 		c.SetShort(short)

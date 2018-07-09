@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// TODO(sbrow): Make getters/setters for NonDeckCard
+// TODO(sbrow): Make getters for NonDeckCard
 type NonDeckCard struct {
 	card
 	faction  string
