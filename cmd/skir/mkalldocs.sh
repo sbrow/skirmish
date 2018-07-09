@@ -11,4 +11,5 @@ gofmt -w alldocs.go
 rm go.latest
 
 godoc2md -template ../../.doc.template github.com/sbrow/skirmish/cmd/skir > README.md
-# godoc2md github.com/sbrow/skirmish/cmd/skir > README.md
+branch=$(git rev-parse --abbrev-ref HEAD)
+sed -i -r "s/branch=master/branch=$branch/g"
