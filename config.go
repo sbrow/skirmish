@@ -69,7 +69,6 @@ func DefaultCfg() *Config {
 	user, err := user.Current()
 	if err != nil {
 		log.Println("Couldn't get current user.")
-
 	}
 	var home string
 	if user != nil {
