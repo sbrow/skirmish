@@ -140,32 +140,26 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 		log.Panic(err)
 	}
 	obj.Faction = "FE_" + n.faction
-	if n.ResolveB != nil {
-		resolve, err := strconv.Atoi(*n.ResolveB)
+	if n.resolveB != nil {
+		resolve, err := strconv.Atoi(*n.resolveB)
 		if err != nil {
 			return []byte{}, err
 		}
-		if n.SpeedB != nil {
-			obj.ActiveStats.Speed = *n.SpeedB
+		obj.ActiveStats.Speed = n.SpeedB()
+		obj.ActiveStats.Damage = n.DamageB()
+		life, err := strconv.Atoi(n.LifeB())
+		if err != nil {
+			return []byte{}, err
 		}
-		if n.DamageB != nil {
-			obj.ActiveStats.Damage = *n.DamageB
+		obj.ActiveStats.Life = life
+		if n.shortB != nil {
+			obj.ActiveStats.Short = *n.shortB
 		}
-		if n.LifeB != nil {
-			life, err := strconv.Atoi(*n.LifeB)
-			if err != nil {
-				return []byte{}, err
-			}
-			obj.ActiveStats.Life = life
+		if n.longB != nil {
+			obj.ActiveStats.Long = *n.longB
 		}
-		if n.ShortB != nil {
-			obj.ActiveStats.Short = *n.ShortB
-		}
-		if n.LongB != nil {
-			obj.ActiveStats.Long = *n.LongB
-		}
-		if n.FlavorB != nil {
-			obj.ActiveStats.Flavor = *n.FlavorB
+		if n.flavorB != nil {
+			obj.ActiveStats.Flavor = *n.flavorB
 		}
 		obj.ActiveStats.Resolve = resolve
 	}

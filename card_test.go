@@ -15,6 +15,8 @@ var cols []string
 func execDB(query string, args ...interface{}) {
 	_, err := db.Exec(query, args...)
 	if err != nil {
+		log.Print(query)
+		log.Println(args...)
 		log.Fatal(err)
 	}
 }
@@ -42,22 +44,29 @@ func insertRecords(records ...Card) {
 		if len(r.STypes()) > 0 {
 			superTypes = fmt.Sprintf("'%s'", strings.Join(r.STypes(), Delim))
 		}
-		sql := fmt.Sprintf(`('%s', '%s', %s, '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s'`,
+		faction := "NULL"
+		if r.Faction() != "" {
+			faction = fmt.Sprintf("'%s'", r.Faction())
+		}
+		sql := fmt.Sprintf(`('%s', '%s', %s, '%s', '%s', '%s', '%s', '%d', '%d', '%d', %s`,
 			r.Name(), r.Type(), superTypes, r.Short(), strings.Replace(r.Long(), "'", "''", -1),
-			r.Flavor(), r.Resolve(), r.Speed(), r.Damage(), r.Life(), r.Faction())
+			r.Flavor(), r.Resolve(), r.Speed(), r.Damage(), r.Life(), faction)
 		switch r.(type) {
 		case *DeckCard:
 			val := r.(*DeckCard)
 			cost, _ := val.Cost()
 			sql += fmt.Sprintf(", '%s', '%d', '%s'", cost, val.Copies(), val.Leader())
-			sql += fmt.Sprintf(",NULL, NULL, NULL, NULL, NULL, NULL, NULL, '%s'", val.Regexp())
+			sql += fmt.Sprintf(",NULL, NULL, NULL, NULL, NULL, NULL, NULL")
+		case *NonDeckCard:
+			val := r.(*NonDeckCard)
+			sql += fmt.Sprintf(", NULL, NULL, NULL, '%s', '%s', '%d', '%d', '%s', %s, %s",
+				*val.resolveB, val.LifeB(), val.SpeedB(), val.DamageB(), *val.shortB, "NULL", "NULL")
 		}
-		query += "\n" + sql + ")"
+		query += fmt.Sprintf("\n%s, '%s')", sql, r.Regexp())
 		if i+1 != len(records) {
 			query += ","
 		}
 	}
-	log.Println(query)
 	execDB(query + ";")
 }
 
@@ -88,22 +97,32 @@ func TestLoad(t *testing.T) {
 		cost:   "1",
 		copies: 3,
 	}
-	LoyalTrooper := &DeckCard{
+	Bast := &NonDeckCard{
 		card: card{
-			name:    "Loyal Trooper",
-			leader:  "Igrath",
-			ctype:   "Follower",
-			resolve: "",
-			stats:   stats{speed: 1, damage: 1, life: 3},
+			name:    "Bast",
+			leader:  "",
+			ctype:   "Hero",
+			stype:   []string{"Leader"},
+			resolve: "+2",
+			stats:   stats{speed: 1, damage: 1, life: 14},
 			short:   "Uncontested- +2/+0.",
 			long:    "A Lane is uncontested if it is not contested.",
 			flavor:  "Sometimes loyalty means not asking questions.",
 			regexp:  `(\+2/\+0.)|(Uncontested-)`,
 		},
-		cost:   "2",
-		copies: 3,
+		faction: "Troika",
 	}
-	insertRecords(Ignite, LoyalTrooper)
+	speed := 1
+	Bast.SetSpeedB(&speed)
+	resolve := "+2"
+	Bast.SetResolveB(&resolve)
+	dam := 1
+	Bast.SetDamageB(&dam)
+	life := "+0"
+	Bast.SetLifeB(&life)
+	short := "Cards that channel Bast deal +1.\nPay 1 speed: flip Bast."
+	Bast.SetShortB(&short)
+	insertRecords(Ignite, Bast)
 	t.Run("One", func(t *testing.T) {
 		tests := []struct {
 			name    string
@@ -111,7 +130,7 @@ func TestLoad(t *testing.T) {
 			errWant bool
 		}{
 			{Ignite.Name(), Ignite, false},
-			{LoyalTrooper.Name(), LoyalTrooper, false},
+			{Bast.Name(), Bast, false},
 
 			{"Unknown_Card", nil, true},
 		}
@@ -122,8 +141,7 @@ func TestLoad(t *testing.T) {
 					t.Error(err)
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("wanted: \"%+v\"\ngot: \"%+v\"\n", tt.want, got)
-					t.Error(tt.want.Long() == got.Long())
+					t.Errorf("wanted: \"%s\"\ngot: \"%s\"\n", tt.want, got)
 				}
 			})
 		}
@@ -136,7 +154,7 @@ func TestLoad(t *testing.T) {
 			wantErr bool
 		}{
 			{"Single", "name='Ignite'", []Card{Ignite}, false},
-			{"Many", "name~'Ignite|Loyal Trooper'", []Card{Ignite, LoyalTrooper}, false},
+			{"Many", "name~'Ignite|Bast'", []Card{Bast, Ignite}, false},
 			{"Unknown_Cards", "name~'Big Cass|La Croix|Solid Snake'", []Card{}, false},
 
 			{"Invalid_Query", "name~", []Card{}, true},

@@ -132,9 +132,8 @@ func LoadMany(cond string) ([]Card, error) {
 			d.SetRarity(rarity)
 			d.SetLeader(leader)
 			out = append(out, d)
-		case *typ == "Leader":
+		case strings.Contains(*stype, "Leader"):
 			n := &NonDeckCard{}
-			c.SetLeader(title)
 			n.SetCard(c)
 			n.SetResolveB(resolveB)
 			n.SetLifeB(lifeB)
@@ -413,11 +412,11 @@ func (c *card) FullType() string {
 	if len(c.STypes()) == 0 {
 		return c.ctype
 	}
-	return fmt.Sprintf("%s- %s", c.ctype, strings.Join(c.stype, " "))
+	return fmt.Sprintf("%s %s", strings.Join(c.stype, " "), c.ctype)
 }
 
 func (c *card) String() string {
-	return noSpaces(fmt.Sprintf("%s %s %s %s \"%s\"", c.Name(), c.Resolve(),
+	return noSpaces(fmt.Sprintf("%s %s %s %s- \"%s\"", c.Name(), c.Resolve(),
 		c.stats.String(), c.FullType(), pruneNewLines(c.short)))
 }
 

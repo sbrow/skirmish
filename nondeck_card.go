@@ -5,27 +5,57 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 )
 
 // TODO(sbrow): Make getters for NonDeckCard
 type NonDeckCard struct {
 	card
 	faction  string
-	SpeedB   *int
-	ResolveB *string
-	DamageB  *int
-	LifeB    *string
-	ShortB   *string
-	LongB    *string
-	FlavorB  *string
+	resolveB *string
+	statsB   *stats
+	shortB   *string
+	longB    *string
+	flavorB  *string
+}
+
+func (n *NonDeckCard) DamageB() int {
+	if n.statsB == nil {
+		return 0
+	}
+	return (*n.statsB).damage
+}
+
+func (n *NonDeckCard) LifeB() string {
+	if n.statsB == nil {
+		return ""
+	}
+	life := (*n.statsB).life
+	if life >= 0 {
+		return fmt.Sprintf("+%d", life)
+	}
+	return fmt.Sprintf("-%d", life)
 }
 
 func (n *NonDeckCard) Faction() string {
 	return n.faction
 }
 
+func (n *NonDeckCard) SpeedB() int {
+	if n.statsB == nil {
+		return 0
+	}
+	return (*n.statsB).speed
+}
+
 func (n *NonDeckCard) SetDamageB(d *int) {
-	n.DamageB = d
+	if n.statsB == nil {
+		n.statsB = &stats{}
+	}
+	if d != nil {
+		n.statsB.damage = *d
+	}
 }
 
 func (n *NonDeckCard) SetFaction(faction *string) {
@@ -35,31 +65,50 @@ func (n *NonDeckCard) SetFaction(faction *string) {
 }
 
 func (n *NonDeckCard) SetFlavorB(f *string) {
-	n.FlavorB = f
+	n.flavorB = f
 }
 func (n *NonDeckCard) SetLifeB(l *string) {
-	n.LifeB = l
+	if n.statsB == nil {
+		n.statsB = &stats{}
+	}
+	if l != nil {
+		life, err := strconv.Atoi(*l)
+		if err != nil {
+			log.Println(err)
+		} else {
+			n.statsB.life = life
+		}
+	}
 }
 
 func (n *NonDeckCard) SetLongB(l *string) {
-	n.LongB = l
+	n.longB = l
 }
 
 func (n *NonDeckCard) SetResolveB(r *string) {
-	n.ResolveB = r
+	n.resolveB = r
 }
 
 func (n *NonDeckCard) SetShortB(s *string) {
-	n.ShortB = s
+	n.shortB = s
 }
 
 func (n *NonDeckCard) SetSpeedB(s *int) {
-	n.SpeedB = s
+	if n.statsB == nil {
+		n.statsB = &stats{}
+	}
+	if s != nil {
+		n.statsB.speed = *s
+	}
 }
 
+func (n *NonDeckCard) StatsB() string {
+	reg := regexp.MustCompile(`(\/)([^\/-])*$`)
+	return reg.ReplaceAllString(n.statsB.String(), "/+$2")
+}
 func (n *NonDeckCard) String() string {
-	return fmt.Sprintf("%s //\n%s (Halo) %s %s %d/%d/%s \"%s\"", n.card.String(), n.card.Name(), *n.ResolveB,
-		n.card.Type(), *n.SpeedB, *n.DamageB, *n.LifeB, pruneNewLines(*n.ShortB))
+	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
+		n.card.Type(), n.StatsB(), pruneNewLines(*n.shortB))
 }
 func (n *NonDeckCard) Images() (paths []string, err error) {
 	basePath := filepath.Join(ImageDir, "Heroes", n.Name())
