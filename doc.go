@@ -5,6 +5,4 @@
 //
 // More specifically, it provides an interface between the SQL database
 // that contains card data, Photoshop, and the user (via CLI).
-//
-// TODO(sbrow): Cameo card flavor text.
 package skirmish

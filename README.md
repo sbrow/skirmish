@@ -16,8 +16,6 @@ Dreamkeepers: Skirmish battle card game.
 More specifically, it provides an interface between the SQL database
 that contains card data, Photoshop, and the user (via CLI).
 
-TODO(sbrow): Cameo card flavor text.
-
 
 
 
@@ -36,13 +34,13 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to handle id.
 
+`sbrow:` Cameo card flavor text.
+
 `sbrow:` Figure out how to pass a pointer to card.SetSTypes
 
 `sbrow:` change Dump() to support path instead of dir
 
 `sbrow:` change Recover() to support path instead of dir
-
-`sbrow:` Cameo card flavor text.
 
 `sbrow:` Make getters for NonDeckCard
 

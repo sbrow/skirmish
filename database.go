@@ -43,9 +43,9 @@ func Connect(host string, port int, dbname, user, sslmode string) error {
 // TODO(sbrow): change Dump() to support path instead of dir
 func Dump(dir string) {
 	var out, errs bytes.Buffer
-
-	cmd := exec.Command("pg_dump", "-U", "postgres", "-n", "skirmish", "-n", "public",
-		"-c", "--if-exists", "--column-inserts", "-f", filepath.Join(dir, "skirmish_db.sql"))
+	cmdString := fmt.Sprintf("-U %s -n skirmish -n public -c --if-exists --column-inserts -f %s",
+		Cfg.DB.User, filepath.Join(dir, "skirmish_db.sql"))
+	cmd := exec.Command("pg_dump", cmdString)
 	cmd.Stdout = &out
 	cmd.Stderr = &errs
 	if err := cmd.Run(); err != nil {

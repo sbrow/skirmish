@@ -24,6 +24,8 @@ import (
 // Passing nil to a set value will generally result in no change to the Card.
 //
 // TODO(sbrow): Figure out how to handle id.
+//
+// TODO(sbrow): Cameo card flavor text.
 type Card interface {
 	Card() card
 	Faction() string

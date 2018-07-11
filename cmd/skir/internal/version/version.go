@@ -6,10 +6,7 @@
 package version
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/sbrow/skirmish/cmd/skir/internal/base"
 )
@@ -21,21 +18,11 @@ var CmdVersion = &base.Command{
 	Long:      `Version prints the skir version.`,
 }
 
+const Version = "v0.11.1-7-ge8872bb"
+
 func runVersion(cmd *base.Command, args []string) {
 	if len(args) != 0 {
 		cmd.Usage()
 	}
-
-	fmt.Printf("skir version %s", Version())
-}
-
-func Version() string {
-	cmd := exec.Command("git", "describe", "--tags")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		base.Errorf("%v", err)
-	}
-	return out.String()
+	fmt.Printf("skir version %s", Version)
 }

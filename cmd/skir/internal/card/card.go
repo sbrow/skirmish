@@ -33,7 +33,7 @@ var formats = map[string]func(skirmish.Card) string{
 var DefaultFormat = "string"
 
 var CmdCard = &base.Command{
-	UsageLine: "card [-fmt] [card name]",
+	UsageLine: "card [-fmt=[format]] [card name]",
 	Short:     "show information about a specific card",
 	Long: `Card prints data for the given card to standard output.
 	

@@ -36,7 +36,7 @@ The valid formats are:
 Usage:
 
 
-	skir card [-fmt] [card name]
+	skir card [-fmt=[format]] [card name]
 
 Card prints data for the given card to standard output.
 
@@ -57,6 +57,7 @@ Usage:
 	skir version
 
 Version prints the skir version.
+TODO (sbrow): Only works when in the repo folder.
 
 
 
