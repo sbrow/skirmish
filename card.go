@@ -72,6 +72,9 @@ func Load(name string) (Card, error) {
 	if len(cards) > 0 {
 		return cards[0], err
 	}
+	if err != nil {
+		return nil, err
+	}
 	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
 

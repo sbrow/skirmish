@@ -135,14 +135,11 @@ func (d *DeckTemplate) SetLeader(name string) {
 
 // TODO(sbrow): (3) Make type font smaller when 2 or more supertypes.
 func (d *DeckTemplate) FormatTextbox() {
-
-	/*
-		if len(d.Card.STypes()) > 1 {
-			d.Type.TextItem.SetSize(9.0)
-		} else {
-			d.Type.TextItem.SetSize(10.0)
-		}
-	*/
+	if len(d.Card.STypes()) > 1 {
+		d.Type.TextItem.SetSize(9.0)
+	} else {
+		d.Type.TextItem.SetSize(10.0)
+	}
 	d.Template.FormatTextbox()
 }
 

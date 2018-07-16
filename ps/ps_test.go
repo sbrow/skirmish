@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/sbrow/skirmish"
@@ -50,42 +51,19 @@ func TestError(t *testing.T) {
 	}
 }
 
-/*
-func TestHeroTemplate(t *testing.T) {
-	want := `F:\GitLab\dreamkeepers-psd\Template009.1h.psd`
-	got := HeroTemplate
-	if got != want {
-		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
+func TestGetTolerances(t *testing.T) {
+	tests := []struct {
+		name       string
+		tolerances map[string]int
+	}{
+		{"", map[string]int{"title": 55, "short": 17, "long": 13, "flavor": 80, "bottom": 65}},
 	}
-}
-
-func TestSetLeader(t *testing.T) {
-	tmp2.SetLeader("Bast")
-}
-
-func TestFormatTitle(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	d.FormatTitle()
-	d.Doc.Dump()
-}
-
-func TestFormatTextBox(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	defer d.Doc.Dump()
-	d.ApplyDataset("Combust_1")
-	d.FormatTextbox()
-}
-
-func TestApplyDataset(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	defer d.Doc.Dump()
-	tests := []string{"Combust_1"}
-
 	for _, tt := range tests {
-		t.Run(tt, func(t *testing.T) {
-			d.ApplyDataset(tt)
-			d.PNG(true)
+		t.Run(tt.name, func(t *testing.T) {
+			GetTolerances()
+			if !reflect.DeepEqual(Tolerances, tt.tolerances) {
+				t.Errorf("wanted: %+v\ngot: %+v", Tolerances, tt.tolerances)
+			}
 		})
 	}
 }
-*/

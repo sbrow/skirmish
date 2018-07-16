@@ -24,14 +24,16 @@ import (
 	"github.com/sbrow/skirmish/cmd/skir/internal/card"
 	"github.com/sbrow/skirmish/cmd/skir/internal/export"
 	"github.com/sbrow/skirmish/cmd/skir/internal/help"
+	"github.com/sbrow/skirmish/cmd/skir/internal/ps"
 	"github.com/sbrow/skirmish/cmd/skir/internal/sql"
 	"github.com/sbrow/skirmish/cmd/skir/internal/version"
 )
 
 func init() {
 	base.Commands = []*base.Command{
-		export.CmdExport,
 		card.CmdCard,
+		export.CmdExport,
+		ps.CmdPS,
 		sql.CmdSql,
 		version.CmdVersion,
 	}

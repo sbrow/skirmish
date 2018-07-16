@@ -1,3 +1,6 @@
+# Program parameters
+VERSION := $(shell git describe --tags)
+
 # Go parameters
 GOCMD=go
 GOBUILD=$(GOCMD) build
@@ -10,10 +13,10 @@ GOGENERATE=$(GOCMD) generate
 # BINARY_NAME=mybinary
 # BINARY_WIN=$(BINARY_NAME).exe
 
-# Program parameters
-VERSION := $(shell git describe --tags)
 
 default: version fmt build test clean install docs lint
+
+fast: version test install docs
 
 version:
 	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./cmd/skir/internal/version/version.go

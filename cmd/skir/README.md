@@ -9,12 +9,23 @@ Usage:
 The commands are:
 
 
-	export      compile cards from the database to a specific format
 	card        show information about a specific card
+	export      compile cards from the database to a specific format
+	ps          fill out Photoshop templates
 	sql         query the database
 	version     print skir version
 
 Use "skir help [command]" for more information about a command.
+
+### Show information about a specific card
+Usage:
+
+
+	skir card [-fmt=[format]] [card name]
+
+Card prints data for the given card to standard output.
+
+The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
 
 ### Compile cards from the database to a specific format
 Usage:
@@ -32,15 +43,13 @@ The valid formats are:
 	ue	a collection of JSON files for importing into Unreal Engine.
 		Deck cards are grouped by deck, Non-Deck Cards are grouped together.
 
-### Show information about a specific card
+### Fill out Photoshop templates
 Usage:
 
 
-	skir card [-fmt=[format]] [card name]
+	skir ps [card name]
 
-Card prints data for the given card to standard output.
-
-The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
+'skir ps' fills out a Photoshop template file with information from the database
 
 ### Query the database
 Usage:
@@ -57,7 +66,6 @@ Usage:
 	skir version
 
 Version prints the skir version.
-TODO (sbrow): Only works when in the repo folder.
 
 
 

@@ -38,6 +38,8 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to pass a pointer to card.SetSTypes
 
+`sbrow:` catch runtime.Caller error in config.go/init
+
 `sbrow:` change Dump() to support path instead of dir
 
 `sbrow:` change Recover() to support path instead of dir
