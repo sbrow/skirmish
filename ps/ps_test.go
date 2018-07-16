@@ -34,7 +34,7 @@ func TestError(t *testing.T) {
 		want string
 	}{
 		{"HelloWorld", errors.New("Hello, World"),
-			fmt.Sprintf(" error at %s:44 Hello, World",
+			fmt.Sprintf(" error at %s:45 Hello, World",
 				filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", "ps", "ps_test.go"),
 			),
 		},
