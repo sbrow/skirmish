@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var blankCardUE = `{
+/* var blankCardUE = `{
 	"Name": "",
 	"Class": "CTE_",
 	"FrontTexture": "Texture2D'/Game/Textures/Card_Decks/Common/01x_.01x_'",
@@ -35,7 +35,7 @@ var blankCardUE = `{
 		"InteractionConditions": [],
 		"TurnConditions": []
 	}
-}`
+}` */
 
 func Test_card_UEJSON(t *testing.T) {
 	tests := []struct {
@@ -45,7 +45,7 @@ func Test_card_UEJSON(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-		// {"Empty", *(NewCard().(*card)), true, []byte(blankCardUE), false},
+		//{"Empty", *(NewCard().(*card)), true, []byte(blankCardUE), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

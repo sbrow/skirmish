@@ -1,7 +1,6 @@
 package skirmish
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,6 +23,8 @@ import (
 // Passing nil to a set value will generally result in no change to the Card.
 //
 // TODO(sbrow): Figure out how to handle id.
+//
+// TODO(sbrow): Cameo card flavor text.
 type Card interface {
 	Card() card
 	Faction() string
@@ -70,23 +71,27 @@ func Load(name string) (Card, error) {
 	if len(cards) > 0 {
 		return cards[0], err
 	}
+	if err != nil {
+		return nil, err
+	}
 	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
+
+var props = []string{"\"name\"", "cards.type", "cards.supertypes",
+	"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
+	"cards.life", "cards.faction", "cards.cost", "cards.rarity", "cards.leader",
+	"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
+	"cards.short_b", "cards.long_b", "cards.flavor_b", "cards.regexp"}
 
 // LoadMany queries the standard database for all cards that match the given condition
 // and returns them as a slice of Card objects.
 func LoadMany(cond string) ([]Card, error) {
 	if db == nil {
-		if err := Connect(Cfg.DBArgs()); err != nil {
+		if err := Connect(LocalDB.DBArgs()); err != nil {
 			return []Card{}, err
 		}
 	}
 	out := make([]Card, 0)
-	props := []string{"\"name\"", "cards.type", "cards.supertypes",
-		"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
-		"cards.life", "cards.faction, cards.cost, cards.rarity, cards.leader",
-		"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
-		"cards.short_b", "cards.long_b", "cards.flavor_b, cards.regexp"}
 	str := fmt.Sprintf("select %s from cards where %s ORDER BY name ASC",
 		strings.Join(props, ", "), cond)
 	rows, err := Query(str)
@@ -95,24 +100,20 @@ func LoadMany(cond string) ([]Card, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var typ, stype, title, short, long, flavor, resolve, faction, leader,
+		var typ, supertypes, title, short, long, flavor, resolve, faction, leader,
 			resolveB, lifeB, shortB, longB, flavorB, cost, regexp *string
 		var speed, damage, life, rarity, speedB, damageB *int
-		err := rows.Scan(&title, &typ, &stype, &short, &long,
+		err := rows.Scan(&title, &typ, &supertypes, &short, &long,
 			&flavor, &resolve, &speed, &damage, &life, &faction, &cost, &rarity,
 			&leader, &resolveB, &lifeB, &speedB, &damageB, &shortB, &longB, &flavorB,
 			&regexp)
 		c := NewCard()
-		switch {
-		case err == sql.ErrNoRows:
-			log.Printf("No card was found with condition \"%s\"\n", cond)
-			fallthrough
-		case err != nil:
+		if err != nil {
 			return out, err
 		}
 		c.SetType(typ)
-		if stype != nil {
-			c.SetSTypes(strings.Split(*stype, ",")) // TODO(sbrow): here
+		if supertypes != nil {
+			c.SetSTypes(strings.Split(*supertypes, ",")) // TODO(sbrow): Figure out how to pass a pointer to card.SetSTypes
 		}
 		c.SetName(title)
 		c.SetShort(short)
@@ -131,9 +132,8 @@ func LoadMany(cond string) ([]Card, error) {
 			d.SetRarity(rarity)
 			d.SetLeader(leader)
 			out = append(out, d)
-		case *typ == "Leader":
+		case supertypes != nil && strings.Contains(*supertypes, "Leader"):
 			n := &NonDeckCard{}
-			c.SetLeader(title)
 			n.SetCard(c)
 			n.SetResolveB(resolveB)
 			n.SetLifeB(lifeB)
@@ -145,6 +145,7 @@ func LoadMany(cond string) ([]Card, error) {
 			n.SetFaction(faction)
 			out = append(out, n)
 		default:
+			c.SetLeader(leader)
 			out = append(out, c)
 		}
 	}
@@ -158,16 +159,16 @@ func NewCard() Card {
 
 // Card is the base struct for DeckCards and NonDeckCards.
 type card struct {
-	name    string   // The name of the card.
-	leader  string   // The name of the card's leader.
-	ctype   string   // The card's type.
-	stype   []string // The card's supertype(s).
-	resolve string   // The resolve this card produces when in play.
-	stats   stats    // The card's speed, life, and damage, if applicable.
-	short   string   // The card's basic rules text.
-	long    string   // The card's reminder text.
-	flavor  string   // The card's flavor (non-rules) text.
-	regexp  string   // A regular expression for what characters should be bold in short.
+	name       string   // The name of the card.
+	leader     string   // The name of the card's leader.
+	cardType   string   // The card's type.
+	superTypes []string // The card's supertype(s).
+	resolve    string   // The resolve this card produces when in play.
+	stats      stats    // The card's speed, life, and damage, if applicable.
+	short      string   // The card's basic rules text.
+	long       string   // The card's reminder text.
+	flavor     string   // The card's flavor (non-rules) text.
+	regexp     string   // A regular expression for what characters should be bold in short.
 }
 
 func (c *card) Bold() ([][]int, error) {
@@ -333,23 +334,21 @@ func (c *card) SetFlavor(s *string) {
 }
 
 func (c *card) Type() string {
-	return c.ctype
+	return c.cardType
 }
 
 func (c *card) SetType(t *string) {
 	if t != nil {
-		c.ctype = *t
+		c.cardType = *t
 	}
 }
 
 func (c *card) STypes() []string {
-	return c.stype
+	return c.superTypes
 }
 
 func (c *card) SetSTypes(t []string) {
-	// if t != nil {
-	c.stype = t
-	// }
+	c.superTypes = t
 }
 
 func (c *card) Leader() string {
@@ -410,13 +409,13 @@ func (c *card) JSON() ([]byte, error) {
 
 func (c *card) FullType() string {
 	if len(c.STypes()) == 0 {
-		return c.ctype
+		return c.cardType
 	}
-	return fmt.Sprintf("%s- %s", c.ctype, strings.Join(c.stype, " "))
+	return fmt.Sprintf("%s %s", strings.Join(c.superTypes, " "), c.cardType)
 }
 
 func (c *card) String() string {
-	return noSpaces(fmt.Sprintf("%s %s %s %s \"%s\"", c.Name(), c.Resolve(),
+	return noSpaces(fmt.Sprintf("%s %s %s %s- \"%s\"", c.Name(), c.Resolve(),
 		c.stats.String(), c.FullType(), pruneNewLines(c.short)))
 }
 

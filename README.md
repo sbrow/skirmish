@@ -1,5 +1,5 @@
 # skirmish
-[![GoDoc](https://godoc.org/github.com/sbrow/skirmish?status.svg)](https://godoc.org/github.com/sbrow/skirmish) [![Build Status](https://travis-ci.org/sbrow/skirmish.svg?branch=master)](https://travis-ci.org/sbrow/skirmish) [![Coverage Status](https://coveralls.io/repos/github/sbrow/skirmish/badge.svg?branch=master)](https://coveralls.io/github/sbrow/skirmish?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/sbrow/skirmish)](https://goreportcard.com/report/github.com/sbrow/skirmish)
+[![GoDoc](https://godoc.org/github.com/sbrow/skirmish?status.svg)](https://godoc.org/github.com/sbrow/skirmish) [![Build Status](https://travis-ci.org/sbrow/skirmish.svg?branch=develop)](https://travis-ci.org/sbrow/skirmish) [![Coverage Status](https://coveralls.io/repos/github/sbrow/skirmish/badge.svg?branch=develop)](https://coveralls.io/github/sbrow/skirmish?branch=develop) [![Go Report Card](https://goreportcard.com/badge/github.com/sbrow/skirmish)](https://goreportcard.com/report/github.com/sbrow/skirmish)
 
 `import "github.com/sbrow/skirmish"`
 
@@ -15,8 +15,6 @@ Dreamkeepers: Skirmish battle card game.
 
 More specifically, it provides an interface between the SQL database
 that contains card data, Photoshop, and the user (via CLI).
-
-TODO(sbrow): Cameo card flavor text.
 
 
 
@@ -36,21 +34,13 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to handle id.
 
-`sbrow:` here
-
-`sbrow:` change Dump() to support path instead of dir
-
-`sbrow:` change Recover() to support path instead of dir
-
-`sbrow:` Return error when not found.
-
 `sbrow:` Cameo card flavor text.
 
-`sbrow:` Make getters/setters for NonDeckCard
+`sbrow:` Figure out how to pass a pointer to card.SetSTypes
 
-`sbrow:` UE COST BROKEN
+`sbrow:` catch runtime.Caller error in config.go/init
 
-`sbrow:` Fix UECardJSON
+`sbrow:` Make getters for NonDeckCard
 
 `sbrow:` define elsewhere.
 

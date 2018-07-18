@@ -15,7 +15,7 @@ import (
 var HeroTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
 
 type NonDeckTemplate struct {
-	Template
+	template
 	Plus     *ps.ArtLayer
 	HaloInd  *ps.LayerSet
 	HeroInd  *ps.ArtLayer
@@ -26,7 +26,7 @@ type NonDeckTemplate struct {
 
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	log.SetPrefix("[ps.NewNonDeck] ")
-	n := &NonDeckTemplate{Template: *New(mode, HeroTemplate)}
+	n := &NonDeckTemplate{template: *New(mode, HeroTemplate)}
 	areas := n.Doc.MustExist("Areas").(*ps.LayerSet)
 	if areas == nil {
 		log.Panic("LayerSet \"Areas\" was not found!")
@@ -67,31 +67,36 @@ func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 }
 
 func (n *NonDeckTemplate) ApplyDataset(name string) {
-	if ps.Mode == ps.Fast && n.Dataset == name {
+	// Skip if dataset already applied.
+	if ps.Mode == ps.Fast && n.Dataset == name && n.Card != nil {
 		return
 	}
-
 	id := name
+
 	card, err := skirmish.Load(name)
 	if err != nil {
 		n.Doc.Dump()
-		log.Println(card)
-		log.Panic(err)
+		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
 	}
 	n.Card = card
-	log.SetPrefix(fmt.Sprintf("[ps.%s] ", name))
+
 	n.SetLeader(n.Card.Leader())
 	if strings.Contains(name, "(Halo)") {
 		tmp := strings.Split(name, " ")
 		name = tmp[0]
 	}
-	n.SetLeader(name)
-	n.Template.ApplyDataset(id, name)
+	n.template.ApplyDataset(id)
+}
+
+func (n *NonDeckTemplate) GetDoc() *ps.Document {
+	return n.Doc
 }
 
 func (n *NonDeckTemplate) SetLeader(name string) {
-	banner, ind := n.Template.SetLeader(name)
-	barStroke := ps.Stroke{Size: 4, Color: banner}
+	banner, ind, barStroke, err := n.template.SetLeader(name)
+	if err != nil {
+		log.Fatal(err) // TODO(sbrow): Remove fatal err from NonDeckTemplate.SetLeader
+	}
 	for _, lyr := range n.LBar.ArtLayers() {
 		if lyr.Name() != "LeaderBar" {
 			lyr.SetColor(ind)

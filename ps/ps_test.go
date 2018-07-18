@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/sbrow/skirmish"
@@ -33,7 +34,7 @@ func TestError(t *testing.T) {
 		want string
 	}{
 		{"HelloWorld", errors.New("Hello, World"),
-			fmt.Sprintf(" error at %s:44 Hello, World",
+			fmt.Sprintf(" error at %s:45 Hello, World",
 				filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", "ps", "ps_test.go"),
 			),
 		},
@@ -50,42 +51,34 @@ func TestError(t *testing.T) {
 	}
 }
 
-/*
-func TestHeroTemplate(t *testing.T) {
-	want := `F:\GitLab\dreamkeepers-psd\Template009.1h.psd`
-	got := HeroTemplate
-	if got != want {
-		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
+func TestGetTolerances(t *testing.T) {
+	tests := []struct {
+		name       string
+		tolerances map[string]int
+		wantErr    bool
+	}{
+		{"DB", map[string]int{
+			"title":  55,
+			"short":  17,
+			"long":   13,
+			"flavor": 80,
+			"bottom": 65,
+		}, false},
+
+		{"WrongDB", map[string]int{}, true},
+		// {"EmptyTable", map[string]int{}, false},
 	}
-}
-
-func TestSetLeader(t *testing.T) {
-	tmp2.SetLeader("Bast")
-}
-
-func TestFormatTitle(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	d.FormatTitle()
-	d.Doc.Dump()
-}
-
-func TestFormatTextBox(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	defer d.Doc.Dump()
-	d.ApplyDataset("Combust_1")
-	d.FormatTextbox()
-}
-
-func TestApplyDataset(t *testing.T) {
-	d := NewDeck(ps.Normal)
-	defer d.Doc.Dump()
-	tests := []string{"Combust_1"}
-
 	for _, tt := range tests {
-		t.Run(tt, func(t *testing.T) {
-			d.ApplyDataset(tt)
-			d.PNG(true)
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "WrongDB" {
+				skirmish.Connect(skirmish.LocalDB.DBArgs())
+			}
+			if err := GetTolerances(); (err != nil) != tt.wantErr {
+				t.Errorf("GetTolerances() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(Tolerances, tt.tolerances) {
+				t.Errorf("wanted: %+v\ngot: %+v", Tolerances, tt.tolerances)
+			}
 		})
 	}
 }
-*/

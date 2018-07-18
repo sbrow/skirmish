@@ -16,7 +16,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/sbrow/skirmish/cmd/skir/internal/base"
+	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
 // Help implements the 'help' command.

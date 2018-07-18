@@ -12,13 +12,15 @@ import (
 )
 
 func init() {
-	_, file, _, _ := runtime.Caller(0) // // TODO(sbrow): catch error
+	_, file, _, _ := runtime.Caller(0) // TODO(sbrow): catch runtime.Caller error in config.go/init
 
 	Cfg = &Config{}
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
 		log.Println(err)
 	} else {
-		Cfg.setEnvs()
+		if err := Cfg.setEnvVars(); err != nil {
+			log.Println(err)
+		}
 	}
 	ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 	DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
@@ -43,12 +45,28 @@ type cfgPS struct {
 // Cfg holds the currently loaded configuration settings.
 var Cfg *Config
 
+// LocalDB holds the configuration for connecting to the default, local postgres database.
+// It is primarily used for running tests.
+var LocalDB = &Config{
+	DB: cfgDB{
+		Host: "localhost",
+		Port: 5432,
+		Name: "postgres",
+		User: "postgres",
+		SSL:  false,
+	},
+}
+
+// Config holds various configuration values for the program,
+// namely the directories of other relevant git repositories.
 type Config struct {
+	// PS holds configuration values related to Photoshop.
 	PS struct {
 		Dir     string // The directory of the Photoshop files.
 		Deck    string // The name of the Deck Card Photoshop template file.
 		NonDeck string `yaml:"non_deck"` // The name of the Non-Deck Card Photoshop template file.
 	} `yaml:"photoshop"`
+	// DB Holds configuration values related to the PSQL database.
 	DB struct {
 		Dir  string // The default directory to call Load() and Recover() in.
 		Host string // The server ip address.
@@ -59,12 +77,12 @@ type Config struct {
 	} `yaml:"database"`
 }
 
+// DefaultCfg returns a full, basic Config.
 func DefaultCfg() *Config {
 
 	user, err := user.Current()
 	if err != nil {
 		log.Println("Couldn't get current user.")
-
 	}
 	var home string
 	if user != nil {
@@ -88,10 +106,11 @@ func DefaultCfg() *Config {
 		User: "guest",
 		SSL:  false,
 	}
-	log.Println(cfg)
 	return cfg
 }
-func (c Config) DBArgs() (host string, port int, dbname, user, sslmode string) {
+
+// DBArgs returns c.DB as a list of args that can be passed to Connect().
+func (c Config) DBArgs() (host string, port int, DBName, user, sslmode string) {
 	modes := map[bool]string{
 		false: "disable",
 		true:  "require",
@@ -100,6 +119,8 @@ func (c Config) DBArgs() (host string, port int, dbname, user, sslmode string) {
 	return d.Host, d.Port, d.Name, d.User, modes[d.SSL]
 }
 
+// Load loads Config data from a YAML file at the given path.
+// It returns an error if the file was not found.
 func (c *Config) Load(path string) error {
 	if path == "" {
 		path = "config.yml"
@@ -121,6 +142,7 @@ func (c *Config) Load(path string) error {
 	return err
 }
 
+// Save saves the Config to a YAML file at the given path.
 func (c *Config) Save(path string) error {
 	data, err := yaml.Marshal(c)
 	if err != nil {
@@ -137,7 +159,8 @@ func (c *Config) Save(path string) error {
 	return err
 }
 
-func (c *Config) setEnvs() error {
+// setEnvVars synchronizes some environment variables with the Config.
+func (c *Config) setEnvVars() error {
 	if err := os.Setenv("SK_PS", c.PS.Dir); err != nil {
 		return err
 	}

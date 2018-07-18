@@ -1,18 +1,5 @@
 //go:generate ./mkalldocs.sh
 
-//	- Query the database
-//  - Get a card from the database in X format.
-// 	- Get all cards from the database into X format.
-//
-// PS
-//
-// Fills out a document (psd) template with data from a dataset (csv) file and
-//
-// 		skir ps
-//		skir ps -card=$CARDNAME // Builds the psd for the given card
-//		skir ps -deck=$DECKNAME
-//		skir ps action $ACTIONNAME
-
 package main
 
 import (
@@ -20,19 +7,25 @@ import (
 	"log"
 	"os"
 
-	"github.com/sbrow/skirmish/cmd/skir/internal/base"
-	"github.com/sbrow/skirmish/cmd/skir/internal/card"
-	"github.com/sbrow/skirmish/cmd/skir/internal/export"
-	"github.com/sbrow/skirmish/cmd/skir/internal/help"
-	"github.com/sbrow/skirmish/cmd/skir/internal/sql"
-	"github.com/sbrow/skirmish/cmd/skir/internal/version"
+	"github.com/sbrow/skirmish/skir/internal/base"
+	"github.com/sbrow/skirmish/skir/internal/card"
+	"github.com/sbrow/skirmish/skir/internal/dump"
+	"github.com/sbrow/skirmish/skir/internal/export"
+	"github.com/sbrow/skirmish/skir/internal/help"
+	"github.com/sbrow/skirmish/skir/internal/ps"
+	"github.com/sbrow/skirmish/skir/internal/recover"
+	"github.com/sbrow/skirmish/skir/internal/sql"
+	"github.com/sbrow/skirmish/skir/internal/version"
 )
 
 func init() {
 	base.Commands = []*base.Command{
-		export.CmdExport,
 		card.CmdCard,
-		sql.CmdSql,
+		dump.CmdDump,
+		export.CmdExport,
+		ps.CmdPS,
+		recover.CmdRecover,
+		sql.CmdSQL,
 		version.CmdVersion,
 	}
 }

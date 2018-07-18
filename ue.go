@@ -71,7 +71,7 @@ func newVisual(name, leader string, copies int) *visual {
 func (c card) UEJSON(ident bool) ([]byte, error) {
 	obj := cardUEJSON{}
 	obj.Name = c.name
-	obj.Type = "CTE_" + c.ctype
+	obj.Type = "CTE_" + c.cardType
 	resolve, _ := strconv.Atoi(c.resolve)
 	obj.Stats = statsUE{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
 		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
@@ -108,12 +108,11 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	}
 
 	obj.CardName = d.name
-	obj.Supertypes = "CTE_" + strings.Join(d.stype, "_")
+	obj.Supertypes = "CTE_" + strings.Join(d.superTypes, "_")
 	obj.Name = strings.Replace(d.name, " ", "", -1)
 	obj.Leader = d.leader
 	obj.Copies = d.copies
 	obj.visual = *newVisual(d.name, d.leader, d.copies)
-	//TODO(sbrow): UE COST BROKEN
 	obj.Stats.Cost = cost
 
 	if ident {
@@ -130,7 +129,6 @@ type nonDeckCardUEJSON struct {
 	ActiveStats statsUE
 }
 
-// TODO(sbrow): Fix UECardJSON
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {
@@ -142,32 +140,26 @@ func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 		log.Panic(err)
 	}
 	obj.Faction = "FE_" + n.faction
-	if n.ResolveB != nil {
-		resolve, err := strconv.Atoi(*n.ResolveB)
+	if n.resolveB != nil {
+		resolve, err := strconv.Atoi(*n.resolveB)
 		if err != nil {
 			return []byte{}, err
 		}
-		if n.SpeedB != nil {
-			obj.ActiveStats.Speed = *n.SpeedB
+		obj.ActiveStats.Speed = n.SpeedB()
+		obj.ActiveStats.Damage = n.DamageB()
+		life, err := strconv.Atoi(n.LifeB())
+		if err != nil {
+			return []byte{}, err
 		}
-		if n.DamageB != nil {
-			obj.ActiveStats.Damage = *n.DamageB
+		obj.ActiveStats.Life = life
+		if n.shortB != nil {
+			obj.ActiveStats.Short = *n.shortB
 		}
-		if n.LifeB != nil {
-			life, err := strconv.Atoi(*n.LifeB)
-			if err != nil {
-				return []byte{}, err
-			}
-			obj.ActiveStats.Life = life
+		if n.longB != nil {
+			obj.ActiveStats.Long = *n.longB
 		}
-		if n.ShortB != nil {
-			obj.ActiveStats.Short = *n.ShortB
-		}
-		if n.LongB != nil {
-			obj.ActiveStats.Long = *n.LongB
-		}
-		if n.FlavorB != nil {
-			obj.ActiveStats.Flavor = *n.FlavorB
+		if n.flavorB != nil {
+			obj.ActiveStats.Flavor = *n.flavorB
 		}
 		obj.ActiveStats.Resolve = resolve
 	}

@@ -9,12 +9,34 @@ Usage:
 The commands are:
 
 
-	export      compile cards from the database to a specific format
 	card        show information about a specific card
+	dump        save the current database to disk
+	export      compile cards from the database to a specific format
+	ps          fill out Photoshop templates
+	recover     reload the database from disk
 	sql         query the database
 	version     print skir version
 
 Use "skir help [command]" for more information about a command.
+
+### Show information about a specific card
+Usage:
+
+
+	skir card [-fmt=[format]] [card name]
+
+Card prints data for the given card to standard output.
+
+The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
+
+### Save the current database to disk
+Usage:
+
+
+	skir dump
+
+Dump saves the current state of the database to the "skirmish_db.sql"
+file in the dreamkeepers-dat repository.
 
 ### Compile cards from the database to a specific format
 Usage:
@@ -32,15 +54,23 @@ The valid formats are:
 	ue	a collection of JSON files for importing into Unreal Engine.
 		Deck cards are grouped by deck, Non-Deck Cards are grouped together.
 
-### Show information about a specific card
+### Fill out Photoshop templates
 Usage:
 
 
-	skir card [-fmt] [card name]
+	skir ps [card name]
 
-Card prints data for the given card to standard output.
+'skir ps' fills out a Photoshop template file with information from the database
 
-The -fmt flag can be used to alter the output format. The valid formats are: "xml", "string", and "ue".
+### Reload the database from disk
+Usage:
+
+
+	skir recover
+
+Recover runs the skirmish_db.sql file from the dreamkeepers-dat repository
+on the database, effectively resetting it to the most recently saved state. To overwrite this
+file, see 'skir dump'.
 
 ### Query the database
 Usage:
