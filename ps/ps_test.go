@@ -11,7 +11,7 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-func TestTemplate(t *testing.T) {
+func TestDeckTemplate(t *testing.T) {
 	want := filepath.Join("Template009.1.psd")
 	got := filepath.Join(skirmish.Cfg.PS.Deck)
 	if got != want {
@@ -19,7 +19,7 @@ func TestTemplate(t *testing.T) {
 	}
 }
 
-func TestHeroTemplate(t *testing.T) {
+func TestNonDeckTemplate(t *testing.T) {
 	want := filepath.Join("Template009.1h.psd")
 	got := filepath.Join(skirmish.Cfg.PS.NonDeck)
 	if got != want {

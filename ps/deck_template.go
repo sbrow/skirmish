@@ -30,10 +30,16 @@ type DeckTemplate struct {
 	LBar       *ps.ArtLayer
 }
 
+// NewDeck returns a new DeckTemplate object, pulling values
+// from the .psd file.
+//
+// NewDeck will open Photoshop and the corresponding Template .psd if
+// it is not currently open.
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 	d := &DeckTemplate{template: *New(mode, CardTemplate)}
 	txt := d.Doc.MustExist("Text").(*ps.LayerSet)
-	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).MustExist("TitleBackground").(*ps.LayerSet)
+	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).
+		MustExist("TitleBackground").(*ps.LayerSet)
 	if ps.Mode == 2 {
 		d.Dataset = d.ID.TextItem.Contents()
 	}
@@ -96,10 +102,15 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.FormatTextbox()
 }
 
+// GetDoc returns the Document associated with this template. It implements the
+// Template interface.
 func (d *DeckTemplate) GetDoc() *ps.Document {
 	return d.Doc
 }
 
+// SetLeader changes fill layers that contain a leader color,
+// and sets them to the colors of the given leader.
+//
 // TODO(sbrow): Fix DeckTemplate.SetLeader skip
 func (d *DeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := d.template.SetLeader(name)
@@ -136,6 +147,9 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.HeroLife.SetStroke(barStroke, ps.ColorWhite)
 }
 
+// FormatTextbox sets appropriate tolerances for the text layers in the
+// textbox, and hides or resizes elements that are too large.
+//
 // TODO(sbrow): (3) Make type font smaller when 2 or more supertypes.
 func (d *DeckTemplate) FormatTextbox() {
 	if len(d.Card.STypes()) > 1 {
