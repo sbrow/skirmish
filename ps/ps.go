@@ -26,6 +26,9 @@ func (e *psError) String() string {
 
 // Error adds an error to the list of runtime errors that have occurred so far.
 func Error(e error) {
+	if e == nil {
+		return
+	}
 	err := psError{}
 	// err.time = fmt.Sprint(time.Now().Format("yyyy/MM/dd hh:mm:ss"))
 	_, file, line, ok := runtime.Caller(1)
@@ -45,6 +48,9 @@ var Errors []psError
 // Tolerances holds values for offset of template objects.
 var Tolerances map[string]int
 
+// GetTolerances selects the tolerance values from the database into Tolerances.
+//
+// See 'Tolerances'.
 func GetTolerances() error {
 	Tolerances = make(map[string]int)
 	rows, err := skirmish.Query("SELECT name, px FROM tolerances;")
@@ -62,5 +68,7 @@ func GetTolerances() error {
 }
 func init() {
 	Errors = []psError{}
-	GetTolerances()
+	if err := GetTolerances(); err != nil {
+		Error(err)
+	}
 }

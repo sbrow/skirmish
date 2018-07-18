@@ -34,16 +34,20 @@ func TestError(t *testing.T) {
 		want string
 	}{
 		{"HelloWorld", errors.New("Hello, World"),
-			fmt.Sprintf(" error at %s:45 Hello, World",
+			fmt.Sprintf(" error at %s:46 Hello, World",
 				filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", "ps", "ps_test.go"),
 			),
 		},
-		// TODO(sbrow): Add error to ps.TestError that sources a different file.
+		{"nil", nil, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			Errors = make([]psError, 0)
 			Error(tt.err)
-			got := Errors[len(Errors)-1].String()
+			var got string
+			if len(Errors) > 0 {
+				got = Errors[len(Errors)-1].String()
+			}
 			if got != tt.want {
 				t.Errorf("wanted: \"%s\"\ngot: \"%s\"\n", tt.want, got)
 			}

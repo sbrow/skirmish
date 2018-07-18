@@ -37,10 +37,12 @@ func (d *DeckCard) Cost() (string, error) {
 	return fmt.Sprint(d.cost), nil
 }
 
+// SetCost sets the DeckCard's cost to the given value.
 func (d *DeckCard) SetCost(c string) {
 	d.cost = c
 }
 
+// String returns the string representation of the DeckCard.
 func (d *DeckCard) String() string {
 	cost, _ := d.Cost() // d.Cost can't return an error.
 	s := fmt.Sprintf("%s %dx[%s]", d.card.String(), d.Copies(), d.Leader())
@@ -52,24 +54,25 @@ func (d *DeckCard) String() string {
 	return strings.Replace(s, old, new, 1)
 }
 
+// Rarity returns the string representation of d.Copies().
 func (d *DeckCard) Rarity() string {
-	switch d.copies {
-	case 1:
-		return "rare"
-	case 2:
-		return "uncommon"
-	case 3:
-		return "common"
+	rarities := map[int]string{
+		1: "rare",
+		2: "uncommon",
+		3: "common",
 	}
-	return ""
+	return rarities[d.copies]
 }
 
+// SetRarity sets the DeckCard's copies to *r. If r is nil,
+// d remains unchanged.
 func (d *DeckCard) SetRarity(r *int) {
 	if r != nil {
 		d.copies = *r
 	}
 }
 
+// Labels returns the column labels to use when marshaling d into to csv format.
 func (d *DeckCard) Labels() []string {
 	labels := append(d.card.Labels(), "cost", "type", "border_normal", "action",
 		"event", "continuous", "item", "show_resolve", "show_speed",
@@ -77,6 +80,14 @@ func (d *DeckCard) Labels() []string {
 	return labels
 }
 
+// NormalBorder returns whether or not to show the normal border
+// when applying this card to the Photoshop template.
+//
+// NormalBorder will return false for any card with one of the following attributes:
+// 		- "Rare" rarity.
+// 		- "Action" card type.
+// 		- "Item" card type.
+// 		- "Continuous" super type.
 func (d *DeckCard) NormalBorder() bool {
 	switch {
 	case d.copies == 1:
@@ -94,6 +105,8 @@ func (d *DeckCard) NormalBorder() bool {
 	}
 }
 
+// CSV returns the card in CSV format. If labels is true,
+// the first row of the output will be the contents of d.Labels().
 func (d *DeckCard) CSV(labels bool) [][]string {
 	out := d.card.CSV(true)
 	out[0] = d.Labels()
@@ -190,6 +203,7 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 	return out[1:]
 }
 
+// Type returns the card's type.
 func (d *DeckCard) Type() string {
 	if d.cardType == "Hero" {
 		return "Deck Hero"
@@ -197,15 +211,17 @@ func (d *DeckCard) Type() string {
 	return d.card.Type()
 }
 
+// Images returns any and all paths to Images with this card name.
+// Multiple Images may exist to account for cameos, etc.
 func (d *DeckCard) Images() (paths []string, err error) {
 	// Path to a subfolder, assuming the card has multiple images.
 	path := filepath.Join(ImageDir, d.leader, d.Name())
 	// If the card does not have a subfolder, check in the main folder for
 	// an image file.
 	if _, err = os.Stat(path); os.IsNotExist(err) {
-		// If found, return it, if not, throw an error.
+		// If found, return it, if not, return an error.
 		if _, err = os.Stat(path + ".png"); os.IsNotExist(err) {
-			return []string{DefaultImage}, fmt.Errorf(`No image found for card '%s'`, d.name)
+			return []string{filepath.Join(ImageDir, DefaultImage)}, fmt.Errorf(`No image found for card '%s'`, d.name)
 		}
 		return []string{path + ".png"}, nil
 	}

@@ -25,7 +25,7 @@ func TestConf_Load(t *testing.T) {
 		return f
 	}
 	// Config for "Current" test.
-	curr := Config{
+	current := Config{
 		PS: cfgPS{
 			Dir:     `F:\GitLab\dreamkeepers-psd`,
 			Deck:    `Template009.1.psd`,
@@ -40,9 +40,9 @@ func TestConf_Load(t *testing.T) {
 			SSL:  false,
 		},
 	}
-	currFile := tmpCfg("currentConfig", curr)
+	FCurrent := tmpCfg("currentConfig", current)
 	def := *DefaultCfg()
-	defFile := tmpCfg("defaultConfig", def)
+	FDef := tmpCfg("defaultConfig", def)
 
 	tests := []struct {
 		name    string
@@ -50,8 +50,8 @@ func TestConf_Load(t *testing.T) {
 		want    Config
 		wantErr bool
 	}{
-		{"None", defFile.Name(), def, false},
-		{"Current", currFile.Name(), curr, false},
+		{"None", FDef.Name(), def, false},
+		{"Current", FCurrent.Name(), current, false},
 		// TODO(sbrow): Re-enable TestConf_Load tests.
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
@@ -117,7 +117,7 @@ func TestConf_Save(t *testing.T) {
 	}
 }
 
-func TestConf_SetEnvs(t *testing.T) {
+func TestConf_SetEnvVars(t *testing.T) {
 	user, err := user.Current()
 	if err != nil {
 		t.Fatal("Could not get current user.")
@@ -137,12 +137,12 @@ func TestConf_SetEnvs(t *testing.T) {
 				t.Errorf("Conf.setEnv() error = %v", err)
 			}
 			gotPS := os.Getenv("SK_PS")
-			gotDB := os.Getenv("SK_SQL")
+			gotDB := Cfg.DB.Dir
 			if gotPS != tt.ps {
-				t.Errorf("loadEnvs() = %v, want %v", gotPS, tt.ps)
+				t.Errorf("loadEnvVars() = %v, want %v", gotPS, tt.ps)
 			}
 			if gotDB != tt.db {
-				t.Errorf("loadEnvs() = %v, want %v", gotPS, tt.db)
+				t.Errorf("loadEnvVars() = %v, want %v", gotPS, tt.db)
 			}
 		})
 	}

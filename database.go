@@ -17,16 +17,16 @@ import (
 var db *sql.DB
 
 // Connect connects to a postgreSQL database with the given options:
-// host is the ip of the server,
-// port is the server port,
-// DBName is the name of the database,
-// user is the username, and
-// sslmode declares which ssl mode to use.
+// 		- host is the ip of the server.
+// 		- port is the server port.
+// 		- dbname is the name of the database.
+// 		- user is the username.
+// 		- sslmode declares which ssl mode to use.
 //
-// See github.com/lib/pq for more information on sslmode.
-func Connect(host string, port int, DBName, user, sslmode string) error {
+// See package github.com/lib/pq for more information on sslmode.
+func Connect(host string, port int, dbname, user, sslmode string) error {
 	connStr := fmt.Sprintf("host=%s port=%d dbname=%s user=%s sslmode=%s",
-		host, port, DBName, user, sslmode)
+		host, port, dbname, user, sslmode)
 	pwd, ok := os.LookupEnv("PSQL_PWD")
 	if ok && !(user == "guest") {
 		connStr += fmt.Sprintf(" password=%s", pwd)
