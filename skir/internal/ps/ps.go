@@ -24,7 +24,9 @@ var CmdPS = &base.Command{
 func Run(cmd *base.Command, args []string) {
 	log.SetPrefix("[ps] ")
 	log.Println("Opening Photoshop")
-	app.Open(ps.CardTemplate)
+	if err := app.Open(ps.CardTemplate); err != nil {
+		base.Fatalf("%s", err)
+	}
 	var leaders []string
 	var condition string
 
@@ -73,12 +75,12 @@ func Run(cmd *base.Command, args []string) {
 			" then press enter to continue")
 		wg.Wait()
 		for _, card := range cards {
-			imgs, err := card.Images()
+			images, err := card.Images()
 			if err != nil {
 				log.Println("ERROR:", err)
-				imgs = []string{"1"}
+				images = []string{"1"}
 			}
-			for i := range imgs {
+			for i := range images {
 				d.ApplyDataset(fmt.Sprintf("%s_%d", card.Name(), i+1))
 				d.PNG(false)
 			}

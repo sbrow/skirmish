@@ -17,10 +17,6 @@ func init() {
 	Cfg = &Config{}
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
 		log.Println(err)
-	} else {
-		if err := Cfg.setEnvVars(); err != nil {
-			log.Println(err)
-		}
 	}
 	ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 	Cfg.DB.Dir = filepath.Join(Cfg.DB.Dir)
@@ -158,15 +154,4 @@ func (c *Config) Save(path string) error {
 		return err
 	}
 	return f.Close()
-}
-
-// setEnvVars synchronizes some environment variables with the Config.
-func (c *Config) setEnvVars() error {
-	if err := os.Setenv("SK_PS", c.PS.Dir); err != nil {
-		return err
-	}
-	if err := os.Setenv("SK_SQL", c.DB.Dir); err != nil {
-		return err
-	}
-	return nil
 }

@@ -71,8 +71,6 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	if ps.Mode == ps.Fast && n.Dataset == name && n.Card != nil {
 		return
 	}
-	id := name
-
 	card, err := skirmish.Load(name)
 	if err != nil {
 		n.Doc.Dump()
@@ -81,9 +79,10 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	n.Card = card
 
 	n.SetLeader(n.Card.Leader())
-	if strings.Contains(name, "(Halo)") {
-		tmp := strings.Split(name, " ")
-		name = tmp[0]
+	id := name
+	if strings.Contains(id, "(Halo)") {
+		tmp := strings.Split(id, " ")
+		id = tmp[0]
 	}
 	n.template.ApplyDataset(id)
 }

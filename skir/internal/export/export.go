@@ -91,7 +91,7 @@ func DataSet(name, query string) error {
 
 // UEJSON generates JSON files for import into Unreal Engine.
 func UEJSON() {
-	if err := os.Mkdir("Unreal_JSONs", 0777); err != nil {
+	if err := os.Mkdir("Unreal_JSONs", 0700); err != nil {
 		base.Errorf(err.Error())
 	}
 	wg := &sync.WaitGroup{}

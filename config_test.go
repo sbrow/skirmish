@@ -3,8 +3,6 @@ package skirmish
 import (
 	"io/ioutil"
 	"os"
-	"os/user"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -55,7 +53,7 @@ func TestConf_Load(t *testing.T) {
 		// TODO(sbrow): Re-enable TestConf_Load tests.
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
-		// {"Default_NoArgs", "", curr, false},
+		// {"Default_NoArgs", "", current, false},
 
 		{"FakeConfig", "fake_config.yml", Config{}, true},
 	}
@@ -112,37 +110,6 @@ func TestConf_Save(t *testing.T) {
 			}
 			if string(got) != string(want) {
 				t.Errorf("Conf.Save() = %v, want %v", string(got), string(want))
-			}
-		})
-	}
-}
-
-func TestConf_SetEnvVars(t *testing.T) {
-	user, err := user.Current()
-	if err != nil {
-		t.Fatal("Could not get current user.")
-	}
-	tests := []struct {
-		name    string
-		cfg     Config
-		ps      string
-		db      string
-		wantErr bool
-	}{
-		{"Default", *DefaultCfg(), filepath.Join(user.HomeDir, "dreamkeepers-psd"), filepath.Join(user.HomeDir, "dreamkeepers-dat"), false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.setEnvVars(); (err != nil) != tt.wantErr {
-				t.Errorf("Conf.setEnv() error = %v", err)
-			}
-			gotPS := os.Getenv("SK_PS")
-			gotDB := Cfg.DB.Dir
-			if gotPS != tt.ps {
-				t.Errorf("loadEnvVars() = %v, want %v", gotPS, tt.ps)
-			}
-			if gotDB != tt.db {
-				t.Errorf("loadEnvVars() = %v, want %v", gotPS, tt.db)
 			}
 		})
 	}

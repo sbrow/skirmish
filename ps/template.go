@@ -3,7 +3,6 @@ package ps
 import (
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -41,7 +40,7 @@ type template struct {
 // TODO(sbrow): Recover - run in safe mode.
 func New(mode ps.ModeEnum, file string) *template {
 	t := &template{}
-	ps.Open(file)
+	Error(ps.Open(file))
 	ps.Mode = mode
 	log.Printf("Creating new template with mode %d", mode)
 	doc, err := ps.ActiveDocument()
@@ -83,10 +82,10 @@ func (t *template) AddSymbols() {
 	}
 	temp := reg.FindStringIndex(t.Short.TextItem.Contents())
 	if temp == nil {
-		t.ResolveSymbol.SetVisible(false)
+		Error(t.ResolveSymbol.SetVisible(false))
 		return
 	}
-	t.ResolveSymbol.SetVisible(true)
+	Error(t.ResolveSymbol.SetVisible(true))
 
 	// Reverse engineer the line breaks in the text.
 	lineHeight := 30
@@ -128,12 +127,12 @@ func (t *template) AddSymbols() {
 			y := t.Short.Y2()
 			// Get the BR x val
 			t.Short.TextItem.SetText(rows[i][:temp[1]])
-			t.Bold()
-			t.Short.Refresh()
+			Error(t.Bold())
+			Error(t.Short.Refresh())
 			x := t.Short.X2()
 
 			// Move it.
-			t.ResolveSymbol.SetVisible(true)
+			Error(t.ResolveSymbol.SetVisible(true))
 			t.ResolveSymbol.SetPos(x+13, y+7, "BR")
 		}
 	}
@@ -157,33 +156,33 @@ func (t *template) ApplyDataset(id string) {
 		}
 		t.Card = card
 	}
-	ps.ApplyDataset(id)
+	Error(ps.ApplyDataset(id))
 	for _, lyr := range t.Doc.ArtLayers() {
 		if lyr.Name() == "card_image" {
-			lyr.Refresh()
+			Error(lyr.Refresh())
 		}
 	}
-	t.Flavor.Refresh()
-	t.ID.Refresh()
+	Error(t.Flavor.Refresh())
+	Error(t.ID.Refresh())
 	// TODO(sbrow): Skip the rest if id is different but name is not
 	if t.Name.TextItem.Contents() == name && t.ID.TextItem.Contents() != id {
 		fmt.Println("Skipping")
 		return
 	}
 
-	t.Name.Refresh()
-	t.Resolve.Refresh()
-	t.Speed.Refresh()
-	t.Life.Refresh()
-	t.Damage.Refresh()
-	t.Short.Refresh()
-	t.Long.Refresh()
+	Error(t.Name.Refresh())
+	Error(t.Resolve.Refresh())
+	Error(t.Speed.Refresh())
+	Error(t.Life.Refresh())
+	Error(t.Damage.Refresh())
+	Error(t.Short.Refresh())
+	Error(t.Long.Refresh())
 	// TODO(sbrow): (5) pprof: Improved, but can still be better.
 	for _, lyr := range t.DeckInd.ArtLayers() {
-		lyr.Refresh()
+		Error(lyr.Refresh())
 	}
-	t.ResolveBG.Refresh()
-	t.SpeedBG.Refresh()
+	Error(t.ResolveBG.Refresh())
+	Error(t.SpeedBG.Refresh())
 }
 
 func (t *template) Bold() error {
@@ -195,7 +194,9 @@ func (t *template) Bold() error {
 		return err
 	}
 	bold := reg.FindAllStringIndex(t.Short.TextItem.Contents(), -1)
-	t.Short.SetActive()
+	if _, err := t.Short.SetActive(); err != nil {
+		Error(err)
+	}
 	t.Short.Fmt(0, len(t.Short.TextItem.Contents()), "Arial", "Regular")
 	for _, rng := range bold {
 		t.Short.TextItem.Fmt(rng[0], rng[1], "Arial", "Bold")
@@ -212,12 +213,12 @@ func (t *template) FormatTextbox() {
 	if t.Speed.Visible() {
 		t.Speed.SetColor(ps.ColorGray)
 	}
-	t.Short.SetVisible(t.Short.TextItem != nil)
-	t.Long.SetVisible(t.Long.TextItem != nil && t.Long.TextItem.Contents() != "")
-	t.Flavor.SetVisible(t.Flavor.TextItem != nil)
+	Error(t.Short.SetVisible(t.Short.TextItem != nil))
+	Error(t.Long.SetVisible(t.Long.TextItem != nil && t.Long.TextItem.Contents() != ""))
+	Error(t.Flavor.SetVisible(t.Flavor.TextItem != nil))
 
 	t.AddSymbols()
-	t.Bold()
+	Error(t.Bold())
 
 	t.ShortBG.SetPos(t.ShortBG.X1(), t.Short.Y2()+Tolerances["short"], "BL")
 	t.Long.SetPos(t.Long.X1(), t.ShortBG.Y2()+Tolerances["long"], "TL")
@@ -225,10 +226,10 @@ func (t *template) FormatTextbox() {
 
 	if t.Long.Visible() {
 		if t.Long.Y2() > bot {
-			t.Long.SetVisible(false)
+			Error(t.Long.SetVisible(false))
 		}
 		if t.Flavor.Visible() && t.Long.Y2() > t.Flavor.Y1() {
-			t.Flavor.SetVisible(false)
+			Error(t.Flavor.SetVisible(false))
 		}
 	}
 }
@@ -240,7 +241,7 @@ func (t *template) FormatTextbox() {
 func (t *template) PNG(crop bool) error {
 	log.Println("Saving copy as PNG")
 
-	path := filepath.Join(os.Getenv("SK_PS"), "Decks", t.Card.Leader(), t.ID.TextItem.Contents())
+	path := filepath.Join(skirmish.Cfg.PS.Dir, "Decks", t.Card.Leader(), t.ID.TextItem.Contents())
 	if t.Card.Leader() == "" {
 		path = strings.Replace(path, "//", "/Heroes/", 1)
 	}
@@ -257,9 +258,7 @@ func (t *template) PNG(crop bool) error {
 			}
 		}()
 	}
-
-	return ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", t.Card.Leader(),
-		t.ID.TextItem.Contents()))
+	return ps.SaveAs(path)
 }
 func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stroke, err error) {
 	for _, ldr := range skirmish.Leaders {
@@ -270,14 +269,14 @@ func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stro
 		}
 		leaderInd := t.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
 		if ind != nil {
-			leaderInd.SetVisible(ldr.Name == name)
+			Error(leaderInd.SetVisible(ldr.Name == name))
 		} else {
 			err := fmt.Errorf("no Layer found at \"%s%s\"", t.DeckInd.Path(), ldr.Name)
 			return banner, ind, barStroke, err
 		}
 	}
 	if banner == nil || ind == nil {
-		return banner, ind, barStroke, fmt.Errorf("Leader \"%s\" not found!", name)
+		return banner, ind, barStroke, fmt.Errorf("leader \"%s\" not found", name)
 	}
 	t.ResolveBG.SetColor(banner)
 	t.Speed.SetStroke(barStroke, ps.ColorGray)

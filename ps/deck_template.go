@@ -15,6 +15,7 @@ import (
 // CardTemplate holds the path to the Photoshop Template for Deck Cards.
 var CardTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
 
+// DeckTemplate is the Template for leader and partner hero cards.
 type DeckTemplate struct {
 	template
 	Banners    *ps.LayerSet
@@ -52,13 +53,13 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 	return d
 }
 
-// ApplyDataset applies the given dataset,
-// selects card data from the sql server,
-// checks all its values against the active document,
-// updates any fields that were changed,
-// and then calls any necessary formatting functions.
+// ApplyDataset performs the following actions:
+// 		1. Applies the given dataset.
+// 		2. Selects card data from the sql server.
+//		3. Checks all its values against the active document.
+// 		4. Updates any fields that were changed.
+// 		5. Calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
-
 	// Skip if dataset already applied.
 	if ps.Mode == ps.Fast && d.Dataset == id && d.Card != nil {
 		if d.Card.Name() == id {
@@ -79,19 +80,19 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 
 	// TODO(sbrow): run d.Template.ApplyDataset as a go routine?
 	d.template.ApplyDataset(id)
-	d.Type.Refresh()
+	Error(d.Type.Refresh())
 
 	// Update layer data
-	d.Cost.Refresh()
-	d.HeroLife.Refresh()
-	d.RarityInd.Refresh()
-	d.HeroLifeBG.Refresh()
-	d.DamageBG.Refresh()
-	d.LifeBG.Refresh()
-	d.TypeInd.Refresh()
+	Error(d.Cost.Refresh())
+	Error(d.HeroLife.Refresh())
+	Error(d.RarityInd.Refresh())
+	Error(d.HeroLifeBG.Refresh())
+	Error(d.DamageBG.Refresh())
+	Error(d.LifeBG.Refresh())
+	Error(d.TypeInd.Refresh())
 
 	// doc.LayerSet("Border").Refresh() // TODO(sbrow): Fix Border.Refresh()
-	d.FormatTitle()
+	Error(d.FormatTitle())
 	d.FormatTextbox()
 }
 
@@ -154,14 +155,14 @@ func (d *DeckTemplate) FormatTitle() error {
 	for _, lyr := range d.Banners.ArtLayers() {
 		if !found && d.Name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
 			found = true
-			lyr.SetVisible(true)
+			Error(lyr.SetVisible(true))
 		} else {
-			lyr.SetVisible(false)
+			Error(lyr.SetVisible(false))
 		}
 	}
 	if !found {
 		d.Doc.Dump()
-		return errors.New("Title too long.")
+		return errors.New("given title is too long")
 	}
 	return nil
 }
