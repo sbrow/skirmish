@@ -11,6 +11,7 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
+// Template represents a Photoshop Template for Skirmish Cards.
 type Template interface {
 	ApplyDataset(id string)
 	GetDoc() *ps.Document
@@ -38,7 +39,7 @@ type template struct {
 }
 
 // TODO(sbrow): Recover - run in safe mode.
-func New(mode ps.ModeEnum, file string) *template {
+func new(mode ps.ModeEnum, file string) *template {
 	t := &template{}
 	Error(ps.Open(file))
 	ps.Mode = mode

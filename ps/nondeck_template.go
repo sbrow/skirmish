@@ -14,6 +14,7 @@ import (
 // HeroTemplate holds the path to the NonDeckCard Photoshop Template.
 var HeroTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
 
+// NonDeckTemplate is the Template to use for leader and partner hero cards.
 type NonDeckTemplate struct {
 	template
 	Plus     *ps.ArtLayer
@@ -24,9 +25,14 @@ type NonDeckTemplate struct {
 	BtmBG    *ps.ArtLayer
 }
 
+// NewNonDeck returns a new DeckTemplate object, pulling values
+// from the .psd file.
+//
+// NewNonDeck will open Photoshop and the corresponding Template .psd if
+// it is not currently open.
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	log.SetPrefix("[ps.NewNonDeck] ")
-	n := &NonDeckTemplate{template: *New(mode, HeroTemplate)}
+	n := &NonDeckTemplate{template: *new(mode, HeroTemplate)}
 	areas := n.Doc.MustExist("Areas").(*ps.LayerSet)
 	if areas == nil {
 		log.Panic("LayerSet \"Areas\" was not found!")
@@ -66,6 +72,12 @@ func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	return n
 }
 
+// ApplyDataset performs the following actions:
+// 		1. Applies the given dataset.
+// 		2. Selects card data from the sql server.
+//		3. Checks all its values against the active document.
+// 		4. Updates any fields that were changed.
+// 		5. Calls any necessary formatting functions.
 func (n *NonDeckTemplate) ApplyDataset(name string) {
 	// Skip if dataset already applied.
 	if ps.Mode == ps.Fast && n.Dataset == name && n.Card != nil {
@@ -87,10 +99,13 @@ func (n *NonDeckTemplate) ApplyDataset(name string) {
 	n.template.ApplyDataset(id)
 }
 
+// GetDoc returns the Document associated with this Template.
 func (n *NonDeckTemplate) GetDoc() *ps.Document {
 	return n.Doc
 }
 
+// SetLeader changes fill layers that contain a leader color,
+// and sets them to the colors of the given leader.
 func (n *NonDeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := n.template.SetLeader(name)
 	if err != nil {
