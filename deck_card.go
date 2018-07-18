@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// DeckCard is a card that goes in a leader's deck.
 type DeckCard struct {
 	card
 	cost   string
 	copies int
 }
 
+// NewDeckCard returns a pointer to a new, empty DeckCard.
 func NewDeckCard() *DeckCard {
 	return &DeckCard{}
 }
@@ -29,6 +31,8 @@ func (d *DeckCard) SetCard(c Card) {
 	d.card = c.Card()
 }
 
+// Cost returns the DeckCard's cost.
+// Cost always returns a nil error
 func (d *DeckCard) Cost() (string, error) {
 	return fmt.Sprint(d.cost), nil
 }
@@ -104,9 +108,9 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 				log.Panic(err)
 			}
 		case "type":
-			if len(d.stype) > 0 {
+			if len(d.superTypes) > 0 {
 				out[1] = append(out[1], fmt.Sprintf("%s %s",
-					strings.Join(d.stype, " "), d.Type()))
+					strings.Join(d.superTypes, " "), d.Type()))
 			} else {
 				out[1] = append(out[1], d.Type())
 			}
@@ -139,11 +143,11 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
 		}
 	}
-	imgs, err := d.Images()
+	images, err := d.Images()
 	if err != nil {
 		log.Println(err)
 	}
-	tmp := make([][]string, len(imgs)+1, len(out[0]))
+	tmp := make([][]string, len(images)+1, len(out[0]))
 	imgIdx, typeIdx := -1, -1
 	for j, col := range out[0] {
 		switch col {
@@ -166,19 +170,19 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 	tmp[1] = out[1]
 	out = tmp
 	out[1][0] = fmt.Sprintf("%s_%d", d.name, 1)
-	out[1][imgIdx] = imgs[0]
-	if len(imgs) > 1 {
+	out[1][imgIdx] = images[0]
+	if len(images) > 1 {
 		out[1][typeIdx] = fmt.Sprintf("%s- %s", out[1][typeIdx],
-			strings.TrimSuffix(filepath.Base(imgs[0]), ".png"))
+			strings.TrimSuffix(filepath.Base(images[0]), ".png"))
 	}
-	for j := 2; j <= len(imgs); j++ {
+	for j := 2; j <= len(images); j++ {
 		out[j] = make([]string, len(out[j-1]))
 		copy(out[j], out[j-1])
 		out[j][0] = fmt.Sprintf("%s_%d", d.name, j)
-		out[j][imgIdx] = imgs[j-1]
+		out[j][imgIdx] = images[j-1]
 		out[j][typeIdx] = fmt.Sprintf("%s- %s",
 			strings.Split(out[j-1][typeIdx], "-")[0],
-			strings.TrimSuffix(filepath.Base(imgs[j-1]), ".png"))
+			strings.TrimSuffix(filepath.Base(images[j-1]), ".png"))
 	}
 	if labels {
 		return out
@@ -187,7 +191,7 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 }
 
 func (d *DeckCard) Type() string {
-	if d.ctype == "Hero" {
+	if d.cardType == "Hero" {
 		return "Deck Hero"
 	}
 	return d.card.Type()

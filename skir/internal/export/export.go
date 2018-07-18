@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/cmd/skir/internal/base"
+	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
 func init() {

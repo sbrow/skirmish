@@ -16,7 +16,7 @@ import (
 var CardTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
 
 type DeckTemplate struct {
-	Template
+	template
 	Banners    *ps.LayerSet
 	Cost       *ps.ArtLayer
 	Type       *ps.ArtLayer
@@ -30,7 +30,7 @@ type DeckTemplate struct {
 }
 
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{Template: *New(mode, CardTemplate)}
+	d := &DeckTemplate{template: *New(mode, CardTemplate)}
 	txt := d.Doc.MustExist("Text").(*ps.LayerSet)
 	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).MustExist("TitleBackground").(*ps.LayerSet)
 	if ps.Mode == 2 {
@@ -58,14 +58,14 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 // updates any fields that were changed,
 // and then calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
-	name := strings.TrimRight(id, `_123`)
 
 	// Skip if dataset already applied.
 	if ps.Mode == ps.Fast && d.Dataset == id && d.Card != nil {
-		if d.Card.Name() == name {
+		if d.Card.Name() == id {
 			return
 		}
 	}
+	name := strings.TrimRight(id, `_123`)
 
 	card, err := skirmish.Load(name)
 	if err != nil {
@@ -78,7 +78,7 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.SetLeader(d.Card.Leader())
 
 	// TODO(sbrow): run d.Template.ApplyDataset as a go routine?
-	d.Template.ApplyDataset(id, name)
+	d.template.ApplyDataset(id)
 	d.Type.Refresh()
 
 	// Update layer data
@@ -95,16 +95,18 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	d.FormatTextbox()
 }
 
+func (d *DeckTemplate) GetDoc() *ps.Document {
+	return d.Doc
+}
+
 // TODO(sbrow): Fix DeckTemplate.SetLeader skip
 func (d *DeckTemplate) SetLeader(name string) {
-	// if ps.Mode == 2 && name == d.Card.Leader() {
-	// 	return
-	// }
-	banner, ind := d.Template.SetLeader(name)
-
-	rarity := ps.Compare(banner, ind)
-	barStroke := ps.Stroke{Size: 4, Color: banner}
+	banner, ind, barStroke, err := d.template.SetLeader(name)
+	if err != nil {
+		log.Panic(err) // TODO(sbrow): Remove panic in DeckTemplate.SetLeader
+	}
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
+	rarity := ps.Compare(banner, ind)
 	rarities := d.RarityInd.ArtLayers()
 
 	if d.Card != nil &&
@@ -140,7 +142,7 @@ func (d *DeckTemplate) FormatTextbox() {
 	} else {
 		d.Type.TextItem.SetSize(10.0)
 	}
-	d.Template.FormatTextbox()
+	d.template.FormatTextbox()
 }
 
 // FormatTitle finds the correct length background for the card's title, makes
@@ -162,37 +164,4 @@ func (d *DeckTemplate) FormatTitle() error {
 		return errors.New("Title too long.")
 	}
 	return nil
-}
-
-// PNG saves a copy the produced card image as a .png file in the appropriate
-// subfolder of  "SK_OUT".
-// If crop is true, the bleed area around the card is cropped out of the image
-// before saving.
-func (d *DeckTemplate) PNG(crop bool) {
-	log.Println("Saving copy as PNG")
-	if !crop {
-		err := ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
-			d.ID.TextItem.Contents()))
-		if err != nil {
-			d.Doc.Dump()
-			log.Panic(err)
-		}
-		return
-	}
-	err := ps.DoAction("DK", "Crop")
-	if err != nil {
-		d.Doc.Dump()
-		log.Panic(err)
-	}
-	err = ps.SaveAs(filepath.Join(os.Getenv("SK_PS"), "Decks", d.Card.Leader(),
-		d.ID.TextItem.Contents()))
-	if err != nil {
-		d.Doc.Dump()
-		log.Panic(err)
-	}
-	err = ps.DoAction("DK", "Undo")
-	if err != nil {
-		d.Doc.Dump()
-		log.Panic(err)
-	}
 }

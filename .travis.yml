@@ -1,7 +1,20 @@
-language: go
+addons:
+  postgresql: "9.6"
+  # postgresql: "10"
+
+  # apt:
+    # packages:
+    # - postgresql-10
+    # - postgresql-client-10
 
 services:
   - postgresql
+
+env:
+  global:
+    - PGPORT=5432
+
+language: go
 
 install:
   - go get -t ./...

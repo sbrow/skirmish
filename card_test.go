@@ -12,21 +12,19 @@ import (
 
 var cols []string
 
-func execDB(query string, args ...interface{}) {
-	_, err := db.Exec(query, args...)
-	if err != nil {
-		log.Print(query)
-		log.Println(args...)
-		log.Fatal(err)
-	}
-}
-
 func createDB() {
-	err := Connect("localhost", 5432, "postgres", "postgres", "disable")
+	err := Connect(LocalDB.DBArgs())
 	if err != nil {
 		log.Fatal(err)
 	}
-	execDB("DROP TABLE IF EXISTS cards")
+	_, err = Exec("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = Exec("DROP TABLE IF EXISTS cards CASCADE")
+	if err != nil {
+		log.Fatal(err)
+	}
 	cards := `CREATE TABLE cards (`
 	for i, c := range cols {
 		cards += fmt.Sprintf("\n\t%s TEXT", c)
@@ -35,7 +33,7 @@ func createDB() {
 		}
 	}
 	cards += "\n)"
-	execDB(cards)
+	Exec(cards)
 }
 func insertRecords(records ...Card) {
 	query := `INSERT INTO cards VALUES`
@@ -61,33 +59,29 @@ func insertRecords(records ...Card) {
 			val := r.(*NonDeckCard)
 			sql += fmt.Sprintf(", NULL, NULL, NULL, '%s', '%s', '%d', '%d', '%s', %s, %s",
 				*val.resolveB, val.LifeB(), val.SpeedB(), val.DamageB(), *val.shortB, "NULL", "NULL")
+		case *card:
+			val := r.(*card)
+			sql += fmt.Sprintf(", NULL, NULL, '%s'", val.Leader())
+			sql += fmt.Sprintf(",NULL, NULL, NULL, NULL, NULL, NULL, NULL")
 		}
 		query += fmt.Sprintf("\n%s, '%s')", sql, r.Regexp())
 		if i+1 != len(records) {
 			query += ","
 		}
 	}
-	execDB(query + ";")
-}
-
-func init() {
-	cols = make([]string, len(props))
-	for i, p := range props {
-		cols[i] = strings.TrimPrefix(p, "cards.")
-	}
-	createDB()
+	Exec(query)
 }
 
 func TestLoad(t *testing.T) {
 	Ignite := &DeckCard{
 		card: card{
-			name:    "Ignite",
-			leader:  "Bast",
-			ctype:   "Action",
-			stype:   []string{"Channeled"},
-			resolve: "",
-			stats:   stats{},
-			short:   "Deal 3 to a hero.",
+			name:       "Ignite",
+			leader:     "Bast",
+			cardType:   "Action",
+			superTypes: []string{"Channeled"},
+			resolve:    "",
+			stats:      stats{},
+			short:      "Deal 3 to a hero.",
 			long: "Ignite can be played on leaders, partners, or deck heroes." +
 				"\rChanneled cards must be played with their leader's resolve.",
 			flavor: "There are two kinds of things in this world-" +
@@ -99,18 +93,26 @@ func TestLoad(t *testing.T) {
 	}
 	Bast := &NonDeckCard{
 		card: card{
-			name:    "Bast",
-			leader:  "",
-			ctype:   "Hero",
-			stype:   []string{"Leader"},
-			resolve: "+2",
-			stats:   stats{speed: 1, damage: 1, life: 14},
-			short:   "Uncontested- +2/+0.",
-			long:    "A Lane is uncontested if it is not contested.",
-			flavor:  "Sometimes loyalty means not asking questions.",
-			regexp:  `(\+2/\+0.)|(Uncontested-)`,
+			name:       "Bast",
+			leader:     "",
+			cardType:   "Hero",
+			superTypes: []string{"Leader"},
+			resolve:    "+2",
+			stats:      stats{speed: 1, damage: 2, life: 14},
+			short:      "Uncontested- +2/+0.",
+			long:       "A Lane is uncontested if it is not contested.",
+			flavor:     "Sometimes loyalty means not asking questions.",
+			regexp:     `(\+2/\+0.)|(Uncontested-)`,
 		},
 		faction: "Troika",
+	}
+	Basic := &card{
+		name:     "John Doe",
+		leader:   "Blarg",
+		cardType: "Action",
+		short:    "Do a thing.",
+		long:     "You can do any kind of thing.",
+		flavor:   "Helps to have a map.",
 	}
 	speed := 1
 	Bast.SetSpeedB(&speed)
@@ -122,7 +124,16 @@ func TestLoad(t *testing.T) {
 	Bast.SetLifeB(&life)
 	short := "Cards that channel Bast deal +1.\nPay 1 speed: flip Bast."
 	Bast.SetShortB(&short)
-	insertRecords(Ignite, Bast)
+
+	DBMutex.Lock()
+	defer DBMutex.Unlock()
+	cols = make([]string, len(props))
+	for i, p := range props {
+		cols[i] = strings.TrimPrefix(p, "cards.")
+	}
+	createDB()
+	insertRecords(Ignite, Bast, Basic)
+	db = nil
 	t.Run("One", func(t *testing.T) {
 		tests := []struct {
 			name    string
@@ -130,9 +141,12 @@ func TestLoad(t *testing.T) {
 			errWant bool
 		}{
 			{Ignite.Name(), Ignite, false},
+			{Ignite.Name(), Ignite, false},
 			{Bast.Name(), Bast, false},
+			{Basic.Name(), Basic, false},
 
 			{"Unknown_Card", nil, true},
+			{"Igrath", nil, true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -189,57 +203,6 @@ func TestStatsString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.String(); got != tt.want {
 				t.Errorf("stats.String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_card_String(t *testing.T) {
-	tests := []struct {
-		name string
-		c    *card
-		want string
-	}{
-		// TODO(sbrow): Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.c.String(); got != tt.want {
-				t.Errorf("card.String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDeckCard_String(t *testing.T) {
-	tests := []struct {
-		name string
-		d    *DeckCard
-		want string
-	}{
-		// TODO(sbrow): Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.d.String(); got != tt.want {
-				t.Errorf("DeckCard.String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNonDeckCard_String(t *testing.T) {
-	tests := []struct {
-		name string
-		n    *NonDeckCard
-		want string
-	}{
-		// TODO(sbrow): Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.n.String(); got != tt.want {
-				t.Errorf("NonDeckCard.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -19,7 +19,7 @@ default: version fmt build test clean install docs lint
 fast: version test install docs
 
 version:
-	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./cmd/skir/internal/version/version.go
+	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./skir/internal/version/version.go
 
 fmt:
 	goimports -w ./..
@@ -33,6 +33,7 @@ test: fmt
 
 clean:
 	$(GOCLEAN) ./...
+	rm cover.out
 
 lint: fmt
 	gometalinter.v2 --enable-gc --cyclo-over=15 ./...

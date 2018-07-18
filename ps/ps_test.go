@@ -55,12 +55,27 @@ func TestGetTolerances(t *testing.T) {
 	tests := []struct {
 		name       string
 		tolerances map[string]int
+		wantErr    bool
 	}{
-		{"", map[string]int{"title": 55, "short": 17, "long": 13, "flavor": 80, "bottom": 65}},
+		{"DB", map[string]int{
+			"title":  55,
+			"short":  17,
+			"long":   13,
+			"flavor": 80,
+			"bottom": 65,
+		}, false},
+
+		{"WrongDB", map[string]int{}, true},
+		// {"EmptyTable", map[string]int{}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			GetTolerances()
+			if tt.name == "WrongDB" {
+				skirmish.Connect(skirmish.LocalDB.DBArgs())
+			}
+			if err := GetTolerances(); (err != nil) != tt.wantErr {
+				t.Errorf("GetTolerances() error = %v, wantErr %v", err, tt.wantErr)
+			}
 			if !reflect.DeepEqual(Tolerances, tt.tolerances) {
 				t.Errorf("wanted: %+v\ngot: %+v", Tolerances, tt.tolerances)
 			}

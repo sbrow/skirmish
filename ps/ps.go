@@ -21,10 +21,7 @@ type psError struct {
 }
 
 func (e *psError) String() string {
-	if e.ok {
-		return fmt.Sprintf(`%s error at %s:%d %s` /*e.time*/, "", e.file, e.line, e.err)
-	}
-	return fmt.Sprintf(`%s error at {corrupted_data} %s` /*e.time*/, "", e.err)
+	return fmt.Sprintf(`%s error at %s:%d %s` /*e.time*/, "", e.file, e.line, e.err)
 }
 
 // Error adds an error to the list of runtime errors that have occurred so far.
@@ -48,22 +45,20 @@ var Errors []psError
 // Tolerances holds values for offset of template objects.
 var Tolerances map[string]int
 
-// TODO(sbrow): Cover GetTolerances
-func GetTolerances() {
+func GetTolerances() error {
 	Tolerances = make(map[string]int)
 	rows, err := skirmish.Query("SELECT name, px FROM tolerances;")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var name string
 		var px int
-		if err := rows.Scan(&name, &px); err != nil {
-			log.Fatal(err)
-		}
+		rows.Scan(&name, &px)
 		Tolerances[name] = px
 	}
+	return nil
 }
 func init() {
 	Errors = []psError{}

@@ -18,7 +18,9 @@ func init() {
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
 		log.Println(err)
 	} else {
-		Cfg.setEnvs()
+		if err := Cfg.setEnvVars(); err != nil {
+			log.Println(err)
+		}
 	}
 	ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
 	DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
@@ -42,6 +44,18 @@ type cfgPS struct {
 
 // Cfg holds the currently loaded configuration settings.
 var Cfg *Config
+
+// LocalDB holds the configuration for connecting to the default, local postgres database.
+// It is primarily used for running tests.
+var LocalDB = &Config{
+	DB: cfgDB{
+		Host: "localhost",
+		Port: 5432,
+		Name: "postgres",
+		User: "postgres",
+		SSL:  false,
+	},
+}
 
 // Config holds various configuration values for the program,
 // namely the directories of other relevant git repositories.
@@ -96,7 +110,7 @@ func DefaultCfg() *Config {
 }
 
 // DBArgs returns c.DB as a list of args that can be passed to Connect().
-func (c Config) DBArgs() (host string, port int, dbname, user, sslmode string) {
+func (c Config) DBArgs() (host string, port int, DBName, user, sslmode string) {
 	modes := map[bool]string{
 		false: "disable",
 		true:  "require",
@@ -145,8 +159,8 @@ func (c *Config) Save(path string) error {
 	return err
 }
 
-// setEnvs synchronizes some environment variables with the Config.
-func (c *Config) setEnvs() error {
+// setEnvVars synchronizes some environment variables with the Config.
+func (c *Config) setEnvVars() error {
 	if err := os.Setenv("SK_PS", c.PS.Dir); err != nil {
 		return err
 	}

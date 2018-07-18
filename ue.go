@@ -71,7 +71,7 @@ func newVisual(name, leader string, copies int) *visual {
 func (c card) UEJSON(ident bool) ([]byte, error) {
 	obj := cardUEJSON{}
 	obj.Name = c.name
-	obj.Type = "CTE_" + c.ctype
+	obj.Type = "CTE_" + c.cardType
 	resolve, _ := strconv.Atoi(c.resolve)
 	obj.Stats = statsUE{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
 		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
@@ -108,7 +108,7 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	}
 
 	obj.CardName = d.name
-	obj.Supertypes = "CTE_" + strings.Join(d.stype, "_")
+	obj.Supertypes = "CTE_" + strings.Join(d.superTypes, "_")
 	obj.Name = strings.Replace(d.name, " ", "", -1)
 	obj.Leader = d.leader
 	obj.Copies = d.copies

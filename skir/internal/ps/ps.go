@@ -3,14 +3,15 @@ package ps
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
 	app "github.com/sbrow/ps"
 	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/cmd/skir/internal/base"
-	"github.com/sbrow/skirmish/cmd/skir/internal/export"
 	"github.com/sbrow/skirmish/ps"
+	"github.com/sbrow/skirmish/skir/internal/base"
+	"github.com/sbrow/skirmish/skir/internal/export"
 )
 
 var CmdPS = &base.Command{
@@ -83,16 +84,27 @@ func Run(cmd *base.Command, args []string) {
 			}
 		}
 	default:
+		name := strings.Join(args, " ")
+		card, err := skirmish.Load(name)
+		if err != nil {
+			log.Println(err)
+			os.Exit(1)
+		}
 		app.Wait("$ Import the current dataset file into photoshop," +
 			" then press enter to continue")
-		wg.Wait()
-		d := ps.NewDeck(app.Normal)
-		defer d.Doc.Dump()
-		name := strings.Join(args, " ")
 		if !strings.HasSuffix(name[:len(name)-1], "_") {
 			name += "_1"
 		}
-		d.ApplyDataset(name)
-		d.PNG(false)
+		wg.Wait()
+		var t ps.Template
+		defer t.GetDoc().Dump()
+		switch card.(type) {
+		case *skirmish.DeckCard:
+			t = ps.NewDeck(app.Normal)
+		case *skirmish.NonDeckCard:
+			t = ps.NewNonDeck(app.Normal)
+		}
+		t.ApplyDataset(name)
+		t.PNG(false)
 	}
 }

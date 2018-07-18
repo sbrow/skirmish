@@ -52,6 +52,7 @@ func TestConf_Load(t *testing.T) {
 	}{
 		{"None", defFile.Name(), def, false},
 		{"Current", currFile.Name(), curr, false},
+		// TODO(sbrow): Re-enable TestConf_Load tests.
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
 		// {"Default_NoArgs", "", curr, false},
@@ -132,7 +133,7 @@ func TestConf_SetEnvs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.setEnvs(); (err != nil) != tt.wantErr {
+			if err := tt.cfg.setEnvVars(); (err != nil) != tt.wantErr {
 				t.Errorf("Conf.setEnv() error = %v", err)
 			}
 			gotPS := os.Getenv("SK_PS")

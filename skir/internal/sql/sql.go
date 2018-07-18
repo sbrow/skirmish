@@ -2,10 +2,10 @@ package sql
 
 import (
 	"github.com/sbrow/skirmish"
-	"github.com/sbrow/skirmish/cmd/skir/internal/base"
+	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
-var CmdSql = &base.Command{
+var CmdSQL = &base.Command{
 	UsageLine: "sql [PSQL query]",
 	Short:     "query the database",
 	Long:      `'Skir sql' queries the database for any desired information.`,
