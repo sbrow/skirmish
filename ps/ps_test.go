@@ -12,16 +12,16 @@ import (
 )
 
 func TestTemplate(t *testing.T) {
-	want := filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
-	got := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.Deck)
+	want := filepath.Join("Template009.1.psd")
+	got := filepath.Join(skirmish.Cfg.PS.Deck)
 	if got != want {
 		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
 	}
 }
 
 func TestHeroTemplate(t *testing.T) {
-	want := filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
-	got := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.NonDeck)
+	want := filepath.Join("Template009.1h.psd")
+	got := filepath.Join(skirmish.Cfg.PS.NonDeck)
 	if got != want {
 		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"\n", want, got)
 	}
