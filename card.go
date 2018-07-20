@@ -16,7 +16,6 @@ import (
 // 		- DeckCards can hold multiple cards with unique art.
 //		- NonDeckCards can hold their frontside Card and rearside Card.
 //
-//
 // Setters
 //
 // The Set methods accept pointers because SQL queries return pointer values.
@@ -98,7 +97,6 @@ func LoadMany(cond string) ([]Card, error) {
 	if err != nil {
 		return []Card{}, err
 	}
-	defer rows.Close()
 	for rows.Next() {
 		var typ, supertypes, title, short, long, flavor, resolve, faction, leader,
 			resolveB, lifeB, shortB, longB, flavorB, cost, regexp *string
@@ -180,6 +178,11 @@ func (c *card) Bold() ([][]int, error) {
 	return reg.FindAllStringIndex(c.short, -1), nil
 }
 
+// Delim is the Delimiter to use when Marshalling cards to csv format.
+var Delim = ","
+
+// CSV returns the card in CSV format. If labels is true,
+// the first row of the output will be the contents of card.Labels().
 func (c *card) CSV(labels bool) [][]string {
 	str := make([]string, len(c.Labels()))
 	for i, label := range c.Labels() {
@@ -367,6 +370,8 @@ func (c *card) SetRegexp(reg *string) {
 	}
 }
 
+// Regexp returns the regular expression that matches
+// bold words in the card's short text.
 func (c *card) Regexp() string {
 	return c.regexp
 }

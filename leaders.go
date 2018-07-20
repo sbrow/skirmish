@@ -2,18 +2,33 @@ package skirmish
 
 import (
 	"log"
-	"os"
 	"path/filepath"
 )
 
-// TODO(sbrow): define elsewhere.
-var ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
-var DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
-
 // TODO(sbrow): Move these vars to appropriate places.
-var DataDir = filepath.Join(os.Getenv("SK_SQL"))
-var Delim = ","
+
+// ImageDir is the path to the root directory where card images are located.
+var ImageDir string
+
+// DefaultImage is the name of the image file to use when
+// a card's image cannot be found.
+var DefaultImage = "ImageNotFound.png"
+
+// Leaders is the list of valid deck leaders.
 var Leaders leaders
+
+func init() {
+	if db == nil {
+		if err := Connect(Cfg.DBArgs()); err != nil {
+			log.Println(err)
+		}
+	}
+	Leaders = []leader{}
+	if err := Leaders.load(); err != nil {
+		log.Println(err)
+	}
+	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
+}
 
 type leader struct {
 	Name      string
@@ -54,16 +69,4 @@ func (l *leaders) load() error {
 		i++
 	}
 	return nil
-}
-
-func init() {
-	if db == nil {
-		if err := Connect(Cfg.DBArgs()); err != nil {
-			log.Println(err)
-		}
-	}
-	Leaders = []leader{}
-	if err := Leaders.load(); err != nil {
-		log.Println(err)
-	}
 }

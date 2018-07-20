@@ -5,10 +5,10 @@
 
 set -e
 
-go build -o go.latest
-./go.latest help documentation >alldocs.go
+go build -o skir.latest
+./skir.latest help documentation >alldocs.go
 gofmt -w alldocs.go
-rm go.latest
+rm skir.latest
 
 godoc2md -template ../.doc.template github.com/sbrow/skirmish/skir > README.md
 branch=$(git rev-parse --abbrev-ref HEAD)

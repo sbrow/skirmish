@@ -17,14 +17,9 @@ func init() {
 	Cfg = &Config{}
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
 		log.Println(err)
-	} else {
-		if err := Cfg.setEnvVars(); err != nil {
-			log.Println(err)
-		}
 	}
 	ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
-	DefaultImage = filepath.Join(ImageDir, "ImageNotFound.png")
-	DataDir = filepath.Join(os.Getenv("SK_SQL"))
+	Cfg.DB.Dir = filepath.Join(Cfg.DB.Dir)
 }
 
 type cfgDB struct {
@@ -58,7 +53,8 @@ var LocalDB = &Config{
 }
 
 // Config holds various configuration values for the program,
-// namely the directories of other relevant git repositories.
+// namely the directories of other relevant git repositories:
+// "dreamkeepers-dat" and "dreamkeepers-psd".
 type Config struct {
 	// PS holds configuration values related to Photoshop.
 	PS struct {
@@ -154,18 +150,8 @@ func (c *Config) Save(path string) error {
 		return err
 	}
 
-	_, err = f.Write(data)
-	f.Close()
-	return err
-}
-
-// setEnvVars synchronizes some environment variables with the Config.
-func (c *Config) setEnvVars() error {
-	if err := os.Setenv("SK_PS", c.PS.Dir); err != nil {
+	if _, err = f.Write(data); err != nil {
 		return err
 	}
-	if err := os.Setenv("SK_SQL", c.DB.Dir); err != nil {
-		return err
-	}
-	return nil
+	return f.Close()
 }

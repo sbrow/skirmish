@@ -15,6 +15,7 @@ import (
 // CardTemplate holds the path to the Photoshop Template for Deck Cards.
 var CardTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1.psd")
 
+// DeckTemplate is the Template for leader and partner hero cards.
 type DeckTemplate struct {
 	template
 	Banners    *ps.LayerSet
@@ -29,13 +30,19 @@ type DeckTemplate struct {
 	LBar       *ps.ArtLayer
 }
 
+// NewDeck returns a new DeckTemplate object, pulling values
+// from the .psd file.
+//
+// NewDeck will open Photoshop and the corresponding Template .psd if
+// it is not currently open.
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{template: *New(mode, CardTemplate)}
+	d := &DeckTemplate{template: *new(mode, CardTemplate)}
 	txt := d.Doc.MustExist("Text").(*ps.LayerSet)
 	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).MustExist("TitleBackground").(*ps.LayerSet)
 	if ps.Mode == 2 {
 		d.Dataset = d.ID.TextItem.Contents()
 	}
+
 	d.Cost = txt.MustExist("cost").(*ps.ArtLayer)
 	d.Type = txt.MustExist("type").(*ps.ArtLayer)
 	d.HeroLife = txt.MustExist("hero life").(*ps.ArtLayer)
@@ -52,13 +59,13 @@ func NewDeck(mode ps.ModeEnum) *DeckTemplate {
 	return d
 }
 
-// ApplyDataset applies the given dataset,
-// selects card data from the sql server,
-// checks all its values against the active document,
-// updates any fields that were changed,
-// and then calls any necessary formatting functions.
+// ApplyDataset performs the following actions:
+// 		1. Applies the given dataset.
+// 		2. Selects card data from the sql server.
+//		3. Checks all its values against the active document.
+// 		4. Updates any fields that were changed.
+// 		5. Calls any necessary formatting functions.
 func (d *DeckTemplate) ApplyDataset(id string) {
-
 	// Skip if dataset already applied.
 	if ps.Mode == ps.Fast && d.Dataset == id && d.Card != nil {
 		if d.Card.Name() == id {
@@ -79,26 +86,31 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 
 	// TODO(sbrow): run d.Template.ApplyDataset as a go routine?
 	d.template.ApplyDataset(id)
-	d.Type.Refresh()
+	Error(d.Type.Refresh())
 
 	// Update layer data
-	d.Cost.Refresh()
-	d.HeroLife.Refresh()
-	d.RarityInd.Refresh()
-	d.HeroLifeBG.Refresh()
-	d.DamageBG.Refresh()
-	d.LifeBG.Refresh()
-	d.TypeInd.Refresh()
+	Error(d.Cost.Refresh())
+	Error(d.HeroLife.Refresh())
+	Error(d.RarityInd.Refresh())
+	Error(d.HeroLifeBG.Refresh())
+	Error(d.DamageBG.Refresh())
+	Error(d.LifeBG.Refresh())
+	Error(d.TypeInd.Refresh())
 
 	// doc.LayerSet("Border").Refresh() // TODO(sbrow): Fix Border.Refresh()
-	d.FormatTitle()
+	Error(d.FormatTitle())
 	d.FormatTextbox()
 }
 
+// GetDoc returns the Document associated with this template. It implements the
+// Template interface.
 func (d *DeckTemplate) GetDoc() *ps.Document {
 	return d.Doc
 }
 
+// SetLeader changes fill layers that contain a leader color,
+// and sets them to the colors of the given leader.
+//
 // TODO(sbrow): Fix DeckTemplate.SetLeader skip
 func (d *DeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := d.template.SetLeader(name)
@@ -135,6 +147,9 @@ func (d *DeckTemplate) SetLeader(name string) {
 	d.HeroLife.SetStroke(barStroke, ps.ColorWhite)
 }
 
+// FormatTextbox sets appropriate tolerances for the text layers in the
+// textbox, and hides or resizes elements that are too large.
+//
 // TODO(sbrow): (3) Make type font smaller when 2 or more supertypes.
 func (d *DeckTemplate) FormatTextbox() {
 	if len(d.Card.STypes()) > 1 {
@@ -154,14 +169,14 @@ func (d *DeckTemplate) FormatTitle() error {
 	for _, lyr := range d.Banners.ArtLayers() {
 		if !found && d.Name.Bounds()[1][0]+tol <= lyr.Bounds()[1][0] {
 			found = true
-			lyr.SetVisible(true)
+			Error(lyr.SetVisible(true))
 		} else {
-			lyr.SetVisible(false)
+			Error(lyr.SetVisible(false))
 		}
 	}
 	if !found {
 		d.Doc.Dump()
-		return errors.New("Title too long.")
+		return errors.New("given title is too long")
 	}
 	return nil
 }

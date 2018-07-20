@@ -30,6 +30,7 @@ var formats = map[string]func(skirmish.Card) string{
 	},
 }
 
+// DefaultFormat is the format to use when none is passed.
 var DefaultFormat = "string"
 
 var CmdCard = &base.Command{
