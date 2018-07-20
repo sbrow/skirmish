@@ -31,7 +31,7 @@
 // 	skir card [-fmt=[format]] [card name]
 //
 // Card prints data for the given card to standard output.
-//
+// 	
 // The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
 //
 //
@@ -64,9 +64,34 @@
 //
 // Usage:
 //
-// 	skir ps [card name]
+// 	skir ps [deck] [all] [card name]
 //
-// 'skir ps' fills out a Photoshop template file with information from the database
+// 'skir ps' fills out a Photoshop template file with information from the database.
+//
+//
+// See the skirmish/ps package for instructions on setting up this tool.
+//
+// To start generating files, invoke the tool with the cards you want. Available options are:
+// 	- 'skir ps all' to generate all cards.
+// 	- 'skir ps deck [leader name]' to generate all cards lead by the named character.
+// 	- 'skir ps [card id]' to generate one card.
+//
+// Running the tool will open Photoshop and the necessary template .psd,
+// after which it will pause and ask you to load a dataset file.
+// Dataset files are csv formatted files that correpond to fields in the Photoshop template.
+// The tool generates them for you and puts them in the dreamkeepers data folder as:
+// 	- 'deckcards.csv' for deck cards.
+// 	- 'nondeckcards.csv' for non-deckcards
+//
+// To load a dataset file, open Photoshop and navigate to 'Image/Variables/Data Sets...',
+// then click 'Import' on the right side of the pop-up menu. It will take a minute to load, but once it does,
+// hit 'OK' and then return to the terminal where you ran the tool and hit enter to continue.
+// After this, the program should not require are further user interaction.
+//
+// Deck cards will be output to "[dreamkeepers data]/Decks/[leader name]/[card id].png", Nondeck cards will
+// be output to "[dreamkeepers data]/Decks/Heroes/[card_id].png".
+//
+// Photoshop is very slow, generating every card could take 15+ minutes, so be ready to wait.
 //
 //
 // Reload the database from disk
