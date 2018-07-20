@@ -31,7 +31,7 @@
 // 	skir card [-fmt=[format]] [card name]
 //
 // Card prints data for the given card to standard output.
-// 	
+//
 // The -fmt flag can be used to alter the output format. The valid formats are: "string", "ue", and "xml".
 //
 //

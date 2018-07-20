@@ -125,13 +125,13 @@ func Run(cmd *base.Command, args []string) {
 		}
 		wg.Wait()
 		var t ps.Template
-		defer t.GetDoc().Dump()
 		switch card.(type) {
 		case *skirmish.DeckCard:
 			t = ps.NewDeck(app.Normal)
 		case *skirmish.NonDeckCard:
 			t = ps.NewNonDeck(app.Normal)
 		}
+		defer t.GetDoc().Dump()
 		t.ApplyDataset(name)
 		t.PNG(false)
 	}

@@ -3,7 +3,6 @@ package ps
 import (
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -12,7 +11,7 @@ import (
 )
 
 // HeroTemplate holds the path to the NonDeckCard Photoshop Template.
-var HeroTemplate = filepath.Join(os.Getenv("SK_PS"), "Template009.1h.psd")
+var HeroTemplate = filepath.Join(skirmish.Cfg.PS.Dir, "Template009.1h.psd")
 
 // NonDeckTemplate is the Template to use for leader and partner hero cards.
 type NonDeckTemplate struct {

@@ -18,8 +18,7 @@ func init() {
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
 		log.Println(err)
 	}
-	ImageDir = filepath.Join(os.Getenv("SK_PS"), "Images")
-	Cfg.DB.Dir = filepath.Join(Cfg.DB.Dir)
+	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }
 
 type cfgDB struct {

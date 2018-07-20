@@ -3,6 +3,7 @@ package skirmish
 import (
 	"log"
 	"path/filepath"
+	"reflect"
 )
 
 // TODO(sbrow): Move these vars to appropriate places.
@@ -26,6 +27,11 @@ func init() {
 	Leaders = []leader{}
 	if err := Leaders.load(); err != nil {
 		log.Println(err)
+	}
+	if Cfg == nil || reflect.DeepEqual(*Cfg, Config{}) {
+		if err := Cfg.Load("config.yml"); err != nil {
+			log.Println(err)
+		}
 	}
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }
