@@ -12,7 +12,7 @@ import (
 )
 
 // CardTemplate holds the path to the Photoshop Template for Deck Cards.
-var CardTemplate = filepath.Join(skirmish.Cfg.PS.Dir, "Template009.1.psd")
+var CardTemplate = filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.Deck)
 
 // DeckTemplate is the Template for leader and partner hero cards.
 type DeckTemplate struct {

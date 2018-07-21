@@ -11,7 +11,7 @@ import (
 )
 
 // HeroTemplate holds the path to the NonDeckCard Photoshop Template.
-var HeroTemplate = filepath.Join(skirmish.Cfg.PS.Dir, "Template009.1h.psd")
+var HeroTemplate = filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.NonDeck)
 
 // NonDeckTemplate is the Template to use for leader and partner hero cards.
 type NonDeckTemplate struct {

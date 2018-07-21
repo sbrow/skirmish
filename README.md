@@ -40,10 +40,6 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` catch runtime.Caller error in config.go/init
 
-`sbrow:` Make getters for NonDeckCard
-
-`sbrow:` define elsewhere.
-
 `sbrow:` Move these vars to appropriate places.
 
 

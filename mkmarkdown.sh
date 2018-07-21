@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 pkg=github.com/sbrow/skirmish 
 
 godoc2md -template .doc.template $pkg > README.md

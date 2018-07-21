@@ -14,7 +14,9 @@ GOGENERATE=$(GOCMD) generate
 # BINARY_WIN=$(BINARY_NAME).exe
 
 
-default: version fmt build test clean install docs lint
+default: version fmt build test clean install docs
+
+all: version fmt build test clean install docs lint
 
 fast: version test install docs
 
@@ -33,7 +35,8 @@ test: fmt
 
 clean:
 	$(GOCLEAN) ./...
-	rm cover.out
+	rm -f cover.out
+	rm -f ./Unreal_JSONs/*.*
 
 lint: fmt
 	gometalinter.v2 --enable-gc --cyclo-over=15 ./...
