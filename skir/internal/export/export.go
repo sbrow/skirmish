@@ -16,6 +16,43 @@ import (
 	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
+type format struct {
+	desc string
+	f    func() error
+}
+
+var formats = map[string]format{
+	"csv": {
+		desc: `csv formatted files to use as datasets in Photoshop.
+		One file is generated for Deck Cards, and another is generated for Non-Deck Cards.`,
+		f: func() error {
+			err := DataSet("nondeckcards", "cards.leader IS NULL")
+			if err != nil {
+				base.Errorf("%s", err)
+			}
+			err = DataSet("deckcards", "cards.leader IS NOT NULL")
+			if err != nil {
+				base.Errorf("%s", err)
+			}
+			return err
+		},
+	},
+	"ue": {
+		desc: `a collection of JSON files for importing into Unreal Engine.
+		Deck cards are grouped by deck, Non-Deck Cards are grouped together.`,
+		f: UEJSON,
+	},
+}
+
+var CmdExport = &base.Command{
+	UsageLine: "export [format]",
+	Short:     "compile cards from the database to a specific format",
+	Long: `'Skir export' pulls information for all cards from the database and compiles them into the given format.
+
+The valid formats are:`,
+	Run: Run,
+}
+
 func init() {
 	fmts := make([]string, len(formats))
 	i := 0
@@ -29,45 +66,28 @@ func init() {
 		CmdExport.Long += fmt.Sprintf("\n\t%s\t%s", name, desc)
 	}
 }
-
-type format struct {
-	desc string
-	f    func()
-}
-
-var formats = map[string]format{
-	"csv": {
-		desc: `csv formatted files to use as datasets in Photoshop.
-		One file is generated for Deck Cards, and another is generated for Non-Deck Cards.`,
-		f: func() {
-			err := DataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
-			if err != nil {
-				base.Errorf("%s", err)
-			}
-			err = DataSet("deckcards", "cards.Leader IS NOT NULL ORDER BY name ASC")
-			if err != nil {
-				base.Errorf("%s", err)
-			}
-		},
-	},
-	"ue": {
-		desc: `a collection of JSON files for importing into Unreal Engine.
-		Deck cards are grouped by deck, Non-Deck Cards are grouped together.`,
-		f: UEJSON,
-	},
-}
-var CmdExport = &base.Command{
-	UsageLine: "export [format]",
-	Short:     "compile cards from the database to a specific format",
-	Long: `'Skir export' pulls information for all cards from the database and compiles them into the given format.
-
-The valid formats are:`,
-	Run: func(*base.Command, []string) { formats["ue"].f() },
+func Run(cmd *base.Command, args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stdout, cmd.UsageLine)
+		fmt.Fprintln(os.Stdout, cmd.Short)
+		fmt.Fprintln(os.Stdout, cmd.Long)
+		return
+	}
+	format, ok := formats[args[0]]
+	log.SetOutput(os.Stdout)
+	if !ok {
+		base.Errorf("format %s was not found", args[0])
+		return
+	}
+	if err := format.f(); err != nil {
+		base.Errorf("%s", err)
+	}
 }
 
 // DataSet returns the cards as a Photoshop dataset formatted csv file.
 func DataSet(name, query string) error {
 	log.SetPrefix(fmt.Sprintf("[%s] ", name))
+	log.SetOutput(os.Stdout)
 	log.Println(`Generating dataset`)
 	cards, err := skirmish.LoadMany(query)
 	if err != nil {
@@ -77,7 +97,7 @@ func DataSet(name, query string) error {
 	for _, card := range cards {
 		dat = append(dat, card.CSV(false)...)
 	}
-	path := filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", fmt.Sprintf("%s.csv", name))
+	path := filepath.Join(skirmish.Cfg.PS.Dir, fmt.Sprintf("%s.csv", name))
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -91,9 +111,13 @@ func DataSet(name, query string) error {
 }
 
 // UEJSON generates JSON files for import into Unreal Engine.
-func UEJSON() {
-	if err := os.Mkdir("Unreal_JSONs", 0700); err != nil {
-		base.Errorf(err.Error())
+func UEJSON() error {
+	log.SetOutput(os.Stdout)
+	log.Println("Generating JSON files for Unreal Engine...")
+	pkg := filepath.Join("github.com", "sbrow", "skirmish")
+	path := filepath.Join(os.Getenv("GOPATH"), "src", pkg, "Unreal_JSONs")
+	if err := os.Mkdir(path, 0700); err != nil {
+		log.Println(err)
 	}
 	wg := &sync.WaitGroup{}
 	wg.Add(len(skirmish.Leaders))
@@ -104,17 +128,17 @@ func UEJSON() {
 			if err != nil {
 				base.Fatalf(err.Error())
 			}
-			path := filepath.Join("Unreal_JSONs", name+".json")
+			path := filepath.Join(path, name+".json")
 			f, err := os.Create(path)
 			if err != nil {
-				base.Fatalf("%s %s", path, err.Error())
+				base.Fatalf(err.Error())
 			}
 			defer f.Close()
 			f.Write([]byte("[\n"))
 			for i, card := range cards {
 				data, err := card.UEJSON(true)
 				if err != nil {
-					base.Errorf(err.Error())
+					base.Errorf(card.Name(), err.Error())
 					continue
 				}
 				f.Write(data)
@@ -126,11 +150,11 @@ func UEJSON() {
 		}(leader.Name)
 		cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader is NULL"))
 		if err != nil {
-			base.Fatalf(err.Error())
+			return err
 		}
 		f, err := os.Create(filepath.Join("./", "Unreal_JSONs", "Non_deck.json"))
 		if err != nil {
-			base.Fatalf(err.Error())
+			return err
 		}
 		defer f.Close()
 		f.Write([]byte("[\n"))
@@ -148,4 +172,5 @@ func UEJSON() {
 		f.Write([]byte("]"))
 	}
 	wg.Wait()
+	return nil
 }
