@@ -3,6 +3,8 @@ package skirmish
 import (
 	"log"
 	"path/filepath"
+	"reflect"
+	"runtime"
 )
 
 // TODO(sbrow): Move these vars to appropriate places.
@@ -18,6 +20,10 @@ var DefaultImage = "ImageNotFound.png"
 var Leaders leaders
 
 func init() {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("could not retrieve Caller")
+	}
 	if db == nil {
 		if err := Connect(Cfg.DBArgs()); err != nil {
 			log.Println(err)
@@ -26,6 +32,12 @@ func init() {
 	Leaders = []leader{}
 	if err := Leaders.load(); err != nil {
 		log.Println(err)
+	}
+	if Cfg == nil || reflect.DeepEqual(*Cfg, Config{}) {
+		dir := filepath.Dir(file)
+		if err := Cfg.Load(filepath.Join(dir, "config.yml")); err != nil {
+			log.Println(err)
+		}
 	}
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }

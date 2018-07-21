@@ -1,3 +1,4 @@
+// TODO(sbrow): Implement format selection for skir export.
 // TODO(sbrow): Add xml format to skir/export.
 
 package export
@@ -76,7 +77,7 @@ func DataSet(name, query string) error {
 	for _, card := range cards {
 		dat = append(dat, card.CSV(false)...)
 	}
-	path := filepath.Join(skirmish.Cfg.DB.Dir, fmt.Sprintf("%s.csv", name))
+	path := filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", fmt.Sprintf("%s.csv", name))
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -109,14 +110,19 @@ func UEJSON() {
 				base.Fatalf("%s %s", path, err.Error())
 			}
 			defer f.Close()
-			for _, card := range cards {
+			f.Write([]byte("[\n"))
+			for i, card := range cards {
 				data, err := card.UEJSON(true)
 				if err != nil {
 					base.Errorf(err.Error())
 					continue
 				}
 				f.Write(data)
+				if i+1 != len(cards) {
+					f.Write([]byte{',', '\n'})
+				}
 			}
+			f.Write([]byte("]"))
 		}(leader.Name)
 		cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader is NULL"))
 		if err != nil {
@@ -127,15 +133,19 @@ func UEJSON() {
 			base.Fatalf(err.Error())
 		}
 		defer f.Close()
-		for _, card := range cards {
+		f.Write([]byte("[\n"))
+		for i, card := range cards {
 			data, err := card.UEJSON(true)
 			if err != nil {
 				base.Errorf(err.Error())
 				continue
 			}
 			f.Write(data)
+			if i+1 != len(cards) {
+				f.Write([]byte{',', '\n'})
+			}
 		}
+		f.Write([]byte("]"))
 	}
-
 	wg.Wait()
 }

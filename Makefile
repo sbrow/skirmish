@@ -1,5 +1,5 @@
 # Program parameters
-VERSION := $(shell git describe --tags)
+VERSION=$(shell git describe --tags)
 
 # Go parameters
 GOCMD=go
@@ -14,7 +14,9 @@ GOGENERATE=$(GOCMD) generate
 # BINARY_WIN=$(BINARY_NAME).exe
 
 
-default: version fmt build test clean install docs lint
+default: version fmt build test clean install docs
+
+all: version fmt build test clean install docs lint
 
 fast: version test install docs
 
@@ -22,7 +24,7 @@ version:
 	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./skir/internal/version/version.go
 
 fmt:
-	goimports -w ./..
+	goimports -w ./..	
 	gofmt -s -w ./..
 
 build: fmt
@@ -33,7 +35,8 @@ test: fmt
 
 clean:
 	$(GOCLEAN) ./...
-	rm cover.out
+	rm -f cover.out
+	rm -f ./Unreal_JSONs/*.*
 
 lint: fmt
 	gometalinter.v2 --enable-gc --cyclo-over=15 ./...

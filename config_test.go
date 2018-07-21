@@ -3,11 +3,29 @@ package skirmish
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"reflect"
 	"testing"
 
 	"github.com/go-yaml/yaml"
 )
+
+// Config for "Current" test.
+var current = Config{
+	PS: cfgPS{
+		Dir:     `F:\GitLab\dreamkeepers-psd`,
+		Deck:    `Template009.1.psd`,
+		NonDeck: `Template009.1h.psd`,
+	},
+	DB: cfgDB{
+		Dir:  `F:\GitLab\dreamkeepers-dat`,
+		Name: "skirmish",
+		Host: "localhost",
+		Port: 5432,
+		User: "sbrow",
+		SSL:  false,
+	},
+}
 
 func TestConf_Load(t *testing.T) {
 	tmpCfg := func(name string, cfg Config) *os.File {
@@ -22,22 +40,7 @@ func TestConf_Load(t *testing.T) {
 		}
 		return f
 	}
-	// Config for "Current" test.
-	current := Config{
-		PS: cfgPS{
-			Dir:     `F:\GitLab\dreamkeepers-psd`,
-			Deck:    `Template009.1.psd`,
-			NonDeck: `Template009.1h.psd`,
-		},
-		DB: cfgDB{
-			Dir:  `F:\GitLab\dreamkeepers-dat`,
-			Name: "skirmish",
-			Host: "localhost",
-			Port: 5432,
-			User: "sbrow",
-			SSL:  false,
-		},
-	}
+
 	FCurrent := tmpCfg("currentConfig", current)
 	def := *DefaultCfg()
 	FDef := tmpCfg("defaultConfig", def)
@@ -113,4 +116,21 @@ func TestConf_Save(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfOverwrite(t *testing.T) {
+	old := *Cfg
+	*Cfg = current
+	if err := Cfg.Save("config.yml"); err != nil {
+		t.Fatal(err)
+	}
+	want := *Cfg
+	cmd := exec.Command("skir", "version")
+	if err := cmd.Run(); err != nil {
+		t.Error(err)
+	}
+	if Cfg == nil || *Cfg != want {
+		t.Errorf("wanted: %v\ngot: %v", want, *Cfg)
+	}
+	old.Save("config.yml")
 }

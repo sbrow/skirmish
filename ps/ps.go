@@ -66,6 +66,7 @@ func GetTolerances() error {
 	}
 	return nil
 }
+
 func init() {
 	Errors = []psError{}
 	if err := GetTolerances(); err != nil {

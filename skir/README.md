@@ -73,14 +73,14 @@ To start generating files, invoke the tool with the cards you want. Available op
 
 Running the tool will open Photoshop and the necessary template .psd,
 after which it will pause and ask you to load a dataset file.
-Dataset files are csv formatted files that correpond to fields in the Photoshop template.
+Dataset files are csv formatted files that correspond to fields in the Photoshop template.
 The tool generates them for you and puts them in the dreamkeepers data folder as:
 
 
 	- 'deckcards.csv' for deck cards.
 	- 'nondeckcards.csv' for non-deckcards
 
-To load a dataset file, open Photoshop and navigate to 'Image/Variables/Data Sets...',
+To load a dataset file, open Photoshop and navigate to 'Image > Variables > Data Sets...',
 then click 'Import' on the right side of the pop-up menu. It will take a minute to load, but once it does,
 hit 'OK' and then return to the terminal where you ran the tool and hit enter to continue.
 After this, the program should not require are further user interaction.
