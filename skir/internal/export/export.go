@@ -77,7 +77,7 @@ func DataSet(name, query string) error {
 	for _, card := range cards {
 		dat = append(dat, card.CSV(false)...)
 	}
-	path := filepath.Join(skirmish.Cfg.DB.Dir, fmt.Sprintf("%s.csv", name))
+	path := filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "sbrow", "skirmish", fmt.Sprintf("%s.csv", name))
 	f, err := os.Create(path)
 	if err != nil {
 		return err
