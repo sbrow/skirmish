@@ -8,6 +8,7 @@ import (
 )
 
 func TestImageDir(t *testing.T) {
+	Cfg.Load("config.yml")
 	want := filepath.Join(Cfg.PS.Dir, "Images")
 	if got := ImageDir; got != want {
 		t.Fatalf("Wanted: \"%s\"\nGot: \"%s\"", want, got)

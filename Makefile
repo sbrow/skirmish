@@ -1,5 +1,5 @@
 # Program parameters
-VERSION := $(shell git describe --tags)
+VERSION=$(shell git describe --tags)
 
 # Go parameters
 GOCMD=go
@@ -24,7 +24,7 @@ version:
 	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./skir/internal/version/version.go
 
 fmt:
-	goimports -w ./..
+	goimports -w ./..	
 	gofmt -s -w ./..
 
 build: fmt
