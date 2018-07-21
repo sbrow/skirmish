@@ -110,14 +110,19 @@ func UEJSON() {
 				base.Fatalf("%s %s", path, err.Error())
 			}
 			defer f.Close()
-			for _, card := range cards {
+			f.Write([]byte("[\n"))
+			for i, card := range cards {
 				data, err := card.UEJSON(true)
 				if err != nil {
 					base.Errorf(err.Error())
 					continue
 				}
 				f.Write(data)
+				if i+1 != len(cards) {
+					f.Write([]byte{',', '\n'})
+				}
 			}
+			f.Write([]byte("]"))
 		}(leader.Name)
 		cards, err := skirmish.LoadMany(fmt.Sprintf("cards.Leader is NULL"))
 		if err != nil {
@@ -128,15 +133,19 @@ func UEJSON() {
 			base.Fatalf(err.Error())
 		}
 		defer f.Close()
-		for _, card := range cards {
+		f.Write([]byte("[\n"))
+		for i, card := range cards {
 			data, err := card.UEJSON(true)
 			if err != nil {
 				base.Errorf(err.Error())
 				continue
 			}
 			f.Write(data)
+			if i+1 != len(cards) {
+				f.Write([]byte{',', '\n'})
+			}
 		}
+		f.Write([]byte("]"))
 	}
-
 	wg.Wait()
 }

@@ -12,7 +12,10 @@ import (
 )
 
 func init() {
-	_, file, _, _ := runtime.Caller(0) // TODO(sbrow): catch runtime.Caller error in config.go/init
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("could not retrieve Caller")
+	}
 
 	Cfg = &Config{}
 	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {

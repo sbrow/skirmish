@@ -4,6 +4,7 @@ import (
 	"log"
 	"path/filepath"
 	"reflect"
+	"runtime"
 )
 
 // TODO(sbrow): Move these vars to appropriate places.
@@ -19,6 +20,10 @@ var DefaultImage = "ImageNotFound.png"
 var Leaders leaders
 
 func init() {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("could not retrieve Caller")
+	}
 	if db == nil {
 		if err := Connect(Cfg.DBArgs()); err != nil {
 			log.Println(err)
@@ -29,7 +34,8 @@ func init() {
 		log.Println(err)
 	}
 	if Cfg == nil || reflect.DeepEqual(*Cfg, Config{}) {
-		if err := Cfg.Load("config.yml"); err != nil {
+		dir := filepath.Dir(file)
+		if err := Cfg.Load(filepath.Join(dir, "config.yml")); err != nil {
 			log.Println(err)
 		}
 	}
