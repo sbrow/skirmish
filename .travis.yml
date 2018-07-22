@@ -20,7 +20,6 @@ install:
   - go get -t ./...
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
-  - skir export ue
 
 before_script:
   - PATH="$HOME/gopath/bin:$PATH"
