@@ -16,7 +16,7 @@ GOGENERATE=$(GOCMD) generate
 
 default: version fmt build test clean install docs
 
-all: version fmt build test clean install docs lint
+all: version fmt build test clean install docs lint release
 
 fast: version test install docs
 
@@ -47,3 +47,6 @@ install: fmt
 docs: fmt
 	$(GOGENERATE) ./...
 
+release:
+	echo \# v0.13.1 Release Notes > RELEASE.md
+	git log v0.12.1...v0.13.0 --format=%s\n%b >> RELEASE.md
