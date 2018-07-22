@@ -45,6 +45,7 @@ install: fmt
 	$(GOINSTALL) ./...
 
 docs: fmt
+	todos work
 	$(GOGENERATE) ./...
 
 release:

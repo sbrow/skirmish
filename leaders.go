@@ -7,8 +7,6 @@ import (
 	"runtime"
 )
 
-// TODO(sbrow): Move these vars to appropriate places.
-
 // ImageDir is the path to the root directory where card images are located.
 var ImageDir string
 

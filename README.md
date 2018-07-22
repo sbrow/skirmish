@@ -38,8 +38,6 @@ $ go get -u github.com/sbrow/skirmish
 
 `sbrow:` Figure out how to pass a pointer to card.SetSTypes
 
-`sbrow:` Move these vars to appropriate places.
-
 
 
 ## <a name="pkg-doc">Documentation</a>

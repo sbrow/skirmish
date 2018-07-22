@@ -21,9 +21,9 @@ import (
 // The Set methods accept pointers because SQL queries return pointer values.
 // Passing nil to a set value will generally result in no change to the Card.
 //
-// TODO(sbrow): Figure out how to handle id.
+// TODO(sbrow): Figure out how to handle id. [Issue: https://github.com/sbrow/skirmish/issues/27]
 //
-// TODO(sbrow): Cameo card flavor text.
+// TODO(sbrow): Cameo card flavor text. [Issue: https://github.com/sbrow/skirmish/issues/29]
 type Card interface {
 	Card() card
 	Faction() string
@@ -111,7 +111,7 @@ func LoadMany(cond string) ([]Card, error) {
 		}
 		c.SetType(typ)
 		if supertypes != nil {
-			c.SetSTypes(strings.Split(*supertypes, ",")) // TODO(sbrow): Figure out how to pass a pointer to card.SetSTypes
+			c.SetSTypes(strings.Split(*supertypes, ",")) // TODO(sbrow): Figure out how to pass a pointer to card.SetSTypes [Issue: https://github.com/sbrow/skirmish/issues/28]
 		}
 		c.SetName(title)
 		c.SetShort(short)
@@ -225,7 +225,6 @@ func (c *card) CSV(labels bool) [][]string {
 				log.Panic(err)
 			}
 			str[i] += img[0]
-
 		}
 		if strings.Contains(strings.Join(Leaders.names(), ","), label) {
 			str[i] += fmt.Sprint(c.Leader() == label)
