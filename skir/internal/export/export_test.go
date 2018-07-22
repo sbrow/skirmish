@@ -1,7 +1,3 @@
-// TODO(sbrow): Implement format selection for skir export.
-
-// TODO(sbrow): Add xml format to skir/export.
-
 package export
 
 import (

@@ -1,4 +1,3 @@
-// TODO(sbrow): Implement format selection for skir export. [Issue: https://github.com/sbrow/skirmish/issues/22]
 // TODO(sbrow): Add xml format to skir/export. [Issue: https://github.com/sbrow/skirmish/issues/20]
 
 package export
@@ -30,8 +29,6 @@ func init() {
 	}
 }
 
-// TODO(sbrow): New issue [Issue: https://github.com/sbrow/skirmish/issues/21]
-// TODO: Other new issue [Issue: https://github.com/sbrow/skirmish/issues/23]
 type format struct {
 	desc string
 	f    func()
