@@ -38,7 +38,7 @@ type template struct {
 	LifeBG        *ps.ArtLayer
 }
 
-// TODO(sbrow): Recover - run in safe mode.
+// TODO(sbrow): Recover - run in safe mode. [Issue](https://github.com/sbrow/skirmish/issues/47)
 func new(mode ps.ModeEnum, file string) *template {
 	t := &template{}
 	Error(ps.Open(file))
@@ -165,7 +165,7 @@ func (t *template) ApplyDataset(id string) {
 	}
 	Error(t.Flavor.Refresh())
 	Error(t.ID.Refresh())
-	// TODO(sbrow): Skip the rest if id is different but name is not
+	// TODO(sbrow): Skip the rest if id is different but name is not [Issue](https://github.com/sbrow/skirmish/issues/48)
 	if t.Name.TextItem.Contents() == name && t.ID.TextItem.Contents() != id {
 		fmt.Println("Skipping")
 		return
@@ -178,7 +178,7 @@ func (t *template) ApplyDataset(id string) {
 	Error(t.Damage.Refresh())
 	Error(t.Short.Refresh())
 	Error(t.Long.Refresh())
-	// TODO(sbrow): (5) pprof: Improved, but can still be better.
+	// TODO(sbrow): (5) pprof: Improved, but can still be better. [Issue](https://github.com/sbrow/skirmish/issues/49)
 	for _, lyr := range t.DeckInd.ArtLayers() {
 		Error(lyr.Refresh())
 	}

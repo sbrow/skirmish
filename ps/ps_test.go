@@ -8,7 +8,7 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-// TODO(sbrow): Deck and NonDeck Template tests are broken.
+// TODO(sbrow): Deck and NonDeck Template tests are broken. [Issue](https://github.com/sbrow/skirmish/issues/46)
 func TestDeckTemplate(t *testing.T) {
 	want := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.Deck)
 	got := CardTemplate

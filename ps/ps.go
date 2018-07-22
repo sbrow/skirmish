@@ -11,7 +11,7 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-// TODO(sbrow): Fix psError.time
+// TODO(sbrow): Fix psError.time [Issue](https://github.com/sbrow/skirmish/issues/45)
 type psError struct {
 	err error
 	// time string

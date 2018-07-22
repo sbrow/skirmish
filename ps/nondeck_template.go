@@ -108,7 +108,7 @@ func (n *NonDeckTemplate) GetDoc() *ps.Document {
 func (n *NonDeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := n.template.SetLeader(name)
 	if err != nil {
-		log.Fatal(err) // TODO(sbrow): Remove fatal err from NonDeckTemplate.SetLeader
+		log.Fatal(err) // TODO(sbrow): Remove fatal err from NonDeckTemplate.SetLeader [Issue](https://github.com/sbrow/skirmish/issues/44)
 	}
 	for _, lyr := range n.LBar.ArtLayers() {
 		if lyr.Name() != "LeaderBar" {

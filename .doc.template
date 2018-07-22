@@ -17,6 +17,7 @@
 
 
 ## <a name="pkg-installation">Installation</a>
+Make sure you have the [Go programming language](https://golang.org/dl/) installed. Then, open your favourite editor and run:
 ```sh
 $ go get -u {{ .ImportPath }}
 ```

@@ -21,6 +21,7 @@ that contains card data, Photoshop, and the user (via CLI).
 
 
 ## <a name="pkg-installation">Installation</a>
+Make sure you have the [Go programming language](https://golang.org/dl/) installed. Then, open your favourite editor and run:
 ```sh
 $ go get -u github.com/sbrow/skirmish
 ```
@@ -32,11 +33,11 @@ $ go get -u github.com/sbrow/skirmish
 
 ## <a name="pkg-note-TODO">TODO</a>
 
-`sbrow:` Figure out how to handle id.
+`sbrow:` Figure out how to handle id. [Issue](https://github.com/sbrow/skirmish/issues/33)
 
-`sbrow:` Cameo card flavor text.
+`sbrow:` Cameo card flavor text. [Issue](https://github.com/sbrow/skirmish/issues/32)
 
-`sbrow:` Figure out how to pass a pointer to card.SetSTypes
+`sbrow:` Figure out how to pass a pointer to card.SetSTypes [Issue](https://github.com/sbrow/skirmish/issues/31)
 
 
 

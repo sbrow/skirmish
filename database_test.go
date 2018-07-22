@@ -34,7 +34,7 @@ func TestConnect(t *testing.T) {
 		{"standard", args{"localhost", 5432, "postgres", "skirmish", "disable"}, false},
 		{"ssl_Enabled", args{"localhost", 5432, "postgres", "skirmish", "require"}, false},
 
-		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error.
+		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error. [Issue](https://github.com/sbrow/skirmish/issues/35)
 		{"wrong_user", args{"localhost", 5432, "butts", "skirmish", "disable"}, false},
 		{"wrong_database", args{"localhost", 5432, "postgres", "skirmish23", "disable"}, false},
 	}
@@ -94,7 +94,7 @@ func TestRecover(t *testing.T) {
 	}
 }
 
-// TODO(sbrow): TestDump accurate testing.
+// TODO(sbrow): TestDump accurate testing. [Issue](https://github.com/sbrow/skirmish/issues/36)
 func TestDump(t *testing.T) {
 	var out bytes.Buffer
 	cmd := exec.Command("psql", "-V")

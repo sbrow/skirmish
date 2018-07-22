@@ -53,7 +53,7 @@ func TestConf_Load(t *testing.T) {
 	}{
 		{"None", FDef.Name(), def, false},
 		{"Current", FCurrent.Name(), current, false},
-		// TODO(sbrow): Re-enable TestConf_Load tests.
+		// TODO(sbrow): Re-enable TestConf_Load tests. [Issue](https://github.com/sbrow/skirmish/issues/34)
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
 		// {"Default_NoArgs", "", current, false},

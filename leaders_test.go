@@ -1,4 +1,4 @@
-// TODO(sbrow): Test Leaders.load
+// TODO(sbrow): Test Leaders.load [Issue](https://github.com/sbrow/skirmish/issues/37)
 package skirmish
 
 import (

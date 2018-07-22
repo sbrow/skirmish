@@ -10,7 +10,7 @@ import (
 	"github.com/sbrow/skirmish/skir/internal/version"
 )
 
-// TODO(sbrow): Figure out how to test internal packages.
+// TODO(sbrow): Figure out how to test internal packages. [Issue](https://github.com/sbrow/skirmish/issues/51)
 func Test_runVersion(t *testing.T) {
 	tests := []struct {
 		name string
