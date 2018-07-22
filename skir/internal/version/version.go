@@ -18,7 +18,7 @@ var CmdVersion = &base.Command{
 	Long:      `Version prints the skir version.`,
 }
 
-const Version = "v0.13.1-1-g9b0626e"
+const Version = "v0.13.0-18-g5272bd4"
 
 func runVersion(cmd *base.Command, args []string) {
 	if len(args) != 0 {

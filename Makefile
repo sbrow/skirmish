@@ -44,6 +44,6 @@ lint: fmt
 install: fmt
 	$(GOINSTALL) ./...
 
-docs:
+docs: fmt
 	$(GOGENERATE) ./...
 

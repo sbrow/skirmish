@@ -55,12 +55,10 @@ func TestRun(t *testing.T) {
 				}
 				outC <- buf.String()
 			}()
-
 			defer func() {
 				w.Close()
 				os.Stdout = stdCopy
 				got := <-outC
-				// got = strings.Replace(got, "\r\n", "\n", -1)
 				reg, err := regexp.Compile(tt.want)
 				if err != nil {
 					t.Fatal(err)

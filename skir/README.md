@@ -51,8 +51,10 @@ The valid formats are:
 
 	csv	csv formatted files to use as datasets in Photoshop.
 		One file is generated for Deck Cards, and another is generated for Non-Deck Cards.
+		The files are generated in the top level of the "dreamkeepers-psd" repository.
 	ue	a collection of JSON files for importing into Unreal Engine.
 		Deck cards are grouped by deck, Non-Deck Cards are grouped together.
+		The files can be found in the "Unreal_JSONs" folder in the skirmish repository.
 
 ### Fill out Photoshop templates
 Usage:
