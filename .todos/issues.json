@@ -1,0 +1,102 @@
+[
+	{
+		"file": "card.go",
+		"hash": "7a55a28ab2f8526390102cf61d1e43366913be3b",
+		"issue_number": 31
+	},
+	{
+		"file": "card.go",
+		"hash": "a580601bb9f70bd799ffce4a01430596b41146ae",
+		"issue_number": 32
+	},
+	{
+		"file": "card.go",
+		"hash": "0fe245c9ff0319c8b4b0fefd5ffff6ca4efa105a",
+		"issue_number": 33
+	},
+	{
+		"file": "config_test.go",
+		"hash": "52236754837a4cd0867c4165a563305a2981bc1b",
+		"issue_number": 34
+	},
+	{
+		"file": "database_test.go",
+		"hash": "8e8387ae78c78b467e9ddf2a63e7e5e6f2a63c5b",
+		"issue_number": 35
+	},
+	{
+		"file": "database_test.go",
+		"hash": "81020f49e0b6a07bc42552ad2f7995677897620a",
+		"issue_number": 36
+	},
+	{
+		"file": "leaders_test.go",
+		"hash": "a8a69d81b42cb8dc3170ed640e5ac843780b4462",
+		"issue_number": 37
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "b7c382b4c2e0b99a6da195b32418031353675649",
+		"issue_number": 38
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "bcb5a347d0ff9f91f33d5283b59e5bd9f8e6c151",
+		"issue_number": 39
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "b0e814e866d3875d57b47e00470243b54dbd771e",
+		"issue_number": 40
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "3f89586ac56fbbdd10d8e6e10af5714f9ce5d79b",
+		"issue_number": 41
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "56b94b9194878a1c346aa16c7f26d7cc18dd93d5",
+		"issue_number": 42
+	},
+	{
+		"file": "ps/deck_template.go",
+		"hash": "b0806949227a26231cbedf7436a178caad07f826",
+		"issue_number": 43
+	},
+	{
+		"file": "ps/ps.go",
+		"hash": "003dc4f9756eb0aa060ee51959a4483c38ff99cb",
+		"issue_number": 45
+	},
+	{
+		"file": "ps/ps_test.go",
+		"hash": "fad23fd280143ca6d0876daa8d1efbae165eaf77",
+		"issue_number": 46
+	},
+	{
+		"file": "ps/template.go",
+		"hash": "a90fe0958d511e82a0ecdcb508cc41eb107fe8d5",
+		"issue_number": 47
+	},
+	{
+		"file": "ps/template.go",
+		"hash": "ed06fd43fc5b4e7094afc0287b5498a5d4877114",
+		"issue_number": 48
+	},
+	{
+		"file": "ps/template.go",
+		"hash": "33a4a18dddd1e6ecaaea678bbae5f70f2506a236",
+		"issue_number": 49
+	},
+	{
+		"file": "skir/internal/export/export.go",
+		"hash": "d1d28c608bcb1461d8a7ccd6c283a00b5139cfce",
+		"issue_number": 50
+	},
+	{
+		"file": "skir/main_test.go",
+		"hash": "7b9681ce63d0d05c693adc44d5b7d6a71d0cc89b",
+		"issue_number": 51
+	}
+]
