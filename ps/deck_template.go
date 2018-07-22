@@ -114,7 +114,8 @@ func (d *DeckTemplate) GetDoc() *ps.Document {
 func (d *DeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := d.template.SetLeader(name)
 	if err != nil {
-		log.Panic(err) // TODO(sbrow): Remove panic in DeckTemplate.SetLeader [Issue](https://github.com/sbrow/skirmish/issues/43)
+		Error(err)
+		return
 	}
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarity := ps.Compare(banner, ind)

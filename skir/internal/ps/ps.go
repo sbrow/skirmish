@@ -35,10 +35,14 @@ The tool generates them for you and puts them in the dreamkeepers data folder as
 	- 'deckcards.csv' for deck cards.
 	- 'nondeckcards.csv' for non-deckcards
 
-To load a dataset file, open Photoshop and navigate to 'Image > Variables > Data Sets...',
-then click 'Import' on the right side of the pop-up menu. It will take a minute to load, but once it does,
+To load a dataset file, open Photoshop and navigate to 'Image > Variables > Data Sets...'.
+Make sure Encoding is set to "Automatic", and "Use First Column For Data Set Names" and
+"Replace Existing Data Sets" are selected, then click 'Import' on the right side of the pop-up menu.
+It will take a minute to load, but once it does,
 hit 'OK' and then return to the terminal where you ran the tool and hit enter to continue.
 After this, the program should not require are further user interaction.
+
+The dataset file will only need to be reloaded when the Template is opened or the data is changed.
 
 Deck cards will be output to "[dreamkeepers data]/Decks/[leader name]/[card id].png", Nondeck cards will
 be output to "[dreamkeepers data]/Decks/Heroes/[card_id].png".
@@ -61,7 +65,8 @@ func Run(cmd *base.Command, args []string) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		export.DataSet("nondeckcards", "cards.Leader IS NULL ORDER BY name ASC")
+		export.DataSet("nondeckcards", "cards.Leader IS NULL")
+		export.DataSet("deckcards", "cards.Leader IS NOT NULL")
 	}()
 	//    }
 
@@ -95,7 +100,7 @@ func Run(cmd *base.Command, args []string) {
 		}
 		fmt.Println("Cards", len(cards))
 		d := ps.NewDeck(app.Normal)
-		defer d.Doc.Dump()
+		defer func() { d.Doc.Dump() }()
 		defer app.Close(app.SaveChanges)
 		app.Wait("$ Import the current dataset file into Photoshop," +
 			" then press enter to continue")
@@ -123,7 +128,6 @@ func Run(cmd *base.Command, args []string) {
 		if !strings.HasSuffix(name[:len(name)-1], "_") {
 			name += "_1"
 		}
-		wg.Wait()
 		var t ps.Template
 		switch card.(type) {
 		case *skirmish.DeckCard:
@@ -131,7 +135,11 @@ func Run(cmd *base.Command, args []string) {
 		case *skirmish.NonDeckCard:
 			t = ps.NewNonDeck(app.Normal)
 		}
-		defer t.GetDoc().Dump()
+		defer func() {
+			ps.Errors.Report()
+			t.GetDoc().Dump()
+		}()
+		wg.Wait()
 		t.ApplyDataset(name)
 		t.PNG(false)
 	}
