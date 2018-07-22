@@ -115,7 +115,6 @@ func (d *DeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := d.template.SetLeader(name)
 	if err != nil {
 		Error(err)
-		return
 	}
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarity := ps.Compare(banner, ind)

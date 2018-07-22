@@ -44,8 +44,8 @@ After this, the program should not require are further user interaction.
 
 The dataset file will only need to be reloaded when the Template is opened or the data is changed.
 
-Deck cards will be output to "[dreamkeepers data]/Decks/[leader name]/[card id].png", Nondeck cards will
-be output to "[dreamkeepers data]/Decks/Heroes/[card_id].png".
+Deck cards will be output to "[dreamkeepers-psd]/Decks/[leader name]/[card id].png", Nondeck cards will
+be output to "[dreamkeepers-psd]/Decks/Heroes/[card_id].png".
 
 Photoshop is very slow, generating every card could take 15+ minutes, so be ready to wait.
 `,
@@ -93,8 +93,7 @@ func Run(cmd *base.Command, args []string) {
 			condition = fmt.Sprintf("cards.leader='%s'", args[1])
 		}
 		condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
-		order := "cards.leader, cards.supertypes, cards.type, char_length(name) ASC"
-		cards, err := skirmish.LoadMany(fmt.Sprintf("%s ORDER BY %s", condition, order))
+		cards, err := skirmish.LoadMany(fmt.Sprintf("%s", condition))
 		if err != nil {
 			log.Panic(err)
 		}

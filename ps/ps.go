@@ -61,7 +61,6 @@ func Error(e error) {
 		err.file = filepath.Clean(file)
 		err.line = line
 	}
-	log.Println(err)
 	Errors = append(Errors, err)
 }
 

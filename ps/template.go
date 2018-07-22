@@ -263,17 +263,14 @@ func (t *template) PNG(crop bool) error {
 }
 func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stroke, err error) {
 	for _, ldr := range skirmish.Leaders {
-		if ldr.Name == name {
+		leaderInd := t.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
+		cond := ldr.Name == name
+
+		Error(leaderInd.SetVisible(cond))
+		if cond {
 			banner = ldr.Banner
 			ind = ldr.Indicator
 			barStroke = ps.Stroke{Size: 4, Color: banner}
-		}
-		leaderInd := t.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
-		if ind != nil {
-			Error(leaderInd.SetVisible(ldr.Name == name))
-		} else {
-			err := fmt.Errorf("no Layer found at \"%s%s\"", t.DeckInd.Path(), ldr.Name)
-			return banner, ind, barStroke, err
 		}
 	}
 	if banner == nil || ind == nil {

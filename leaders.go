@@ -27,7 +27,7 @@ func init() {
 			log.Println(err)
 		}
 	}
-	Leaders = []leader{}
+	Leaders = []Leader{}
 	if err := Leaders.load(); err != nil {
 		log.Println(err)
 	}
@@ -40,12 +40,12 @@ func init() {
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }
 
-type leader struct {
+type Leader struct {
 	Name      string
 	Banner    []uint8
 	Indicator []uint8
 }
-type leaders []leader
+type leaders []Leader
 
 func (l *leaders) names() []string {
 	s := make([]string, len(*l))
@@ -57,7 +57,7 @@ func (l *leaders) names() []string {
 
 func (l *leaders) load() error {
 	rows, err := Query(
-		`SELECT "name", banner, indicator FROM leaders`)
+		`SELECT "name", banner, indicator FROM leaders ORDER BY name ASC`)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (l *leaders) load() error {
 		if err := rows.Scan(&name, &banner, &indicator); err != nil {
 			return err
 		}
-		next := leader{name, banner, indicator}
+		next := Leader{name, banner, indicator}
 		if i >= len(*l) {
 			*l = append(*l, next)
 		} else {

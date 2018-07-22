@@ -60,11 +60,6 @@
 		"issue_number": 42
 	},
 	{
-		"file": "ps/deck_template.go",
-		"hash": "b0806949227a26231cbedf7436a178caad07f826",
-		"issue_number": 43
-	},
-	{
 		"file": "ps/ps.go",
 		"hash": "003dc4f9756eb0aa060ee51959a4483c38ff99cb",
 		"issue_number": 45
