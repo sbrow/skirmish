@@ -186,47 +186,37 @@ var Delim = ","
 // the first row of the output will be the contents of card.Labels().
 func (c *card) CSV(labels bool) [][]string {
 	str := make([]string, len(c.Labels()))
-	for i, label := range c.Labels() {
-		switch label {
-		case "name":
-			str[i] += c.Name()
-		case "resolve":
+	space := func(str string) string {
+		if len(str) == 0 {
+			return " "
+		}
+		return str
+	}
+	labelMap := map[string]string{
+		"name": c.Name(),
+		"resolve": func() string {
 			if c.Resolve() == "" {
-				str[i] += fmt.Sprint("0")
-			} else {
-				str[i] += fmt.Sprint(c.Resolve())
+				return "0"
 			}
-		case "speed":
-			str[i] += fmt.Sprint(c.Speed())
-		case "damage":
-			str[i] += fmt.Sprint(c.Damage())
-		case "life":
-			str[i] += fmt.Sprint(c.Life())
-		case "short":
-			var s string
-			if s = c.short; len(s) == 0 {
-				s = " "
-			}
-			str[i] += s
-		case "long":
-			var s string
-			if s = c.long; len(s) == 0 {
-				s = " "
-			}
-			str[i] += s
-		case "flavor":
-			var s string
-			if s = c.flavor; len(s) == 0 {
-				s = " "
-			}
-			str[i] += s
-		case "card_image":
+			return c.Resolve()
+		}(),
+		"speed":  fmt.Sprint(c.Speed()),
+		"damage": fmt.Sprint(c.Damage()),
+		"life":   fmt.Sprint(c.Life()),
+		"short":  space(c.Short()),
+		"long":   space(c.Long()),
+		"flavor": space(c.Flavor()),
+		"card_image": func() string {
 			img, err := c.Images()
 			if err != nil {
-				log.Panic(err)
+				log.Println(err)
 			}
-			str[i] += img[0]
-		}
+			return img[0]
+		}(),
+	}
+
+	for i, label := range c.Labels() {
+		str[i] += labelMap[label]
 		if strings.Contains(strings.Join(Leaders.names(), ","), label) {
 			str[i] += fmt.Sprint(c.Leader() == label)
 		}
