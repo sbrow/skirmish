@@ -1,29 +1,19 @@
+# Text Editor related files
+*.code-workspace
 *.sublime-project
 *.sublime-workspace
-*.txt
+.vscode/**
 
-sql/test\.csv
-
-*.prof
-
+# Files created by Go tools
 *.out
+*.prof
+*.test
+*.sum
 
+# Binary / Library files.
+*.a
 *.exe
 
-ps/sha
-.vscode/**
-*.a
-*.test
-
-ps/vendor/
-
-*.code-workspace
-
-Unreal_JSONs/
-Unreal_JSONs\.zip
-
-*.csv
+# Program config files
 config.yml
-\.default_config\.yml
-\.test\.yml
 *.log
