@@ -98,6 +98,8 @@ type deckCardUEJSON struct {
 	Copies     int    `json:"CardCountInDeck"`
 }
 
+// UEJSON returns the card formatted into JSON files that
+// are readable by Unreal Engine.
 func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	pre := log.Prefix()
 	defer log.SetPrefix(pre)
@@ -138,6 +140,8 @@ type nonDeckCardUEJSON struct {
 	ActiveStats statsUE
 }
 
+// UEJSON returns the card formatted into JSON files that
+// are readable by Unreal Engine.
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {

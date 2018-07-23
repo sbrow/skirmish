@@ -126,7 +126,7 @@
 //
 // 	skir version
 //
-// Version prints the skir version.
+// Version prints the installed version of skir.
 //
 //
 package main

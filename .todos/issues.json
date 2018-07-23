@@ -88,10 +88,5 @@
 		"file": "skir/internal/export/export.go",
 		"hash": "d1d28c608bcb1461d8a7ccd6c283a00b5139cfce",
 		"issue_number": 50
-	},
-	{
-		"file": "skir/main_test.go",
-		"hash": "7b9681ce63d0d05c693adc44d5b7d6a71d0cc89b",
-		"issue_number": 51
 	}
 ]
