@@ -17,6 +17,12 @@
 # Program config files
 config.yml
 
-*.log
+# Local Todo files
+.todos/closed.txt
 
+
+# Generated data file.
 data/
+
+# Log files.
+*.log
