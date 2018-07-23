@@ -25,7 +25,12 @@ version:
 	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./skir/internal/version/version.go
 
 fmt:
-	goimports -w ./..	
+	# OS=$(uname)
+	# if ($(OS),Windows_NT) then
+	# 	goimports.exe -w ./..
+	# else
+		goimports -w ./..	
+	# fi
 	gofmt -s -w ./..
 
 build: fmt
@@ -41,6 +46,8 @@ clean:
 
 	rm -f ./*.test
 	rm -f ./*/*.test
+
+	rm -f ./Unreal_JSONs/*.json
 
 lint: fmt
 	gometalinter.v2 --enable-gc --cyclo-over=15 ./...

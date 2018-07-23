@@ -25,5 +25,6 @@ before_script:
   - PATH="$HOME/gopath/bin:$PATH"
 
 script:
-  - go test ./... -v -covermode=count -coverprofile=cover.out
+  - go build -v  ./...
+  - go test -v -covermode=count -coverprofile=cover.out ./...
   - goveralls -coverprofile cover.out -service=travis-ci -repotoken $TOKEN

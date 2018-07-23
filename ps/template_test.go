@@ -31,7 +31,7 @@ func Test_template_SetLeader(t *testing.T) {
 			leader:   "Tinsel"},
 			false,
 		},
-		{"Interrogation Chamber", args{
+		{"Invalid Leader", args{
 			template: CardTemplate,
 			wantStr:  "SetLeader.psd",
 			leader:   "Flobble"},
@@ -55,8 +55,11 @@ func Test_template_SetLeader(t *testing.T) {
 					leader = ldr
 				}
 				if leaderInd.Visible() != (ldr.Name == tt.args.leader) {
-					t.Fatalf("leader \"%s\".Visible() == %t, want %t", ldr.Name,
-						leaderInd.Visible(), ldr.Name == tt.args.leader)
+					if tt.wantErr {
+						t.Fatalf("leader \"%s\".Visible() = %t, want %t", ldr.Name,
+							leaderInd.Visible(), ldr.Name == tt.args.leader)
+					}
+					return
 				}
 			}
 			if reflect.DeepEqual(leader, skirmish.Leader{}) {
@@ -78,8 +81,8 @@ func Test_template_SetLeader(t *testing.T) {
 			got := new(mode, tt.args.template)
 			defer got.Doc.Dump()
 			_, _, _, err := got.SetLeader(tt.args.leader)
-			if (err != nil) != wantErr {
-				t.Errorf("got.SetLeader() err = %s, wanted %t", err, wantErr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got.SetLeader() err = %s, wanted %t", err, tt.wantErr)
 			}
 
 			for _, a := range got.DeckInd.ArtLayers() {
