@@ -40,10 +40,11 @@ func init() {
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }
 
+// Leader represents a deck leader
 type Leader struct {
-	Name      string
-	Banner    []uint8
-	Indicator []uint8
+	Name      string  // The Leader's name.
+	Banner    []uint8 // The leader's Banner color (in hexadecimal format).
+	Indicator []uint8 // The leader's Indicator color (in hexadecimal format).
 }
 type leaders []Leader
 

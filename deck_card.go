@@ -194,14 +194,6 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 	return out[1:]
 }
 
-// Type returns the card's type.
-func (d *DeckCard) Type() string {
-	if d.cardType == "Hero" {
-		return "Deck Hero"
-	}
-	return d.card.Type()
-}
-
 // Images returns any and all paths to Images with this card name.
 // Multiple Images may exist to account for cameos, etc.
 func (d *DeckCard) Images() (paths []string, err error) {
