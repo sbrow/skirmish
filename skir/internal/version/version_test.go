@@ -4,17 +4,7 @@
 
 package version
 
-import (
-	"bytes"
-	"fmt"
-	"io"
-	"os"
-	"strings"
-	"testing"
-
-	"github.com/sbrow/skirmish/skir/internal/base"
-)
-
+/*
 func Test_runVersion(t *testing.T) {
 	type args struct {
 		cmd  *base.Command
@@ -65,3 +55,4 @@ Run 'skir help version' for details.
 		})
 	}
 }
+*/
