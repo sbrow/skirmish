@@ -53,5 +53,5 @@ docs: fmt
 	$(GOGENERATE) ./...
 
 release:
-	echo \# $(VERSION) Release Notes > RELEASE.md
+	echo "# $(VERSION) Release Notes" > RELEASE.md
 	git log $(LAST_VERSION)...$(VERSION) --format=%s\n%b >> RELEASE.md

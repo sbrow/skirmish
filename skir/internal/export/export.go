@@ -40,7 +40,7 @@ var formats = map[string]format{
 	"ue": {
 		desc: `a collection of JSON files for importing into Unreal Engine.
 		Deck cards are grouped by deck, Non-Deck Cards are grouped together.
-		The files can be found in the "Unreal_JSONs" folder in the skirmish repository.`,
+		The files can be found in the "skirmish/data/Unreal_JSONs/" folder.`,
 		f: UEJSON,
 	},
 }
@@ -116,8 +116,8 @@ func UEJSON() error {
 	log.SetOutput(os.Stdout)
 	log.Println("Generating JSON files for Unreal Engine...")
 	pkg := filepath.Join("github.com", "sbrow", "skirmish")
-	path := filepath.Join(os.Getenv("GOPATH"), "src", pkg, "Unreal_JSONs")
-	if err := os.Mkdir(path, 0700); err != nil {
+	path := filepath.Join(os.Getenv("GOPATH"), "src", pkg, "data", "Unreal_JSONs")
+	if err := os.MkdirAll(path, 0700); err != nil {
 		log.Println(err)
 	}
 	wg := &sync.WaitGroup{}
@@ -153,7 +153,7 @@ func UEJSON() error {
 		if err != nil {
 			return err
 		}
-		f, err := os.Create(filepath.Join("./", "Unreal_JSONs", "Non_deck.json"))
+		f, err := os.Create(filepath.Join(path, "Non_deck.json"))
 		if err != nil {
 			return err
 		}

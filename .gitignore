@@ -16,4 +16,7 @@
 
 # Program config files
 config.yml
+
 *.log
+
+data/

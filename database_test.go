@@ -57,7 +57,7 @@ func TestRecover(t *testing.T) {
 		want    []string
 		wantErr bool
 	}{
-		{"", filepath.Join(".", "internal", "test.sql"), []string{"ex_1", "ex_2"}, false},
+		{"", filepath.Join(".", "_test", "test.sql"), []string{"ex_1", "ex_2"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -114,8 +114,8 @@ func TestDump(t *testing.T) {
 		name string
 		args args
 	}{
-		{"1", args{in: filepath.Join("internal", "test.sql"),
-			out: filepath.Join("internal", "test_dump.sql")}},
+		{"1", args{in: filepath.Join("_test", "test.sql"),
+			out: filepath.Join("_test", "test_dump.sql")}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

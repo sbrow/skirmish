@@ -54,7 +54,7 @@ The valid formats are:
 		The files are generated in the top level of the "dreamkeepers-psd" repository.
 	ue	a collection of JSON files for importing into Unreal Engine.
 		Deck cards are grouped by deck, Non-Deck Cards are grouped together.
-		The files can be found in the "Unreal_JSONs" folder in the skirmish repository.
+		The files can be found in the "skirmish/data/Unreal_JSONs/" folder.
 
 ### Fill out Photoshop templates
 Usage:
