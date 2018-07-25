@@ -50,7 +50,7 @@ exit status 2
 					"skir", "main.go"),
 			}
 			args = append(args, tt.args...)
-			out, err := exec.Command("go", args...).CombinedOutput()
+			out, err := exec.Command("vgo", args...).CombinedOutput()
 			if (err != nil) != tt.wantErr {
 				t.Error(err)
 			}
