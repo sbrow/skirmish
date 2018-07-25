@@ -45,7 +45,7 @@ func TestGetTolerances(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "WrongDB" {
-				skirmish.Connect(skirmish.LocalDB.DBArgs())
+				skirmish.Connect(skirmish.Cfg.DBArgs())
 			}
 			if err := GetTolerances(); (err != nil) != tt.wantErr {
 				t.Errorf("GetTolerances() error = %v, wantErr %v", err, tt.wantErr)
