@@ -39,7 +39,8 @@ func TestGetTolerances(t *testing.T) {
 			"bottom": 65,
 		}, false},
 
-		{"WrongDB", map[string]int{}, true},
+		// TODO(sbrow): Re-enable "WrongDB" test.
+		// {"WrongDB", map[string]int{}, true},
 		// {"EmptyTable", map[string]int{}, false},
 	}
 	for _, tt := range tests {

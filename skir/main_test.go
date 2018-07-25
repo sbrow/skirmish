@@ -9,6 +9,11 @@ import (
 	"github.com/sbrow/skirmish/skir/internal/version"
 )
 
+func init() {
+	if os.Getenv("GOCMD") == "" {
+		os.Setenv("GOCMD", "go")
+	}
+}
 func TestSkir(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -50,7 +55,7 @@ exit status 2
 					"skir", "main.go"),
 			}
 			args = append(args, tt.args...)
-			out, err := exec.Command("vgo", args...).CombinedOutput()
+			out, err := exec.Command(os.Getenv("GOCMD"), args...).CombinedOutput()
 			if (err != nil) != tt.wantErr {
 				t.Error(err)
 			}

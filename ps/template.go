@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sbrow/ps"
+	ps "github.com/sbrow/ps/v2"
 	"github.com/sbrow/skirmish"
 )
 
@@ -55,9 +55,8 @@ func new(mode ps.ModeEnum, file string) *template {
 	t := &template{}
 	t.Mode = UEMode
 	ps.Mode = mode
-	Error(ps.Open(file))
 	log.Printf("Creating new template with mode %d", mode)
-	doc, err := ps.ActiveDocument()
+	doc, err := ps.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}

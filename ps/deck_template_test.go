@@ -3,7 +3,7 @@ package ps
 import (
 	"testing"
 
-	"github.com/sbrow/ps"
+	ps "github.com/sbrow/ps/v2"
 )
 
 func TestDeckTemplate_SetLeader(t *testing.T) {

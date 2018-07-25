@@ -129,7 +129,7 @@ func TestConfOverwrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := *Cfg
-	cmd := exec.Command("vgo", "run", filepath.Join(dir, "skir", "main.go"), "version")
+	cmd := exec.Command(os.Getenv("GOCMD"), "run", filepath.Join(dir, "skir", "main.go"), "version")
 	if err := cmd.Run(); err != nil {
 		t.Error(err)
 	}

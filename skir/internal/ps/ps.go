@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	app "github.com/sbrow/ps"
+	app "github.com/sbrow/ps/v2"
 	"github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/ps"
 	"github.com/sbrow/skirmish/skir/internal/base"
@@ -54,7 +54,7 @@ Photoshop is very slow, generating every card could take 15+ minutes, so be read
 func Run(cmd *base.Command, args []string) {
 	log.SetPrefix("[ps] ")
 	log.Println("Opening Photoshop")
-	if err := app.Open(ps.CardTemplate); err != nil {
+	if err := app.Init(); err != nil {
 		base.Fatalf("%s", err)
 	}
 	var leaders []string
@@ -71,28 +71,12 @@ func Run(cmd *base.Command, args []string) {
 	//    }
 
 	switch args[0] {
-	/*
-		case "crop":
-		case "undo":
-			// wg.Wait()
-			err := app.DoAction("DK", strings.Title(args[0]))
-			if err != nil {
-				log.Panic(err)
-			}
-		case "all":
-			leaders = make([]string, len(skirmish.Leaders))
-			for i, ldr := range skirmish.Leaders {
-				leaders[i] = ldr.Name
-			}
-			condition = "NOT cards.leader is NULL"
-			fallthrough
-	*/
 	case "deck":
 		if len(leaders) == 0 {
 			leaders = []string{args[1]}
 			condition = fmt.Sprintf("cards.leader='%s'", args[1])
 		}
-		condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
+		// condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
 		cards, err := skirmish.LoadMany(fmt.Sprintf("%s", condition))
 		if err != nil {
 			log.Panic(err)
@@ -121,6 +105,12 @@ func Run(cmd *base.Command, args []string) {
 		if err != nil {
 			log.Println(err)
 			os.Exit(1)
+		}
+		switch card.(type) {
+		case *skirmish.DeckCard:
+			app.Open(ps.CardTemplate)
+		case *skirmish.NonDeckCard:
+			app.Open(ps.HeroTemplate)
 		}
 		app.Wait("$ Import the current dataset file into photoshop," +
 			" then press enter to continue")

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sbrow/ps"
+	ps "github.com/sbrow/ps/v2"
 	"github.com/sbrow/skirmish"
 )
 
