@@ -39,7 +39,7 @@ func TestGetTolerances(t *testing.T) {
 			"bottom": 65,
 		}, false},
 
-		// TODO(sbrow): Re-enable "WrongDB" test.
+		// TODO(sbrow): Re-enable "WrongDB" test. [Issue](https://github.com/sbrow/skirmish/issues/53)
 		// {"WrongDB", map[string]int{}, true},
 		// {"EmptyTable", map[string]int{}, false},
 	}

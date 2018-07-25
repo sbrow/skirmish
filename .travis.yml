@@ -19,6 +19,7 @@ env:
 language: go
 
 install:
+  - $GOCMD get -u ./...
   - $GOCMD get golang.org/x/tools/cmd/cover
   - $GOCMD get github.com/mattn/goveralls
 
