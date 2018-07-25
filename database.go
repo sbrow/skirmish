@@ -37,8 +37,8 @@ func Connect(host string, port int, dbname, user, sslmode string) error {
 	return err
 }
 
-// Dump runs pg_dump, saving the contents of the standard database
-// to a SQL file (skirmish_db.sql) in the given directory.
+// Dump runs pg_dump on the connected database, saving the contents
+// to a SQL formatted file at the given path.
 func Dump(path string) {
 	args := []string{
 		"-h", Cfg.DB.Host,

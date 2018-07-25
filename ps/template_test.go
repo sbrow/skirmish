@@ -11,10 +11,17 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-func Test_template_SetLeader(t *testing.T) {
-	if runtime.GOOS != "windows" {
+func Skip(t *testing.T) {
+	switch {
+	case runtime.GOOS != "windows":
 		t.Skip("Photoshop is likely not installed")
+	case testing.Short():
+		t.Skip("Tests involving Photoshop take a long time")
 	}
+}
+
+func Test_template_SetLeader(t *testing.T) {
+	Skip(t)
 	type args struct {
 		template string
 		wantStr  string
@@ -121,4 +128,40 @@ func Test_template_SetLeader(t *testing.T) {
 func LoadTest(filename string) string {
 	path := filepath.Join(skirmish.Cfg.PS.Dir, "_test", filename)
 	return path
+}
+
+func Test_template_Path(t *testing.T) {
+	ChaoticBlast := skirmish.NewDeckCard()
+	name := "Chaotic Blast"
+	leader := "Bast"
+	copies := 3
+	ChaoticBlast.SetName(&name)
+	ChaoticBlast.SetLeader(&leader)
+	ChaoticBlast.SetRarity(&copies)
+
+	Bast := skirmish.NewDeckCard()
+	copies2 := 1
+	Bast.SetName(&leader)
+	Bast.SetRarity(&copies2)
+	tests := []struct {
+		name string
+		t    *template
+		want string
+	}{
+		{"Chaotic Blast", &template{Card: ChaoticBlast, Mode: PrintMode},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Bast", "Chaotic Blast_1")},
+		{"Chaotic Blast UE", &template{Card: ChaoticBlast, Mode: UEMode},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Card_Decks", "Bast", "3x_Chaotic_Blast")},
+		{"Bast", &template{Card: Bast, Mode: PrintMode},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Heroes", "Bast_1")},
+		{"BastUE", &template{Card: Bast, Mode: UEMode},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Card_Decks", "Heroes", "1x_Bast")},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.t.Path(); got != tt.want {
+				t.Errorf("template.Path() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

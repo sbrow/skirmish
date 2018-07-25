@@ -61,4 +61,4 @@ docs: fmt
 
 release:
 	echo "# $(VERSION) Release Notes" > RELEASE.md
-	git log $(LAST_VERSION)...$(VERSION) --format=%s\n%b >> RELEASE.md
+	git log $(LAST_VERSION)...$(VERSION) --format=%s%b >> RELEASE.md

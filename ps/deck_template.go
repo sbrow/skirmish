@@ -96,6 +96,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	Error(d.LifeBG.Refresh())
 	Error(d.TypeInd.Refresh())
 
+	if d.Mode == UEMode {
+		d.Cost.SetVisible(false)
+		d.HeroLife.SetVisible(false)
+	}
 	// doc.LayerSet("Border").Refresh() // TODO(sbrow): Fix Border.Refresh() [Issue](https://github.com/sbrow/skirmish/issues/41)
 	Error(d.FormatTitle())
 	d.FormatTextbox()

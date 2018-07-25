@@ -1,16 +1,13 @@
 package ps
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/sbrow/ps"
 )
 
 func TestDeckTemplate_SetLeader(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		t.Skip("Photoshop is likely not installed")
-	}
+	Skip(t)
 	tests := []struct {
 		name string
 	}{

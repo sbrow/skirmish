@@ -27,12 +27,14 @@ import (
 type Card interface {
 	Card() card
 	Faction() string
+	ID(int) string
 	Name() string
 	FullType() string
 	Resolve() string
 	STypes() []string
 	Speed() int
 	Type() string
+	Copies() int
 
 	SetDamage(*int)
 	SetFlavor(*string)
@@ -179,6 +181,11 @@ func (c *card) Bold() ([][]int, error) {
 	return reg.FindAllStringIndex(c.short, -1), nil
 }
 
+// Copies returns the number of times this card appears in the game.
+func (c *card) Copies() int {
+	return 1
+}
+
 // Delim is the Delimiter to use when Marshalling cards to csv format.
 var Delim = ","
 
@@ -238,7 +245,6 @@ func (c *card) Card() card {
 func (c *card) Damage() int {
 	return c.stats.damage
 }
-
 func (c *card) Life() int {
 	return c.stats.life
 }
@@ -372,7 +378,7 @@ func (c *card) Regexp() string {
 // Cards with more than one art will have an ID containing their name
 // and which version of art they use.
 func (c *card) ID(ver int) string {
-	return c.name
+	return fmt.Sprintf("%s_%d", c.name, ver)
 }
 
 // Labels prints the column labels for .csv output.

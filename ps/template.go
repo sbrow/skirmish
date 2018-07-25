@@ -11,6 +11,17 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
+// TemplateMode determines how certain layers are formatted.
+type TemplateMode uint8
+
+const (
+	// PrintMode formats the template for being printed on cardstock.
+	PrintMode TemplateMode = iota
+
+	// UEMode formats the template for import into Unreal Engine.
+	UEMode
+)
+
 // Template represents a Photoshop Template for Skirmish Cards.
 type Template interface {
 	ApplyDataset(id string)
@@ -22,6 +33,7 @@ type template struct {
 	ResolveSymbol *ps.LayerSet
 	Card          skirmish.Card
 	Dataset       string
+	Mode          TemplateMode
 	ID            *ps.ArtLayer
 	Name          *ps.ArtLayer
 	Resolve       *ps.ArtLayer
@@ -41,8 +53,9 @@ type template struct {
 // TODO(sbrow): Recover - run in safe mode. [Issue](https://github.com/sbrow/skirmish/issues/47)
 func new(mode ps.ModeEnum, file string) *template {
 	t := &template{}
-	Error(ps.Open(file))
+	t.Mode = UEMode
 	ps.Mode = mode
+	Error(ps.Open(file))
 	log.Printf("Creating new template with mode %d", mode)
 	doc, err := ps.ActiveDocument()
 	if err != nil {
@@ -184,6 +197,13 @@ func (t *template) ApplyDataset(id string) {
 	}
 	Error(t.ResolveBG.Refresh())
 	Error(t.SpeedBG.Refresh())
+
+	if t.Mode == UEMode {
+		Error(t.Resolve.SetVisible(false))
+		Error(t.Damage.SetVisible(false))
+		Error(t.Speed.SetVisible(false))
+		Error(t.Life.SetVisible(false))
+	}
 }
 
 func (t *template) Bold() error {
@@ -241,11 +261,6 @@ func (t *template) FormatTextbox() {
 // before saving.
 func (t *template) PNG(crop bool) error {
 	log.Println("Saving copy as PNG")
-
-	path := filepath.Join(skirmish.Cfg.PS.Dir, "Decks", t.Card.Leader(), t.ID.TextItem.Contents())
-	if t.Card.Leader() == "" {
-		path = strings.Replace(path, "//", "/Heroes/", 1)
-	}
 	if crop {
 		err := ps.DoAction("DK", "Crop")
 		if err != nil {
@@ -259,7 +274,7 @@ func (t *template) PNG(crop bool) error {
 			}
 		}()
 	}
-	return ps.SaveAs(path)
+	return ps.SaveAs(t.Path() + ".png")
 }
 func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stroke, err error) {
 	for _, ldr := range skirmish.Leaders {
@@ -282,4 +297,23 @@ func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stro
 	t.SpeedBG.SetColor(ind)
 	t.Damage.SetStroke(barStroke, ps.ColorWhite)
 	return banner, ind, barStroke, nil
+}
+
+// Path returns the directory a call to PNG will save to.
+func (t *template) Path() string {
+	root := filepath.Join(skirmish.Cfg.PS.Dir)
+	subFolder := "Decks"
+	deckFolder := t.Card.Leader()
+	filename := t.Card.ID(1)
+
+	if deckFolder == "" {
+		deckFolder = "Heroes"
+	}
+
+	if t.Mode == UEMode {
+		subFolder = "Card_" + subFolder
+		filename = fmt.Sprintf("%dx_%s", t.Card.Copies(), strings.TrimRight(filename, "_123"))
+		filename = strings.Replace(filename, " ", "_", -1)
+	}
+	return filepath.Join(root, subFolder, deckFolder, filename)
 }
