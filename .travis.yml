@@ -17,7 +17,8 @@ env:
 language: go
 
 install:
-  - go get -t ./...
+  - go get -u golang.org/x/vgo
+  - vgo get -t ./...
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
 
