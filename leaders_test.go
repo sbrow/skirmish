@@ -1,4 +1,4 @@
-// TODO(sbrow): Test Leaders.load
+// TODO(sbrow): Test Leaders.load [Issue](https://github.com/sbrow/skirmish/issues/37)
 package skirmish
 
 import (
@@ -27,8 +27,8 @@ func Test_Leaders_Names(t *testing.T) {
 		l    leaders
 		want []string
 	}{
-		{"1", []leader{{Name: "Guy"}}, []string{"Guy"}},
-		{"2", []leader{
+		{"1", []Leader{{Name: "Guy"}}, []string{"Guy"}},
+		{"2", []Leader{
 			{Name: "Guy"},
 			{Name: "Fawkes", Banner: []uint8{0}, Indicator: []uint8{255}},
 		},

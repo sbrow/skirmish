@@ -3,21 +3,44 @@
 package ps
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/sbrow/skirmish"
 )
 
-// TODO(sbrow): Fix psError.time
+// TODO(sbrow): Fix psError.time [Issue](https://github.com/sbrow/skirmish/issues/45)
 type psError struct {
 	err error
 	// time string
 	file string
 	line int
 	ok   bool
+}
+
+type psErrors []psError
+
+func (e psErrors) Report() error {
+	log.SetOutput(os.Stdout)
+	log.SetPrefix("")
+	log.Printf("Process completed with %d error(s)\n", len(e))
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("runtime.Caller(0) returned !ok")
+	}
+	dir := filepath.Dir(filepath.Dir(file))
+	f, err := os.Create(filepath.Join(dir, "errors.log"))
+	if err != nil {
+		return err
+	}
+	for _, err := range e {
+		fmt.Fprintf(f, "%s\n", err.String())
+	}
+	return nil
 }
 
 func (e *psError) String() string {
@@ -38,12 +61,11 @@ func Error(e error) {
 		err.file = filepath.Clean(file)
 		err.line = line
 	}
-	log.Println(err)
 	Errors = append(Errors, err)
 }
 
 // Errors holds runtime errors that occur.
-var Errors []psError
+var Errors psErrors
 
 // Tolerances holds values for offset of template objects.
 var Tolerances map[string]int

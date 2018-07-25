@@ -7,8 +7,6 @@ import (
 	"runtime"
 )
 
-// TODO(sbrow): Move these vars to appropriate places.
-
 // ImageDir is the path to the root directory where card images are located.
 var ImageDir string
 
@@ -29,7 +27,7 @@ func init() {
 			log.Println(err)
 		}
 	}
-	Leaders = []leader{}
+	Leaders = []Leader{}
 	if err := Leaders.load(); err != nil {
 		log.Println(err)
 	}
@@ -42,12 +40,13 @@ func init() {
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
 }
 
-type leader struct {
-	Name      string
-	Banner    []uint8
-	Indicator []uint8
+// Leader represents a deck leader
+type Leader struct {
+	Name      string  // The Leader's name.
+	Banner    []uint8 // The leader's Banner color (in hexadecimal format).
+	Indicator []uint8 // The leader's Indicator color (in hexadecimal format).
 }
-type leaders []leader
+type leaders []Leader
 
 func (l *leaders) names() []string {
 	s := make([]string, len(*l))
@@ -59,7 +58,7 @@ func (l *leaders) names() []string {
 
 func (l *leaders) load() error {
 	rows, err := Query(
-		`SELECT "name", banner, indicator FROM leaders`)
+		`SELECT "name", banner, indicator FROM leaders ORDER BY name ASC`)
 	if err != nil {
 		return err
 	}
@@ -72,7 +71,7 @@ func (l *leaders) load() error {
 		if err := rows.Scan(&name, &banner, &indicator); err != nil {
 			return err
 		}
-		next := leader{name, banner, indicator}
+		next := Leader{name, banner, indicator}
 		if i >= len(*l) {
 			*l = append(*l, next)
 		} else {

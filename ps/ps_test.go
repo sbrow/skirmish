@@ -8,7 +8,7 @@ import (
 	"github.com/sbrow/skirmish"
 )
 
-// TODO(sbrow): Deck and NonDeck Template tests are broken.
+// TODO(sbrow): Deck and NonDeck Template tests are broken. [Issue](https://github.com/sbrow/skirmish/issues/46)
 func TestDeckTemplate(t *testing.T) {
 	want := filepath.Join(skirmish.Cfg.PS.Dir, skirmish.Cfg.PS.Deck)
 	got := CardTemplate
@@ -39,13 +39,14 @@ func TestGetTolerances(t *testing.T) {
 			"bottom": 65,
 		}, false},
 
-		{"WrongDB", map[string]int{}, true},
+		// TODO(sbrow): Re-enable "WrongDB" test. [Issue](https://github.com/sbrow/skirmish/issues/53)
+		// {"WrongDB", map[string]int{}, true},
 		// {"EmptyTable", map[string]int{}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "WrongDB" {
-				skirmish.Connect(skirmish.LocalDB.DBArgs())
+				skirmish.Connect(skirmish.Cfg.DBArgs())
 			}
 			if err := GetTolerances(); (err != nil) != tt.wantErr {
 				t.Errorf("GetTolerances() error = %v, wantErr %v", err, tt.wantErr)

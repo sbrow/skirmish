@@ -100,9 +100,8 @@ func (d *DeckCard) NormalBorder() bool {
 		fallthrough
 	case strings.Contains(strings.Join(d.STypes(), ","), "Continuous"):
 		return false
-	default:
-		return true
 	}
+	return true
 }
 
 // CSV returns the card in CSV format. If labels is true,
@@ -111,50 +110,42 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 	out := d.card.CSV(true)
 	out[0] = d.Labels()
 	l := d.Labels()[len(d.card.Labels()):]
-	for _, label := range l {
-		switch label {
-		case "cost":
+	typ := func(label string) string {
+		return fmt.Sprint(strings.Contains(d.Type(),
+			strings.Title(label)))
+	}
+	rarity := func(label string) string {
+		return fmt.Sprint(d.Rarity() == label)
+	}
+	labelMap := map[string]string{
+		"cost": func() string {
 			cost, err := d.Cost()
-			if err == nil {
-				out[1] = append(out[1], cost)
-			} else {
-				log.Panic(err)
+			if err != nil {
+				log.Println(err)
+				return ""
 			}
-		case "type":
-			if len(d.superTypes) > 0 {
-				out[1] = append(out[1], fmt.Sprintf("%s %s",
-					strings.Join(d.superTypes, " "), d.Type()))
-			} else {
-				out[1] = append(out[1], d.Type())
-			}
-		case "action":
-			fallthrough
-		case "event":
-			fallthrough
-		case "item":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(),
-				strings.Title(label))))
-		case "continuous":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(
-				strings.Join(d.STypes(), ","), "Continuous")))
-		case "show_resolve":
-			out[1] = append(out[1], fmt.Sprint(d.Resolve() != "0" &&
-				d.Resolve() != ""))
-		case "show_speed":
-			out[1] = append(out[1], fmt.Sprint(d.Speed() != 0))
-		case "show_tough":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Follower")))
-		case "show_life":
-			out[1] = append(out[1], fmt.Sprint(strings.Contains(d.Type(), "Hero")))
-		case "border_normal":
-			out[1] = append(out[1], fmt.Sprint(d.NormalBorder()))
-		case "rare_border":
-			out[1] = append(out[1], fmt.Sprint(d.Rarity() == "rare" &&
-				!strings.Contains(strings.Join(d.STypes(), ","), "Continuous")))
-		}
-		if strings.Contains("common,uncommon,rare", label) {
-			out[1] = append(out[1], fmt.Sprint(d.Rarity() == label))
-		}
+			return cost
+		}(),
+		"type": strings.TrimSpace(fmt.Sprintf("%s %s",
+			strings.Join(d.superTypes, " "), d.Type())),
+		"action": typ("action"),
+		"event":  typ("event"),
+		"item":   typ("item"),
+		"continuous": fmt.Sprint(strings.Contains(
+			strings.Join(d.STypes(), ","), "Continuous")),
+		"show_resolve":  fmt.Sprint(d.Resolve() != "0" && d.Resolve() != ""),
+		"show_speed":    fmt.Sprint(d.Speed() != 0),
+		"show_tough":    fmt.Sprint(strings.Contains(d.Type(), "Follower")),
+		"show_life":     fmt.Sprint(strings.Contains(d.Type(), "Hero")),
+		"border_normal": fmt.Sprint(d.NormalBorder()),
+		"rare_border": fmt.Sprint(d.Rarity() == "rare" &&
+			!strings.Contains(strings.Join(d.STypes(), ","), "Continuous")),
+		"common":   rarity("common"),
+		"uncommon": rarity("uncommon"),
+		"rare":     rarity("rare"),
+	}
+	for _, label := range l {
+		out[1] = append(out[1], labelMap[label])
 	}
 	images, err := d.Images()
 	if err != nil {
@@ -201,14 +192,6 @@ func (d *DeckCard) CSV(labels bool) [][]string {
 		return out
 	}
 	return out[1:]
-}
-
-// Type returns the card's type.
-func (d *DeckCard) Type() string {
-	if d.cardType == "Hero" {
-		return "Deck Hero"
-	}
-	return d.card.Type()
 }
 
 // Images returns any and all paths to Images with this card name.

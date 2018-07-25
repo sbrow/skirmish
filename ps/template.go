@@ -7,8 +7,19 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sbrow/ps"
+	ps "github.com/sbrow/ps/v2"
 	"github.com/sbrow/skirmish"
+)
+
+// TemplateMode determines how certain layers are formatted.
+type TemplateMode uint8
+
+const (
+	// PrintMode formats the template for being printed on cardstock.
+	PrintMode TemplateMode = iota
+
+	// UEMode formats the template for import into Unreal Engine.
+	UEMode
 )
 
 // Template represents a Photoshop Template for Skirmish Cards.
@@ -22,6 +33,7 @@ type template struct {
 	ResolveSymbol *ps.LayerSet
 	Card          skirmish.Card
 	Dataset       string
+	Mode          TemplateMode
 	ID            *ps.ArtLayer
 	Name          *ps.ArtLayer
 	Resolve       *ps.ArtLayer
@@ -38,13 +50,13 @@ type template struct {
 	LifeBG        *ps.ArtLayer
 }
 
-// TODO(sbrow): Recover - run in safe mode.
+// TODO(sbrow): Recover - run in safe mode. [Issue](https://github.com/sbrow/skirmish/issues/47)
 func new(mode ps.ModeEnum, file string) *template {
 	t := &template{}
-	Error(ps.Open(file))
+	t.Mode = UEMode
 	ps.Mode = mode
 	log.Printf("Creating new template with mode %d", mode)
-	doc, err := ps.ActiveDocument()
+	doc, err := ps.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -165,7 +177,7 @@ func (t *template) ApplyDataset(id string) {
 	}
 	Error(t.Flavor.Refresh())
 	Error(t.ID.Refresh())
-	// TODO(sbrow): Skip the rest if id is different but name is not
+	// TODO(sbrow): Skip the rest if id is different but name is not [Issue](https://github.com/sbrow/skirmish/issues/48)
 	if t.Name.TextItem.Contents() == name && t.ID.TextItem.Contents() != id {
 		fmt.Println("Skipping")
 		return
@@ -178,12 +190,19 @@ func (t *template) ApplyDataset(id string) {
 	Error(t.Damage.Refresh())
 	Error(t.Short.Refresh())
 	Error(t.Long.Refresh())
-	// TODO(sbrow): (5) pprof: Improved, but can still be better.
+	// TODO(sbrow): (5) pprof: Improved, but can still be better. [Issue](https://github.com/sbrow/skirmish/issues/49)
 	for _, lyr := range t.DeckInd.ArtLayers() {
 		Error(lyr.Refresh())
 	}
 	Error(t.ResolveBG.Refresh())
 	Error(t.SpeedBG.Refresh())
+
+	if t.Mode == UEMode {
+		Error(t.Resolve.SetVisible(false))
+		Error(t.Damage.SetVisible(false))
+		Error(t.Speed.SetVisible(false))
+		Error(t.Life.SetVisible(false))
+	}
 }
 
 func (t *template) Bold() error {
@@ -241,11 +260,6 @@ func (t *template) FormatTextbox() {
 // before saving.
 func (t *template) PNG(crop bool) error {
 	log.Println("Saving copy as PNG")
-
-	path := filepath.Join(skirmish.Cfg.PS.Dir, "Decks", t.Card.Leader(), t.ID.TextItem.Contents())
-	if t.Card.Leader() == "" {
-		path = strings.Replace(path, "//", "/Heroes/", 1)
-	}
 	if crop {
 		err := ps.DoAction("DK", "Crop")
 		if err != nil {
@@ -259,21 +273,18 @@ func (t *template) PNG(crop bool) error {
 			}
 		}()
 	}
-	return ps.SaveAs(path)
+	return ps.SaveAs(t.Path() + ".png")
 }
 func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stroke, err error) {
 	for _, ldr := range skirmish.Leaders {
-		if ldr.Name == name {
+		leaderInd := t.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
+		cond := ldr.Name == name
+
+		Error(leaderInd.SetVisible(cond))
+		if cond {
 			banner = ldr.Banner
 			ind = ldr.Indicator
 			barStroke = ps.Stroke{Size: 4, Color: banner}
-		}
-		leaderInd := t.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
-		if ind != nil {
-			Error(leaderInd.SetVisible(ldr.Name == name))
-		} else {
-			err := fmt.Errorf("no Layer found at \"%s%s\"", t.DeckInd.Path(), ldr.Name)
-			return banner, ind, barStroke, err
 		}
 	}
 	if banner == nil || ind == nil {
@@ -285,4 +296,23 @@ func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stro
 	t.SpeedBG.SetColor(ind)
 	t.Damage.SetStroke(barStroke, ps.ColorWhite)
 	return banner, ind, barStroke, nil
+}
+
+// Path returns the directory a call to PNG will save to.
+func (t *template) Path() string {
+	root := filepath.Join(skirmish.Cfg.PS.Dir)
+	subFolder := "Decks"
+	deckFolder := t.Card.Leader()
+	filename := t.Card.ID(1)
+
+	if deckFolder == "" {
+		deckFolder = "Heroes"
+	}
+
+	if t.Mode == UEMode {
+		subFolder = "Card_" + subFolder
+		filename = fmt.Sprintf("%dx_%s", t.Card.Copies(), strings.TrimRight(filename, "_123"))
+		filename = strings.Replace(filename, " ", "_", -1)
+	}
+	return filepath.Join(root, subFolder, deckFolder, filename)
 }

@@ -34,7 +34,7 @@ func TestConnect(t *testing.T) {
 		{"standard", args{"localhost", 5432, "postgres", "skirmish", "disable"}, false},
 		{"ssl_Enabled", args{"localhost", 5432, "postgres", "skirmish", "require"}, false},
 
-		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error.
+		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error. [Issue](https://github.com/sbrow/skirmish/issues/35)
 		{"wrong_user", args{"localhost", 5432, "butts", "skirmish", "disable"}, false},
 		{"wrong_database", args{"localhost", 5432, "postgres", "skirmish23", "disable"}, false},
 	}
@@ -57,7 +57,7 @@ func TestRecover(t *testing.T) {
 		want    []string
 		wantErr bool
 	}{
-		{"", filepath.Join(".", "internal", "test.sql"), []string{"ex_1", "ex_2"}, false},
+		{"", filepath.Join(".", "_test", "test.sql"), []string{"ex_1", "ex_2"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -94,7 +94,7 @@ func TestRecover(t *testing.T) {
 	}
 }
 
-// TODO(sbrow): TestDump accurate testing.
+// TODO(sbrow): TestDump accurate testing. [Issue](https://github.com/sbrow/skirmish/issues/36)
 func TestDump(t *testing.T) {
 	var out bytes.Buffer
 	cmd := exec.Command("psql", "-V")
@@ -114,8 +114,8 @@ func TestDump(t *testing.T) {
 		name string
 		args args
 	}{
-		{"1", args{in: filepath.Join("internal", "test.sql"),
-			out: filepath.Join("internal", "test_dump.sql")}},
+		{"1", args{in: filepath.Join("_test", "test.sql"),
+			out: filepath.Join("_test", "test_dump.sql")}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

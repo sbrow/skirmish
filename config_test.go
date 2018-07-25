@@ -4,7 +4,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/go-yaml/yaml"
@@ -53,7 +55,7 @@ func TestConf_Load(t *testing.T) {
 	}{
 		{"None", FDef.Name(), def, false},
 		{"Current", FCurrent.Name(), current, false},
-		// TODO(sbrow): Re-enable TestConf_Load tests.
+		// TODO(sbrow): Re-enable TestConf_Load tests. [Issue](https://github.com/sbrow/skirmish/issues/34)
 		// {"Default", ".default_config.yml", def, false},
 		// {"DefaultNoConfig", "config.yml", *DefaultCfg(), false},
 		// {"Default_NoArgs", "", current, false},
@@ -119,13 +121,15 @@ func TestConf_Save(t *testing.T) {
 }
 
 func TestConfOverwrite(t *testing.T) {
+	_, file, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(file)
 	old := *Cfg
 	*Cfg = current
 	if err := Cfg.Save("config.yml"); err != nil {
 		t.Fatal(err)
 	}
 	want := *Cfg
-	cmd := exec.Command("skir", "version")
+	cmd := exec.Command(os.Getenv("GOCMD"), "run", filepath.Join(dir, "skir", "main.go"), "version")
 	if err := cmd.Run(); err != nil {
 		t.Error(err)
 	}

@@ -7,6 +7,7 @@ package version
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/sbrow/skirmish/skir/internal/base"
 )
@@ -15,15 +16,14 @@ var CmdVersion = &base.Command{
 	Run:       runVersion,
 	UsageLine: "version",
 	Short:     "print skir version",
-	Long:      `Version prints the skir version.`,
+	Long:      `Version prints the installed version of skir.`,
 }
 
-const Version = "v0.13.1"
+const Version = "v0.13.0-30-g131a602"
 
 func runVersion(cmd *base.Command, args []string) {
 	if len(args) != 0 {
 		cmd.Usage()
-		base.Exit()
 	}
-	fmt.Printf("skir version %s", Version)
+	fmt.Fprintf(os.Stderr, "skir version %s", Version)
 }

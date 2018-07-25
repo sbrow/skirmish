@@ -70,13 +70,19 @@ func newVisual(name, leader string, copies int) *visual {
 
 func (c card) UEJSON(ident bool) ([]byte, error) {
 	obj := cardUEJSON{}
-	obj.Name = c.name
+	pre := log.Prefix()
+	defer log.SetPrefix(pre)
+	obj.Name = c.Name()
 	obj.Type = "CTE_" + c.cardType
-	resolve, _ := strconv.Atoi(c.resolve)
+	resolve, err := strconv.Atoi(c.resolve)
+	if err != nil {
+		log.SetPrefix(fmt.Sprintf("[%s] ", c.Name()))
+		log.Println(err)
+	}
 	obj.Stats = statsUE{Life: c.Life(), Damage: c.Damage(), Speed: c.Speed(),
 		Resolve: resolve, Short: c.Short(), Long: c.Long(), Flavor: c.Flavor()}
 	obj.Abilities = make([]string, 0)
-	obj.visual = *newVisual(c.name, "Common", 1)
+	obj.visual = *newVisual(c.Name(), "Common", 1)
 	obj.SystemData = systemData{make([]string, 0), make([]string, 0), make([]string, 0)}
 	if ident {
 		return json.MarshalIndent(obj, "", "\t")
@@ -92,7 +98,11 @@ type deckCardUEJSON struct {
 	Copies     int    `json:"CardCountInDeck"`
 }
 
+// UEJSON returns the card formatted into JSON files that
+// are readable by Unreal Engine.
 func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
+	pre := log.Prefix()
+	defer log.SetPrefix(pre)
 	byt, err := d.card.UEJSON(ident)
 	if err != nil {
 		log.Panic(err)
@@ -104,10 +114,11 @@ func (d DeckCard) UEJSON(ident bool) ([]byte, error) {
 	}
 	cost, err := strconv.Atoi(d.cost)
 	if err != nil {
+		log.SetPrefix(fmt.Sprintf("[%s] ", d.Name()))
 		log.Println(err)
 	}
 
-	obj.CardName = d.name
+	obj.CardName = d.Name()
 	obj.Supertypes = "CTE_" + strings.Join(d.superTypes, "_")
 	obj.Name = strings.Replace(d.name, " ", "", -1)
 	obj.Leader = d.leader
@@ -129,6 +140,8 @@ type nonDeckCardUEJSON struct {
 	ActiveStats statsUE
 }
 
+// UEJSON returns the card formatted into JSON files that
+// are readable by Unreal Engine.
 func (n NonDeckCard) UEJSON(ident bool) ([]byte, error) {
 	byt, err := n.card.UEJSON(ident)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sbrow/ps"
+	ps "github.com/sbrow/ps/v2"
 	"github.com/sbrow/skirmish"
 )
 
@@ -80,10 +80,10 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	}
 	d.Card = card
 
-	// TODO(sbrow): Skip SetLeader when appropriate.
+	// TODO(sbrow): Skip SetLeader when appropriate. [Issue](https://github.com/sbrow/skirmish/issues/38)
 	d.SetLeader(d.Card.Leader())
 
-	// TODO(sbrow): run d.Template.ApplyDataset as a go routine?
+	// TODO(sbrow): run d.Template.ApplyDataset as a go routine? [Issue](https://github.com/sbrow/skirmish/issues/40)
 	d.template.ApplyDataset(id)
 	Error(d.Type.Refresh())
 
@@ -96,7 +96,11 @@ func (d *DeckTemplate) ApplyDataset(id string) {
 	Error(d.LifeBG.Refresh())
 	Error(d.TypeInd.Refresh())
 
-	// doc.LayerSet("Border").Refresh() // TODO(sbrow): Fix Border.Refresh()
+	if d.Mode == UEMode {
+		d.Cost.SetVisible(false)
+		d.HeroLife.SetVisible(false)
+	}
+	// doc.LayerSet("Border").Refresh() // TODO(sbrow): Fix Border.Refresh() [Issue](https://github.com/sbrow/skirmish/issues/41)
 	Error(d.FormatTitle())
 	d.FormatTextbox()
 }
@@ -110,11 +114,11 @@ func (d *DeckTemplate) GetDoc() *ps.Document {
 // SetLeader changes fill layers that contain a leader color,
 // and sets them to the colors of the given leader.
 //
-// TODO(sbrow): Fix DeckTemplate.SetLeader skip
+// TODO(sbrow): Fix DeckTemplate.SetLeader skip [Issue](https://github.com/sbrow/skirmish/issues/39)
 func (d *DeckTemplate) SetLeader(name string) {
 	banner, ind, barStroke, err := d.template.SetLeader(name)
 	if err != nil {
-		log.Panic(err) // TODO(sbrow): Remove panic in DeckTemplate.SetLeader
+		Error(err)
 	}
 	counterStroke := ps.Stroke{Size: 4, Color: ind}
 	rarity := ps.Compare(banner, ind)
@@ -149,7 +153,7 @@ func (d *DeckTemplate) SetLeader(name string) {
 // FormatTextbox sets appropriate tolerances for the text layers in the
 // textbox, and hides or resizes elements that are too large.
 //
-// TODO(sbrow): (3) Make type font smaller when 2 or more supertypes.
+// TODO(sbrow): (3) Make type font smaller when 2 or more supertypes. [Issue](https://github.com/sbrow/skirmish/issues/42)
 func (d *DeckTemplate) FormatTextbox() {
 	if len(d.Card.STypes()) > 1 {
 		d.Type.TextItem.SetSize(9.0)

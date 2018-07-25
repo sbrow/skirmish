@@ -8,6 +8,7 @@ import (
 	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
+// CmdRecover runs skirmish.Recover.
 var CmdRecover = &base.Command{
 	UsageLine: "recover",
 	Short:     "reload the database from disk",

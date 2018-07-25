@@ -183,15 +183,16 @@ func (n *NonDeckCard) CSV(labels bool) [][]string {
 	out := n.card.CSV(true)
 	out[0] = n.Labels()
 	l := n.Labels()[len(n.card.Labels()):]
+	faction := func(label string) string {
+		return fmt.Sprint(n.Faction() == label)
+	}
+	labelMap := map[string]string{
+		"Halo":       "false",
+		"Troika":     faction("Troika"),
+		"Nightmares": faction("Nightmares"),
+	}
 	for _, label := range l {
-		switch label {
-		case "Halo":
-			out[1] = append(out[1], "false")
-		case "Troika":
-			fallthrough
-		case "Nightmares":
-			out[1] = append(out[1], fmt.Sprint(n.Faction() == label))
-		}
+		out[1] = append(out[1], labelMap[label])
 	}
 	images, err := n.Images()
 	if err != nil {
