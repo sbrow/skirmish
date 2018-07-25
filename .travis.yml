@@ -22,7 +22,7 @@ install:
   - go get github.com/mattn/goveralls
 
 before_script:
-  - PATH="$HOME/gopath/bin:$PATH"
+  - PATH="$PATH:GOPATH/bin"
 
 script:
   - vgo build -v  ./...
