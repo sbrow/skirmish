@@ -13,6 +13,7 @@ services:
 env:
   global:
     - PGPORT=5432
+    - PATH=$PATH:GOPATH/bin
 
 language: go
 
@@ -20,9 +21,6 @@ install:
   - go get -u golang.org/x/vgo
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
-
-before_script:
-  - PATH="$PATH:GOPATH/bin"
 
 script:
   - vgo build -v  ./...
