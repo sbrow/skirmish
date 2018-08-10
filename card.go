@@ -416,7 +416,7 @@ func (c *card) FullType() string {
 }
 
 func (c *card) String() string {
-	return noSpaces(fmt.Sprintf("%s %s %s %s- \"%s\"", c.Name(), c.Resolve(),
+	return noSpaces(fmt.Sprintf("%s {%s} %s %s- \"%s\"", c.Name(), c.Resolve(),
 		c.stats.String(), c.FullType(), pruneNewLines(c.short)))
 }
 

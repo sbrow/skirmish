@@ -157,7 +157,7 @@ func (n *NonDeckCard) StatsB() string {
 
 // String returns the string representation of n.
 func (n *NonDeckCard) String() string {
-	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s- \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
+	return fmt.Sprintf("%s //\n%s (Halo) {%s} %s %s- \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
 		n.StatsB(), n.card.FullType(), pruneNewLines(*n.shortB))
 }
 
