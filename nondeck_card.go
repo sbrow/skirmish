@@ -49,6 +49,16 @@ func (n *NonDeckCard) Faction() string {
 	return n.faction
 }
 
+// ResolveB returns n's Halo side Resolve.
+//
+// If n doesn't have a Halo side, ResolveB returns "".
+func (n *NonDeckCard) ResolveB() string {
+	if n.resolveB == nil {
+		return ""
+	}
+	return fmt.Sprintf("+%d", *n.resolveB)
+}
+
 // SpeedB returns n's Halo side speed.
 //
 // If n doesn't have a Halo side, SpeedB returns 0.
@@ -148,7 +158,7 @@ func (n *NonDeckCard) StatsB() string {
 // String returns the string representation of n.
 func (n *NonDeckCard) String() string {
 	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
-		n.card.Type(), n.StatsB(), pruneNewLines(*n.shortB))
+		n.card.FullType(), n.StatsB(), pruneNewLines(*n.shortB))
 }
 
 // Images returns the path's to n's front side and Halo side images (if applicable).
