@@ -157,8 +157,8 @@ func (n *NonDeckCard) StatsB() string {
 
 // String returns the string representation of n.
 func (n *NonDeckCard) String() string {
-	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
-		n.card.FullType(), n.StatsB(), pruneNewLines(*n.shortB))
+	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s- \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
+		n.StatsB(), n.card.FullType(), pruneNewLines(*n.shortB))
 }
 
 // Images returns the path's to n's front side and Halo side images (if applicable).
