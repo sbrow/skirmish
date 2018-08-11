@@ -79,6 +79,14 @@ func Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return db.Query(query, args...)
 }
 
+// Query returns the results of a query to the standard database
+// with the expectation that the query will return one result.
+// Errors are deferred until Row's Scan method is called.
+// The args are for any placeholder parameters in the query.
+func QueryRow(query string, args ...interface{}) *sql.Row {
+	return db.QueryRow(query, args...)
+}
+
 // Recover runs pg_recover on the database, loading data from the SQL file in the given directory.
 func Recover(path string) (sql.Result, error) {
 	f, err := os.Open(path)
