@@ -69,6 +69,16 @@ func (n *NonDeckCard) SpeedB() int {
 	return (*n.statsB).speed
 }
 
+// ShortB returns n's Halo side short text.
+//
+// If n doesn't have a Halo side, ShortB returns 0.
+func (n *NonDeckCard) ShortB() string {
+	if n.shortB == nil {
+		return ""
+	}
+	return *n.shortB
+}
+
 // SetDamageB sets n's Halo side damage to d.
 //
 // If n doesn't have a Halo side, or if d is nil, SetDamageB does nothing.
@@ -157,8 +167,8 @@ func (n *NonDeckCard) StatsB() string {
 
 // String returns the string representation of n.
 func (n *NonDeckCard) String() string {
-	return fmt.Sprintf("%s //\n%s (Halo) {%s} %s %s- \"%s\"", n.card.String(), n.card.Name(), *n.resolveB,
-		n.StatsB(), n.card.FullType(), pruneNewLines(*n.shortB))
+	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s- \"%s\"", n.card.String(), n.card.Name(), n.ResolveB(),
+		n.StatsB(), n.card.FullType(), pruneNewLines(n.ShortB()))
 }
 
 // Images returns the path's to n's front side and Halo side images (if applicable).
