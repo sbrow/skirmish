@@ -9,6 +9,7 @@ import (
 
 	"github.com/sbrow/skirmish/skir/internal/base"
 	"github.com/sbrow/skirmish/skir/internal/card"
+	"github.com/sbrow/skirmish/skir/internal/deck"
 	"github.com/sbrow/skirmish/skir/internal/dump"
 	"github.com/sbrow/skirmish/skir/internal/export"
 	"github.com/sbrow/skirmish/skir/internal/help"
@@ -16,17 +17,20 @@ import (
 	"github.com/sbrow/skirmish/skir/internal/recover"
 	"github.com/sbrow/skirmish/skir/internal/sql"
 	"github.com/sbrow/skirmish/skir/internal/version"
+	"github.com/sbrow/skirmish/skir/internal/xml"
 )
 
 func init() {
 	base.Commands = []*base.Command{
 		card.CmdCard,
+		deck.CmdDeck,
 		dump.CmdDump,
 		export.CmdExport,
 		ps.CmdPS,
 		recover.CmdRecover,
 		sql.CmdSQL,
 		version.CmdVersion,
+		xml.CmdXML,
 	}
 }
 

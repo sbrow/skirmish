@@ -71,13 +71,18 @@ func Run(cmd *base.Command, args []string) {
 	//    }
 
 	switch args[0] {
+	case "all":
+		condition = "cards.leader IS NOT NULL ORDER BY cards.leader, name ASC"
+		fallthrough
 	case "deck":
-		if len(leaders) == 0 {
-			leaders = []string{args[1]}
+		if condition == "" {
+			if len(leaders) == 0 {
+				leaders = []string{args[1]}
+			}
 			condition = fmt.Sprintf("cards.leader='%s'", args[1])
 		}
 		// condition += " AND NOT EXISTS(SELECT name FROM completed WHERE name=cards.name)"
-		cards, err := skirmish.LoadMany(fmt.Sprintf("%s", condition))
+		cards, err := skirmish.LoadMany(condition)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -129,7 +134,11 @@ func Run(cmd *base.Command, args []string) {
 			t.GetDoc().Dump()
 		}()
 		wg.Wait()
-		t.ApplyDataset(name)
-		t.PNG(false)
+		imgs, err := card.Images()
+		ps.Error(err)
+		for i := range imgs {
+			t.ApplyDataset(card.ID(i + 1))
+			ps.Error(t.PNG(false))
+		}
 	}
 }

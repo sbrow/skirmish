@@ -18,7 +18,7 @@ type cardXML struct {
 	Text    string   `xml:"text,omitempty"`
 }
 
-func (c *card) MarshalXML() ([]byte, error) {
+func (c *card) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	obj := cardXML{
 		Name: c.name,
 		Set:  "DKC",
@@ -40,14 +40,14 @@ func (c *card) MarshalXML() ([]byte, error) {
 	if c.Speed() > 0 {
 		obj.Text = fmt.Sprintf("%d Speed.\n%s", c.Speed(), obj.Text)
 	}
-	return xml.MarshalIndent(obj, "\t\t", "\t")
+	return enc.EncodeElement(obj, start)
 }
 
 func (c *card) XML() ([]byte, error) {
-	return c.MarshalXML()
+	return []byte{}, nil // return c.MarshalXML()
 }
 
-func (c *DeckCard) MarshalXML() ([]byte, error) {
+func (c *DeckCard) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	obj := cardXML{
 		Name: c.name,
 		Set:  "DKC",
@@ -69,7 +69,7 @@ func (c *DeckCard) MarshalXML() ([]byte, error) {
 	if c.Speed() > 0 {
 		obj.Text = fmt.Sprintf("%d Speed.\n%s", c.Speed(), obj.Text)
 	}
-	return xml.MarshalIndent(obj, "\t\t", "\t")
+	return enc.EncodeElement(obj, start)
 }
 func decks() {
 	str :=

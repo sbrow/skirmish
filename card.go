@@ -2,6 +2,7 @@ package skirmish
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
@@ -60,6 +61,7 @@ type Card interface {
 	String() string
 	Images() ([]string, error)
 	Bold() ([][]int, error)
+	MarshalXML(*xml.Encoder, xml.StartElement) error
 	UEJSON(ident bool) ([]byte, error)
 	CSV(bool) [][]string
 	XML() ([]byte, error)
@@ -92,8 +94,11 @@ func LoadMany(cond string) ([]Card, error) {
 			return []Card{}, err
 		}
 	}
+	if cond == "" {
+		cond = "1"
+	}
 	out := make([]Card, 0)
-	str := fmt.Sprintf("select %s from cards where %s ORDER BY name ASC",
+	str := fmt.Sprintf("select %s from cards WHERE %s",
 		strings.Join(props, ", "), cond)
 	rows, err := Query(str)
 	if err != nil {

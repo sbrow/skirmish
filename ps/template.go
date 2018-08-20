@@ -28,8 +28,10 @@ type Template interface {
 	GetDoc() *ps.Document
 	PNG(crop bool) error
 }
+
 type template struct {
 	Doc           *ps.Document
+	CardID        string
 	ResolveSymbol *ps.LayerSet
 	Card          skirmish.Card
 	Dataset       string
@@ -157,6 +159,7 @@ func (t *template) ApplyDataset(id string) {
 	if ps.Mode == ps.Fast && t.Dataset == id {
 		return
 	}
+	t.CardID = id
 	log.Printf("Applying dataset %s\n", id)
 	log.SetPrefix(fmt.Sprintf("[%s] ", id))
 	name := strings.TrimRight(id, "_123")
@@ -303,7 +306,7 @@ func (t *template) Path() string {
 	root := filepath.Join(skirmish.Cfg.PS.Dir)
 	subFolder := "Decks"
 	deckFolder := t.Card.Leader()
-	filename := t.Card.ID(1)
+	filename := t.CardID
 
 	if deckFolder == "" {
 		deckFolder = "Heroes"

@@ -77,25 +77,29 @@ func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 //		3. Checks all its values against the active document.
 // 		4. Updates any fields that were changed.
 // 		5. Calls any necessary formatting functions.
-func (n *NonDeckTemplate) ApplyDataset(name string) {
+func (n *NonDeckTemplate) ApplyDataset(id string) {
 	// Skip if dataset already applied.
-	if ps.Mode == ps.Fast && n.Dataset == name && n.Card != nil {
+	if ps.Mode == ps.Fast && n.Dataset == id && n.Card != nil {
 		return
+	}
+	name := id
+	if strings.Contains(name, " (Halo)") {
+		name = strings.TrimSuffix(name, " (Halo)")
 	}
 	card, err := skirmish.Load(name)
 	if err != nil {
 		n.Doc.Dump()
-		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", name))
+		log.Panic(fmt.Sprintf("Card '%s' not found. Check your spelling.", id))
 	}
 	n.Card = card
 
-	n.SetLeader(n.Card.Leader())
-	id := name
-	if strings.Contains(id, "(Halo)") {
-		tmp := strings.Split(id, " ")
-		id = tmp[0]
-	}
 	n.template.ApplyDataset(id)
+	n.SetLeader(n.Card.Name())
+
+	if n.Mode == UEMode {
+		n.Plus.SetVisible(false)
+	}
+	n.template.FormatTextbox()
 }
 
 // GetDoc returns the Document associated with this Template.
@@ -128,6 +132,7 @@ func (n *NonDeckTemplate) SetLeader(name string) {
 	halo[0].SetColor(ind)
 	halo[1].SetColor(banner)
 	n.HeroInd.SetColor(ind)
+	n.SpeedBG.SetColor(banner)
 	n.BtmBG.SetColor(banner)
 	n.Plus.SetStroke(barStroke, ps.ColorWhite)
 	n.Resolve.SetStroke(barStroke, ps.ColorWhite)

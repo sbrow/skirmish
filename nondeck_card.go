@@ -44,6 +44,15 @@ func (n *NonDeckCard) LifeB() string {
 	return fmt.Sprintf("-%d", life)
 }
 
+// ID returns this card's unique identifier.
+func (n *NonDeckCard) ID(ver int) string {
+	id := n.Name()
+	if ver != 1 {
+		id += " (Halo)"
+	}
+	return id
+}
+
 // Faction returns the faction that n is aligned to.
 func (n *NonDeckCard) Faction() string {
 	return n.faction
@@ -56,7 +65,7 @@ func (n *NonDeckCard) ResolveB() string {
 	if n.resolveB == nil {
 		return ""
 	}
-	return fmt.Sprintf("+%d", *n.resolveB)
+	return fmt.Sprintf("+%s", *n.resolveB)
 }
 
 // SpeedB returns n's Halo side speed.
@@ -77,6 +86,16 @@ func (n *NonDeckCard) ShortB() string {
 		return ""
 	}
 	return *n.shortB
+}
+
+// LongB returns n's Halo side long text.
+//
+// If n doesn't have a Halo side, LongB returns 0.
+func (n *NonDeckCard) LongB() string {
+	if n.longB == nil {
+		return ""
+	}
+	return *n.longB
 }
 
 // SetDamageB sets n's Halo side damage to d.
@@ -167,8 +186,12 @@ func (n *NonDeckCard) StatsB() string {
 
 // String returns the string representation of n.
 func (n *NonDeckCard) String() string {
-	return fmt.Sprintf("%s //\n%s (Halo) %s %s %s- \"%s\"", n.card.String(), n.card.Name(), n.ResolveB(),
-		n.StatsB(), n.card.FullType(), pruneNewLines(n.ShortB()))
+	str := n.card.String()
+	if n.ResolveB() != "" {
+		str += fmt.Sprintf(" //\n%s (Halo) %s %s %s- \"%s\"", n.card.Name(), n.ResolveB(),
+			n.StatsB(), n.card.FullType(), pruneNewLines(n.ShortB()))
+	}
+	return str
 }
 
 // Images returns the path's to n's front side and Halo side images (if applicable).
@@ -239,6 +262,12 @@ func (n *NonDeckCard) CSV(labels bool) [][]string {
 		copy(out[j], out[j-1])
 		out[j][0] = fmt.Sprintf("%s (Halo)", n.name)
 		out[j][1] = fmt.Sprintf("%s- %s", n.Type(), n.name)
+		out[j][2] = n.ResolveB()
+		out[j][3] = fmt.Sprint(n.SpeedB())
+		out[j][4] = fmt.Sprint(n.DamageB())
+		out[j][5] = n.LifeB()
+		out[j][6] = fmt.Sprintf(`"%s"`, n.ShortB())
+		out[j][7] = fmt.Sprintf(`"%s"`, n.LongB())
 		out[j][i] = images[j-1]
 		out[j][20] = "true"
 	}
