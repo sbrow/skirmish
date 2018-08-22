@@ -94,7 +94,7 @@ func DefaultCfg() *Config {
 	}
 	host := os.Getenv("PSQL_HOST")
 	if host == "" {
-		host = "localhost"
+		host = "www.epfgames.com"
 	}
 	cfg.DB = cfgDB{
 		Dir:  filepath.Join(home, "dreamkeepers-dat"),
