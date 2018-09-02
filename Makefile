@@ -14,7 +14,6 @@ GOGENERATE=$(GOCMD) generate
 # BINARY_NAME=mybinary
 # BINARY_WIN=$(BINARY_NAME).exe
 
-
 default: version fmt build test clean install docs
 
 all: version fmt build test clean install docs lint release
@@ -25,12 +24,7 @@ version:
 	sed -i -r 's/(const Version = ")([^"]*)(")/\1$(VERSION)\3/' ./skir/internal/version/version.go
 
 fmt:
-	# OS=$(uname)
-	# if ($(OS),Windows_NT) then
-	# 	goimports.exe -w ./..
-	# else
-		goimports -w ./..	
-	# fi
+	goimports -w ./..	
 	gofmt -s -w ./..
 
 build: fmt

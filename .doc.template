@@ -17,10 +17,37 @@
 
 
 ## <a name="pkg-installation">Installation</a>
-Make sure you have the [Go programming language](https://golang.org/dl/) installed. Then, open your favourite editor and run:
+
+### 1. Install the Go programming language.
+Make sure you have version 1.11 of the [Go programming language](https://golang.org/dl/) installed.
+if you are unsure of your version, you can open a command prompt and run this command
+
 ```sh
-$ go get -u {{ .ImportPath }}
+$ go version
 ```
+
+If you are running 64-bit windows, `go version` should return
+```
+go version go1.11 windows/amd64
+```
+
+### 2.download the `{{ base .ImportPath }}` package
+
+Run `$ go get {{ .ImportPath }}`. This will download the package to `$GOPATH/src/{{ .ImportPath }}`, on Windows `$GOPATH` will usually be `C:\Users\[Username]\go`.
+
+### 3. Enable go modules
+There are two ways you can proceed to accomplish this:
+
+#### 3.a Move the package (recommended).
+You'll need to move the install folder somewhere else, (it can be anywhere). I moved mine to `C:Users/Spencer/gomod/{{ .ImportPath }}`.
+
+#### 3.b enable GO111MODULES
+Set an environment variable for your terminal `GO111MODULES=on`.  This method is not recommended because it breaks `go get`. In order to download packages with `go get`, you'll have to temporarily change `GO111MODULES` back to `auto` or `off`.
+
+### 4. Install the package.
+At this point, `cd` into the project folder and run `go install ./...`. You should see something like this: ![installation](example_install.png)
+
+
 <!---
 {{if $.Examples}}
 #### <a name="pkg-examples">Examples</a>{{- range $.Examples}}

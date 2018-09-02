@@ -427,7 +427,7 @@ func (c *card) String() string {
 
 func noSpaces(s string) string {
 	reg := regexp.MustCompile(`\s\s+`)
-	return reg.ReplaceAllString(s, " ")
+	return strings.Replace(reg.ReplaceAllString(s, " "), "{}", "", 1)
 }
 func pruneNewLines(s string) string {
 	reg := regexp.MustCompile("[\r\n]+")
