@@ -31,7 +31,7 @@ If you are running 64-bit windows, `go version` should return
 go version go1.11 windows/amd64
 ```
 
-### 2.download the `{{ base .ImportPath }}` package
+### 2. Download the `{{ base .ImportPath }}` package
 
 Run `$ go get {{ .ImportPath }}`. This will download the package to `$GOPATH/src/{{ .ImportPath }}`, on Windows `$GOPATH` will usually be `C:\Users\[Username]\go`.
 
