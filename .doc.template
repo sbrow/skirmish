@@ -47,6 +47,8 @@ Set an environment variable for your terminal `GO111MODULES=on`.  This method is
 ### 4. Install the package.
 At this point, `cd` into the project folder and run `go install ./...`. You should see something like this: ![installation](example_install.png)
 
+Now, you should be all set. You can run `skir version` to confirm that the program has installed ![skir version](example_test.png).
+
 
 <!---
 {{if $.Examples}}
