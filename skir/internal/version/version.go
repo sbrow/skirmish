@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sbrow/skirmish"
 	"github.com/sbrow/skirmish/skir/internal/base"
 )
 
@@ -19,11 +20,9 @@ var CmdVersion = &base.Command{
 	Long:      `Version prints the installed version of skir.`,
 }
 
-const Version = "v0.13.0-30-g131a602"
-
 func runVersion(cmd *base.Command, args []string) {
 	if len(args) != 0 {
 		cmd.Usage()
 	}
-	fmt.Fprintf(os.Stderr, "skir version %s", Version)
+	fmt.Fprintf(os.Stderr, "skir version %s", skirmish.Version)
 }

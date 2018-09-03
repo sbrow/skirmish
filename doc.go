@@ -6,3 +6,5 @@
 // More specifically, it provides an interface between the SQL database
 // that contains card data, Photoshop, and the user (via CLI).
 package skirmish
+
+var Version = "undefined"
