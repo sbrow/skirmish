@@ -3,6 +3,7 @@ package ps
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -276,7 +277,9 @@ func (t *template) PNG(crop bool) error {
 			}
 		}()
 	}
-	return ps.SaveAs(t.Path() + ".png")
+	path := t.Path() + ".png"
+	Error(os.MkdirAll(filepath.Dir(path), os.ModeDir))
+	return ps.SaveAs(path)
 }
 func (t *template) SetLeader(name string) (banner, ind ps.Hex, barStroke ps.Stroke, err error) {
 	for _, ldr := range skirmish.Leaders {
