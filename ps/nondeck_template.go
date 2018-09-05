@@ -31,7 +31,7 @@ type NonDeckTemplate struct {
 // it is not currently open.
 func NewNonDeck(mode ps.ModeEnum) *NonDeckTemplate {
 	log.SetPrefix("[ps.NewNonDeck] ")
-	n := &NonDeckTemplate{template: *new(mode, HeroTemplate)}
+	n := &NonDeckTemplate{template: *newTemplate(mode, HeroTemplate)}
 	areas := n.Doc.MustExist("Areas").(*ps.LayerSet)
 	if areas == nil {
 		log.Panic("LayerSet \"Areas\" was not found!")

@@ -54,8 +54,8 @@ type template struct {
 }
 
 // TODO(sbrow): Recover - run in safe mode. [Issue](https://github.com/sbrow/skirmish/issues/47)
-func new(mode ps.ModeEnum, file string) *template {
-	t := &template{}
+func newTemplate(mode ps.ModeEnum, file string) *template {
+	t := new(template)
 	t.Mode = UEMode
 	ps.Mode = mode
 	log.Printf("Creating new template with mode %d", mode)
@@ -322,10 +322,18 @@ func (t *template) Path() string {
 		if err != nil {
 			Error(err)
 		} else if len(img) > 1 {
-			number -= len(img) - 1
+			number = max(len(img)-1, 1)
 		}
 		filename = fmt.Sprintf("%dx_%s", number, t.CardID)
-		filename = strings.Replace(filename, " ", "_", -1)
 	}
+	filename = strings.Replace(filename, " ", "_", -1)
 	return filepath.Join(root, subFolder, deckFolder, filename)
+}
+
+// max returns the larger of a and b.
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

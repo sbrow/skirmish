@@ -35,7 +35,7 @@ type DeckTemplate struct {
 // NewDeck will open Photoshop and the corresponding Template .psd if
 // it is not currently open.
 func NewDeck(mode ps.ModeEnum) *DeckTemplate {
-	d := &DeckTemplate{template: *new(mode, CardTemplate)}
+	d := &DeckTemplate{template: *newTemplate(mode, CardTemplate)}
 	txt := d.Doc.MustExist("Text").(*ps.LayerSet)
 	d.Banners = d.Doc.MustExist("Areas").(*ps.LayerSet).MustExist("TitleBackground").(*ps.LayerSet)
 	if ps.Mode == 2 {

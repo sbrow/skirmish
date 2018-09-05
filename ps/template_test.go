@@ -54,7 +54,7 @@ func Test_template_SetLeader(t *testing.T) {
 			defer func() {
 				Errors.Report()
 			}()
-			want := new(mode, LoadTest(tt.args.wantStr))
+			want := newTemplate(mode, LoadTest(tt.args.wantStr))
 			var leader skirmish.Leader
 			for _, ldr := range skirmish.Leaders {
 				leaderInd := want.DeckInd.MustExist(ldr.Name).(*ps.ArtLayer)
@@ -85,7 +85,7 @@ func Test_template_SetLeader(t *testing.T) {
 			want.Damage.SetStroke(barStroke, ps.ColorWhite)
 
 			defer want.Doc.Dump()
-			got := new(mode, tt.args.template)
+			got := newTemplate(mode, tt.args.template)
 			defer got.Doc.Dump()
 			_, _, _, err := got.SetLeader(tt.args.leader)
 			if (err != nil) != tt.wantErr {
@@ -139,26 +139,26 @@ func Test_template_Path(t *testing.T) {
 	ChaoticBlast.SetLeader(&leader)
 	ChaoticBlast.SetRarity(&copies)
 
-	Bast := skirmish.NewDeckCard()
-	copies2 := 1
+	Bast := new(skirmish.NonDeckCard)
 	Bast.SetName(&leader)
-	Bast.SetRarity(&copies2)
+
 	tests := []struct {
 		name string
 		t    *template
 		want string
 	}{
 		{"Chaotic Blast", &template{Card: ChaoticBlast, Mode: PrintMode},
-			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Bast", "Chaotic Blast_1")},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Bast", "Chaotic_Blast_1")},
 		{"Chaotic Blast UE", &template{Card: ChaoticBlast, Mode: UEMode},
-			filepath.Join(skirmish.Cfg.PS.Dir, "Card_Decks", "Bast", "3x_Chaotic_Blast")},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Card_Decks", "Bast", "3x_Chaotic_Blast_1")},
 		{"Bast", &template{Card: Bast, Mode: PrintMode},
-			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Heroes", "Bast_1")},
+			filepath.Join(skirmish.Cfg.PS.Dir, "Decks", "Heroes", "Bast")},
 		{"BastUE", &template{Card: Bast, Mode: UEMode},
 			filepath.Join(skirmish.Cfg.PS.Dir, "Card_Decks", "Heroes", "1x_Bast")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.t.CardID = tt.t.Card.ID(1)
 			if got := tt.t.Path(); got != tt.want {
 				t.Errorf("template.Path() = %v, want %v", got, tt.want)
 			}

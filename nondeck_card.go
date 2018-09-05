@@ -20,6 +20,12 @@ type NonDeckCard struct {
 	flavorB  *string
 }
 
+// Copies returns the number of copies that appear in the game.
+// Copies always returns 1.
+func (n *nonDeckCardUEJSON) Copies() int {
+	return 1
+}
+
 // DamageB returns n's Halo side damage.
 //
 // If n doesn't have a Halo side, DamageB returns 0.
