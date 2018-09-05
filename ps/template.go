@@ -317,7 +317,14 @@ func (t *template) Path() string {
 
 	if t.Mode == UEMode {
 		subFolder = "Card_" + subFolder
-		filename = fmt.Sprintf("%dx_%s", t.Card.Copies(), strings.TrimRight(filename, "_123"))
+		number := t.Card.Copies()
+		img, err := t.Card.Images()
+		if err != nil {
+			Error(err)
+		} else if len(img) > 1 {
+			number -= len(img) - 1
+		}
+		filename = fmt.Sprintf("%dx_%s", number, t.CardID)
 		filename = strings.Replace(filename, " ", "_", -1)
 	}
 	return filepath.Join(root, subFolder, deckFolder, filename)
