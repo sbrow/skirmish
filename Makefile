@@ -18,7 +18,7 @@ LDFLAGS="-X github.com/sbrow/skirmish.Version=$(VERSION)"
 
 default: fmt build test clean install docs
 
-all: fmt build test clean install docs lint release
+all: default lint release
 
 fast: test install docs
 

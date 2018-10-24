@@ -4,21 +4,33 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/user"
+	usr "os/user"
 	"path/filepath"
-	"runtime"
 
 	"github.com/go-yaml/yaml"
 )
 
+// user holds the current user.
+var user *usr.User
+
+// CfgDir is the location that config files are saved to.
+var CfgDir string
+
 func init() {
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		log.Fatal("could not retrieve Caller")
+	var err error
+	user, err = usr.Current()
+	if err != nil {
+		log.Println("Couldn't get current user.")
 	}
 
-	Cfg = &Config{}
-	if err := Cfg.Load(filepath.Join(filepath.Dir(file), "config.yml")); err != nil {
+	CfgDir = filepath.Join(user.HomeDir, ".skir")
+
+	if err := os.MkdirAll(CfgDir, os.ModeDir); err != nil {
+		log.Println(err)
+	}
+
+	Cfg = new(Config)
+	if err := Cfg.Load(filepath.Join(CfgDir, "config.yml")); err != nil {
 		log.Println(err)
 	}
 	ImageDir = filepath.Join(Cfg.PS.Dir, "Images")
@@ -78,15 +90,11 @@ type Config struct {
 // DefaultCfg returns a full, basic Config.
 func DefaultCfg() *Config {
 
-	user, err := user.Current()
-	if err != nil {
-		log.Println("Couldn't get current user.")
-	}
 	var home string
 	if user != nil {
 		home = user.HomeDir
 	}
-	cfg := &Config{}
+	cfg := new(Config)
 	cfg.PS = cfgPS{
 		Dir:     filepath.Join(home, "dreamkeepers-psd"),
 		Deck:    "Template009.1.psd",
@@ -128,8 +136,8 @@ func (c *Config) Load(path string) error {
 	if err != nil {
 		if filepath.Base(path) == "config.yml" {
 			*c = *DefaultCfg()
-			log.Println("Creating a new log file from default values.")
-			return c.Save("config.yml")
+			log.Println("Creating a new config file from default values.")
+			return c.Save(filepath.Join(CfgDir, "config.yml"))
 		}
 		return err
 	}

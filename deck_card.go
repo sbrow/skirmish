@@ -18,7 +18,7 @@ type DeckCard struct {
 
 // NewDeckCard returns a pointer to a new, empty DeckCard.
 func NewDeckCard() *DeckCard {
-	return &DeckCard{}
+	return new(DeckCard)
 }
 
 // Copies returns the number of copies that appear in this card's deck.

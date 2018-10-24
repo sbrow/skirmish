@@ -132,14 +132,14 @@ func LoadMany(cond string) ([]Card, error) {
 		c.SetRegexp(regexp)
 		switch {
 		case cost != nil:
-			d := &DeckCard{}
+			d := new(DeckCard)
 			d.SetCard(c)
 			d.SetCost(*cost)
 			d.SetRarity(rarity)
 			d.SetLeader(leader)
 			out = append(out, d)
 		case supertypes != nil && strings.Contains(*supertypes, "Leader"):
-			n := &NonDeckCard{}
+			n := new(NonDeckCard)
 			n.SetCard(c)
 			n.SetResolveB(resolveB)
 			n.SetLifeB(lifeB)
@@ -160,7 +160,7 @@ func LoadMany(cond string) ([]Card, error) {
 
 // NewCard returns a new, empty Card object.
 func NewCard() Card {
-	return &card{}
+	return new(card)
 }
 
 // Card is the base struct for DeckCards and NonDeckCards.

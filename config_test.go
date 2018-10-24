@@ -64,7 +64,7 @@ func TestConf_Load(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := &Config{}
+			got := new(Config)
 			err := got.Load(tt.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadCfg() error = %v, wantErr %v", err, tt.wantErr)

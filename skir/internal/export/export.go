@@ -120,7 +120,7 @@ func UEJSON() error {
 	if err := os.MkdirAll(path, 0700); err != nil {
 		log.Println(err)
 	}
-	wg := &sync.WaitGroup{}
+	wg := new(sync.WaitGroup)
 	wg.Add(len(skirmish.Leaders))
 	for _, leader := range skirmish.Leaders {
 		go func(name string) {

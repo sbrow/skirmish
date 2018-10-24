@@ -109,7 +109,7 @@ func (n *NonDeckCard) LongB() string {
 // If n doesn't have a Halo side, or if d is nil, SetDamageB does nothing.
 func (n *NonDeckCard) SetDamageB(d *int) {
 	if n.statsB == nil {
-		n.statsB = &stats{}
+		n.statsB = new(stats)
 	}
 	if d != nil {
 		n.statsB.damage = *d
@@ -137,7 +137,7 @@ func (n *NonDeckCard) SetFlavorB(f *string) {
 // If n doesn't have a Halo side, or if l is nil, SetLifeB does nothing.
 func (n *NonDeckCard) SetLifeB(l *string) {
 	if n.statsB == nil {
-		n.statsB = &stats{}
+		n.statsB = new(stats)
 	}
 	if l != nil {
 		life, err := strconv.Atoi(*l)
@@ -175,7 +175,7 @@ func (n *NonDeckCard) SetShortB(s *string) {
 // If n doesn't have a Halo side, or if s is nil, SetDamageB does nothing.
 func (n *NonDeckCard) SetSpeedB(s *int) {
 	if n.statsB == nil {
-		n.statsB = &stats{}
+		n.statsB = new(stats)
 	}
 	if s != nil {
 		n.statsB.speed = *s
