@@ -52,7 +52,7 @@ func (l *leaders) names() []string {
 
 func (l *leaders) load() error {
 	rows, err := Query(
-		`SELECT "name", banner, indicator FROM leaders ORDER BY name ASC`)
+		`SELECT leaders.name, leaders.banner, leaders.indicator FROM leaders ORDER BY leaders.name ASC`)
 	if err != nil {
 		return err
 	}

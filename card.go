@@ -80,7 +80,7 @@ func Load(name string) (Card, error) {
 	return nil, errors.New("No card found with name " + name + ", check your spelling.")
 }
 
-var props = []string{"\"name\"", "cards.type", "cards.supertypes",
+var props = []string{"cards.name", "cards.type", "cards.supertypes",
 	"cards.short", "cards.long", "flavor", "resolve", "cards.speed", "cards.damage",
 	"cards.life", "cards.faction", "cards.cost", "cards.rarity", "cards.leader",
 	"cards.resolve_b", "cards.life_b", "cards.speed_b", "cards.damage_b",
