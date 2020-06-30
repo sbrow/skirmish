@@ -42,7 +42,8 @@ type cfgDB struct {
 	Port int    // the server port.
 	Name string // The name of the database.
 	User string // The user name to login as.
-	SSL  bool   // Whether or not to use SSL.
+	Pass string
+	SSL  bool // Whether or not to use SSL.
 }
 
 type cfgPS struct {
@@ -62,6 +63,7 @@ var LocalDB = &Config{
 		Port: 5432,
 		Name: "postgres",
 		User: "postgres",
+		Pass: "",
 		SSL:  false,
 	},
 }
@@ -83,7 +85,8 @@ type Config struct {
 		Port int    // the server port.
 		Name string // The name of the database.
 		User string // The user name to login as.
-		SSL  bool   // Whether or not to use SSL.
+		Pass string
+		SSL  bool // Whether or not to use SSL.
 	} `yaml:"database"`
 }
 
@@ -110,19 +113,20 @@ func DefaultCfg() *Config {
 		Port: 5432,
 		Name: "skirmish",
 		User: "guest",
+		Pass: "",
 		SSL:  false,
 	}
 	return cfg
 }
 
 // DBArgs returns c.DB as a list of args that can be passed to Connect().
-func (c Config) DBArgs() (host string, port int, DBName, user, sslmode string) {
+func (c Config) DBArgs() (host string, port int, DBName, user, pass, sslmode string) {
 	modes := map[bool]string{
 		false: "disable",
 		true:  "require",
 	}
 	d := c.DB
-	return d.Host, d.Port, d.Name, d.User, modes[d.SSL]
+	return d.Host, d.Port, d.Name, d.User, d.Pass, modes[d.SSL]
 }
 
 // Load imports Config data from a YAML file at the given path.

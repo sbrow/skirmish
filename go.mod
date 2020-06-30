@@ -1,5 +1,7 @@
 module github.com/sbrow/skirmish
 
+go 1.14
+
 require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/kr/pretty v0.1.0 // indirect
