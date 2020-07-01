@@ -3,6 +3,7 @@ package skirmish
 import (
 	"bytes"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,11 +19,20 @@ var DBMutex sync.Mutex
 
 const PSQLVersion = "psql (PostgreSQL) 10.2\r\n"
 
+func TestURL(t *testing.T) {
+	arg := "postgres://obnxybrbmwsukg:1e2914885588ab26b6f13e24102baad0aeaf92ed5448db868354bef46242072e@ec2-54-163-246-5.compute-1.amazonaws.com:5432/dc7mil8al0ns3e"
+
+	got, _ := url.Parse(arg)
+	log.Fatalf("%+v\n", got.RawPath)
+
+}
+
 func TestConnect(t *testing.T) {
 	type args struct {
 		Host string
 		Port int
 		User string
+		Pass string
 		Name string
 		SSL  string
 	}
@@ -31,18 +41,18 @@ func TestConnect(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"standard", args{"localhost", 5432, "postgres", "skirmish", "disable"}, false},
-		{"ssl_Enabled", args{"localhost", 5432, "postgres", "skirmish", "require"}, false},
+		{"standard", args{"localhost", 5432, "postgres", "", "skirmish", "disable"}, false},
+		{"ssl_Enabled", args{"localhost", 5432, "postgres", "", "skirmish", "require"}, false},
 
 		// TODO(sbrow): find out why connecting to database with non-existent user/database doesn't throw an error. [Issue](https://github.com/sbrow/skirmish/issues/35)
-		{"wrong_user", args{"localhost", 5432, "butts", "skirmish", "disable"}, false},
-		{"wrong_database", args{"localhost", 5432, "postgres", "skirmish23", "disable"}, false},
+		{"wrong_user", args{"localhost", 5432, "butts", "", "skirmish", "disable"}, false},
+		{"wrong_database", args{"localhost", 5432, "postgres", "", "skirmish23", "disable"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			DBMutex.Lock()
 			defer DBMutex.Unlock()
-			err := Connect(tt.args.Host, tt.args.Port, tt.args.Name, tt.args.User, tt.args.SSL)
+			err := Connect(tt.args.Host, tt.args.Port, tt.args.Name, tt.args.User, tt.args.Pass, tt.args.SSL)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Connect() error = %v, wantErr %v", err, tt.wantErr)
 			}

@@ -90,7 +90,7 @@ var props = []string{"cards.name", "cards.type", "cards.supertypes",
 // and returns them as a slice of Card objects.
 func LoadMany(cond string) ([]Card, error) {
 	if db == nil {
-		if err := Connect(LocalDB.DBArgs()); err != nil {
+		if err := AutoConnect(); err != nil {
 			return []Card{}, err
 		}
 	}

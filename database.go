@@ -3,18 +3,27 @@ package skirmish
 import (
 	"bytes"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	// PSQL Driver.
 	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
 )
 
 // The database to retrieve card info from.
 var db *sql.DB
+
+func init() {
+	viper.BindEnv("DATABASE_URL")
+}
 
 // Connect connects to a postgreSQL database with the given options:
 // 		- host is the ip of the server.
@@ -31,6 +40,25 @@ func Connect(host string, port int, dbname, user, pass, sslmode string) error {
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	return err
+}
+
+func AutoConnect() error {
+	dbUrl := viper.Get("DATABASE_URL")
+	urlString, ok := dbUrl.(string)
+	if !ok {
+		return errors.New("DATABASE_URL is not a string")
+	}
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return err
+	}
+	port, err := strconv.Atoi(u.Port())
+	if err != nil {
+		return err
+	}
+	path := strings.TrimLeft(u.Path, "/")
+	password, _ := u.User.Password()
+	return Connect(u.Hostname(), port, path, u.User.Username(), password, "require")
 }
 
 // Dump runs pg_dump on the connected database, saving the contents

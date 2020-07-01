@@ -18,7 +18,7 @@ var Leaders leaders
 
 func init() {
 	if db == nil {
-		if err := Connect(Cfg.DBArgs()); err != nil {
+		if err := AutoConnect(); err != nil {
 			log.Println(err)
 		}
 	}
